@@ -1,5 +1,5 @@
 import {
-  AbilityDef, AgentDef, BossPattern, EnemyDef, MapDef, Rarity, RunResult, Stats, UpgradeChoice,
+  AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
 import { WEAPONS, WEAPON_LIST } from '../data/weapons';
 import {
@@ -33,12 +33,16 @@ export interface Enemy {
 export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
   crit: boolean; color: string; hit: number[]; homing: boolean; target: Enemy | null; burn: number;
-  explode: number; mark: number; dead: boolean; knife: boolean; chain: boolean;
+  explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean;
 }
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
 export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number }
-export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string }
-export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean }
+export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number }
+export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number }
+/** Efecto visual de habilidad (solo decorativo). follow: x,y son relativos al jugador. */
+export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string }
+export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise';
+export type ProjLook = '' | 'dagger' | 'arrow';
 export interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string; circle: boolean }
 export interface FloatText { x: number; y: number; life: number; text: string; color: string; size: number }
 export interface Fx { kind: 0 | 1; x: number; y: number; x2: number; y2: number; r: number; life: number; max: number; color: string }
@@ -91,7 +95,7 @@ export class GameEngine {
     x: 0, y: 0, r: 12, hp: 100, shield: 0, face: 0, iframes: 0, invuln: 0, sinceHit: 99,
     dashT: 0, dashVx: 0, dashVy: 0, dashPow: 0, dashHit: [] as number[], lastDirX: 1, lastDirY: 0,
   };
-  buffs = { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, stormT: 0, stormAcc: 0, stormPow: 0 };
+  buffs = { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '' as string, stormT: 0, stormAcc: 0, stormPow: 0 };
   cds = { special: 0, secondary: 0 };
   ult = 25;
 
@@ -101,6 +105,7 @@ export class GameEngine {
   gems: Gem[] = [];
   turrets: Turret[] = [];
   strikes: Strike[] = [];
+  vfx: Vfx[] = [];
   droneAngle = 0;
   droneCd: number[] = [];
   particles = ring<Particle>(700, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, size: 2, color: '#fff', circle: false }));
@@ -286,7 +291,7 @@ export class GameEngine {
         const t = this.nearestEnemy(p.x, p.y, 520);
         if (t) {
           const a = Math.atan2(t.y - p.y, t.x - p.x) + rnd(-0.08, 0.08);
-          this.spawnProj(p.x, p.y, a, 760, b.stormPow * 10 * s.dmg, 4, 560, 4 + s.pierce, false, this.agent.accent, { knife: true });
+          this.spawnProj(p.x, p.y, a, 760, b.stormPow * 10 * s.dmg, 4, 560, 4 + s.pierce, false, this.agent.accent, { look: 'dagger' });
         }
       }
     }
@@ -397,12 +402,12 @@ export class GameEngine {
   }
 
   spawnProj(x: number, y: number, a: number, speed: number, dmg: number, r: number, range: number, pierce: number, crit: boolean, color: string,
-    o: { homing?: boolean; burn?: number; explode?: number; mark?: number; knife?: boolean; chain?: boolean; target?: Enemy | null } = {}) {
+    o: { homing?: boolean; burn?: number; explode?: number; mark?: number; look?: ProjLook; chain?: boolean; target?: Enemy | null } = {}) {
     const p = this.projPool.pop() ?? ({ hit: [] } as unknown as Proj);
     p.x = x; p.y = y; p.vx = Math.cos(a) * speed; p.vy = Math.sin(a) * speed; p.dmg = dmg; p.r = r;
     p.life = range / speed; p.pierce = pierce; p.crit = crit; p.color = color; p.hit.length = 0;
     p.homing = !!o.homing; p.target = o.target ?? null; p.burn = o.burn ?? 0; p.explode = o.explode ?? 0;
-    p.mark = o.mark ?? 0; p.dead = false; p.knife = !!o.knife; p.chain = !!o.chain;
+    p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain;
     this.projs.push(p);
   }
 
@@ -1015,6 +1020,7 @@ export class GameEngine {
         const tg = this.nearestEnemy(t.x, t.y, 340);
         if (tg) {
           const a = Math.atan2(tg.y - t.y, tg.x - t.x);
+          t.ang = a;
           this.spawnProj(t.x, t.y, a, 640, t.power * 10 * s.dmg, 4, 360, 1 + s.pierce, false, t.color, { chain: s.chain > 0 });
           t.cd = 0.3;
           this.sfx('shoot', 0.06);
@@ -1044,6 +1050,8 @@ export class GameEngine {
   private perform(ab: AbilityDef, ult: boolean) {
     const p = this.player, s = this.stats, b = this.buffs;
     const dmg = ab.power * 10 * s.dmg;
+    const ox = p.x, oy = p.y;
+    this.abilityFx(ab, ult, ox, oy, true);
     switch (ab.kind) {
       case 'dash': {
         const dist = (ab.radius ?? 180), T = 0.18;
@@ -1069,7 +1077,7 @@ export class GameEngine {
           if (pool.length) { const e = pool[(Math.random() * pool.length) | 0]; x = e.x + rnd(-20, 20); y = e.y + rnd(-20, 20); }
           else { const a = rnd(Math.PI * 2), d = rnd(120, 300); x = p.x + Math.cos(a) * d; y = p.y + Math.sin(a) * d; }
           const delay = (ab.delay ?? 0.5) + (ult ? i * 0.07 : i * 0.12);
-          this.strikes.push({ x, y, r: R, t: 0, dur: delay, dmg, color: ab.color, stun: 0, burn: 0, slow: 0, mark: 0, dead: false });
+          this.strikes.push({ x, y, r: R, t: 0, dur: delay, dmg, color: ab.color, stun: 0, burn: 0, slow: 0, mark: 0, dead: false, fx: ab.fx, ox: p.x, oy: p.y });
         }
         break;
       }
@@ -1079,7 +1087,7 @@ export class GameEngine {
           const a = (i / n) * Math.PI * 2 + rnd(0.5);
           const o = { x: p.x + Math.cos(a) * 44, y: p.y + Math.sin(a) * 44 };
           this.resolve(o, 10);
-          this.turrets.push({ x: o.x, y: o.y, t: ab.duration ?? 12, cd: 0.2, power: ab.power, dead: false, color: ab.color });
+          this.turrets.push({ x: o.x, y: o.y, t: ab.duration ?? 12, max: ab.duration ?? 12, cd: 0.2, power: ab.power, dead: false, color: ab.color, ang: a });
           this.sparks(o.x, o.y, ab.color, 6, 100, 0.4);
         }
         break;
@@ -1088,7 +1096,7 @@ export class GameEngine {
         const n = ab.count ?? 4;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2;
-          this.spawnProj(p.x, p.y, a, 380, dmg, 6, 1500, ult ? 99 : 3 + s.pierce, false, ab.color, { homing: true, mark: ab.mark ?? 0, knife: true });
+          this.spawnProj(p.x, p.y, a, 380, dmg, 6, 1500, ult ? 99 : 3 + s.pierce, false, ab.color, { homing: true, mark: ab.mark ?? 0, look: 'arrow' });
         }
         break;
       }
@@ -1108,7 +1116,7 @@ export class GameEngine {
         break;
       }
       case 'frenzy':
-        b.frenzyT = ab.duration ?? 5; b.frenzyMul = ab.power; b.frenzyHeal = ab.heal ?? 0;
+        b.frenzyT = ab.duration ?? 5; b.frenzyMul = ab.power; b.frenzyHeal = ab.heal ?? 0; b.frenzyFx = ab.fx ?? '';
         this.addFx(0, p.x, p.y, 0, 0, 80, 0.4, ab.color);
         break;
       case 'storm':
@@ -1124,6 +1132,79 @@ export class GameEngine {
     if (ab.invuln && ab.kind !== 'dash') p.invuln = Math.max(p.invuln, ab.invuln);
     if (ab.kind === 'heal' || ab.heal) this.sparks(p.x, p.y, '#5dff9a', 10, 120, 0.7);
     if (ult) { this.showBanner(ab.name.toUpperCase(), ab.color, 1.6); this.shakeT = Math.max(this.shakeT, 0.3); }
+    this.abilityFx(ab, ult, ox, oy, false);
+  }
+
+  /* ------------------------------------------------------------------ efectos de habilidades (decorativos) */
+  addVfx(kind: Vfx['kind'], pal: string, x: number, y: number, r: number, dur: number, o: Partial<Vfx> = {}) {
+    if (this.vfx.length > 160) return;
+    this.vfx.push({ kind, pal, x, y, r, t: 0, dur, ang: 0, seed: (Math.random() * 1e6) | 0, ...o });
+  }
+  /** Lanza los efectos de una habilidad. before = antes de aplicarla (p. ej. origen de un teletransporte). */
+  private abilityFx(ab: AbilityDef, ult: boolean, ox: number, oy: number, before: boolean) {
+    const p = this.player, s = this.stats, R = (ab.radius ?? 150) * s.area, big = ult ? 1.4 : 1;
+    const rise = (sprite: string, pal: string, n: number, spread: number, dur: number) => {
+      for (let i = 0; i < n; i++) {
+        const a = rnd(Math.PI * 2), d = rnd(spread * 0.3, spread);
+        this.addVfx('rise', pal, Math.cos(a) * d, Math.sin(a) * d * 0.6, 0, rnd(dur * 0.7, dur), { follow: true, sprite, ang: rnd(0.35) });
+      }
+    };
+    if (before) {
+      if (ab.fx === 'shadow') this.addVfx('blast', 'shadow', ox, oy, 70 * big, 0.7);
+      if (ab.fx === 'wind') this.addVfx('gust', 'wind', ox, oy, 70, 0.4, { ang: Math.atan2(p.lastDirY, p.lastDirX) });
+      return;
+    }
+    switch (ab.fx) {
+      case 'wind': this.addVfx('blast', 'wind', ox, oy, 46, 0.35); break;
+      case 'blades': this.addVfx('blast', 'wind', p.x, p.y, 60 * big, 0.35, { kind: 'ring' }); break;
+      case 'fire':
+        this.addVfx('blast', 'fire', p.x, p.y, R, 0.6 * big);
+        this.addVfx('flames', 'fire', p.x, p.y, R * 0.75, 0.9 * big, { seed: ult ? 22 : 12 });
+        if (ult) this.addVfx('beam', 'fire', p.x, p.y, 70, 0.8);
+        break;
+      case 'hothands':
+        this.addVfx('blast', 'fire', p.x, p.y, 56, 0.45);
+        rise('flame', 'fire', 10, 34, 0.9);
+        break;
+      case 'heal':
+        this.addVfx('blast', 'heal', p.x, p.y, 64, 0.5);
+        rise('cross', 'heal', 9, 30, 1);
+        break;
+      case 'ice':
+        this.addVfx('blast', 'ice', p.x, p.y, R, 0.5);
+        this.addVfx('field', 'ice', p.x, p.y, R, ab.duration ?? 3);
+        break;
+      case 'holy':
+        this.addVfx('beam', 'holy', p.x, p.y, 90, 1.1);
+        this.addVfx('blast', 'holy', p.x, p.y, R, 0.8);
+        rise('cross', 'holy', 14, 46, 1.3);
+        break;
+      case 'soul':
+        this.addVfx('eye', 'soul', 0, -44, 0, 0.9, { follow: true, r: ult ? 2 : 1 });
+        this.addVfx('blast', 'soul', p.x, p.y, 70 * big, 0.5);
+        break;
+      case 'boom':
+        this.addVfx('blast', 'boom', p.x, p.y, R, 0.55);
+        this.addVfx('blast', 'smoke', p.x, p.y, R * 1.15, 1.1);
+        break;
+      case 'arrow': this.addVfx('blast', 'scan', p.x, p.y, 50 * big, 0.35, { kind: 'ring' }); break;
+      case 'scan':
+        this.addVfx('ring', 'scan', p.x, p.y, R, 0.9);
+        this.addVfx('ring', 'scan', p.x, p.y, R * 0.6, 0.7);
+        break;
+      case 'electric': this.addVfx('blast', 'electric', p.x, p.y, 70 * big, 0.4); break;
+      case 'shadow': this.addVfx('blast', 'shadow', p.x, p.y, (ab.count ?? 110) * s.area, 0.7); break;
+      case 'paranoia':
+        this.addVfx('blast', 'shadow', p.x, p.y, R, 0.8);
+        this.addVfx('eye', 'shadow', 0, -44, 0, 0.9, { follow: true, r: 1 });
+        break;
+      case 'turret': this.addVfx('blast', 'turret', p.x, p.y, 54, 0.35, { kind: 'ring' }); break;
+      case 'stim':
+        this.addVfx('blast', 'stim', p.x, p.y, 60, 0.4, { kind: 'ring' });
+        rise('chevron', 'stim', 8, 30, 0.9);
+        break;
+      // grenade / rocket / orbital: se dibujan en vuelo (strikes) y estallan en updateStrikes
+    }
   }
 
   private updateStrikes(dt: number) {
@@ -1133,8 +1214,17 @@ export class GameEngine {
       if (s.t >= s.dur) {
         s.dead = true;
         this.explodeAt(s.x, s.y, s.r, s.dmg, s.color);
+        if (s.fx === 'orbital') {
+          this.addVfx('beam', 'orbital', s.x, s.y, s.r * 0.8, 0.45);
+          this.addVfx('blast', 'orbital', s.x, s.y, s.r, 0.6);
+        } else if (s.fx === 'grenade' || s.fx === 'rocket') {
+          this.addVfx('blast', 'boom', s.x, s.y, s.r, 0.55);
+          if (s.fx === 'rocket') this.addVfx('blast', 'smoke', s.x, s.y, s.r * 1.1, 1);
+        }
       }
     }
+    for (const v of this.vfx) v.t += dt;
+    if (this.vfx.length) this.vfx = this.vfx.filter(v => v.t < v.dur);
   }
 
   /* ------------------------------------------------------------------ efectos visuales */

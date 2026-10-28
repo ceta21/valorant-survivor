@@ -5,6 +5,7 @@ import { SW, SH, spriteCanvas, agentSkin, IDLE, WALK, RUN, CAST, Pose } from './
 import { renderChunk, CPX } from './MapArt';
 import { CS } from './World';
 import { gunCanvas, gunSize } from './weaponSprites';
+import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelField, pixelLine, snapAng, sprite } from './vfx';
 
 type Ctx = CanvasRenderingContext2D;
 type MakeCanvas = (w: number, h: number) => any;
@@ -117,12 +118,41 @@ export class Renderer {
     }
     // marcas de impacto de ataques de área
     for (const s of e.strikes) {
-      if (!vis(s.x, s.y, s.r)) continue;
+      if (!vis(s.x, s.y, s.r) && !vis(s.ox, s.oy, 40)) continue;
       const k = s.t / s.dur;
-      g.fillStyle = hexA(s.color, 0.12 + k * 0.22); g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.fill();
-      g.strokeStyle = hexA(s.color, 0.9); g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.stroke();
-      g.beginPath(); g.arc(s.x, s.y, s.r * k, 0, 7); g.stroke();
+      if (s.fx === 'orbital') {
+        // retícula que se cierra y parpadea más rápido al acercarse el impacto
+        const blink = Math.floor(e.time * (6 + k * 18)) % 2 === 0;
+        g.globalAlpha = 0.5 + k * 0.5;
+        pixelCircle(g, s.x, s.y, s.r * (1.1 - 0.2 * k), blink ? '#ff9f3d' : '#ffe0a0', PX, 4, e.time * 2);
+        g.globalAlpha = 1;
+        pixelCircle(g, s.x, s.y, s.r * 0.35 * (1 - k * 0.5), '#ff9f3d', PX, 1, -e.time * 3);
+        pixelLine(g, s.x - 10, s.y, s.x + 10, s.y, '#ffe0a0', PX); pixelLine(g, s.x, s.y - 10, s.x, s.y + 10, '#ffe0a0', PX);
+        if (k > 0.75) { g.globalAlpha = (k - 0.75) * 2.4; pixelBeam(g, s.x, s.y, 10, 0, 'orbital', e.time, PX); g.globalAlpha = 1; }
+      } else if (s.fx === 'grenade' || s.fx === 'rocket') {
+        pixelCircle(g, s.x, s.y, s.r, Math.floor(e.time * 10) % 2 ? '#ffb02e' : '#ff6a1c', PX, 2);
+        // vuelo en parábola desde donde se lanzó
+        const h = Math.sin(k * Math.PI) * (s.fx === 'rocket' ? 120 : 70);
+        const fx = s.ox + (s.x - s.ox) * k, fy = s.oy + (s.y - s.oy) * k - h;
+        g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((s.ox + (s.x - s.ox) * k) / PX) * PX - 6, Math.round((s.oy + (s.y - s.oy) * k) / PX) * PX, 12, 4);
+        if (s.fx === 'grenade') drawSprite(g, sprite('grenade', 'boom', this.makeCanvas), fx, fy, PX, Math.floor(k * 8) * (Math.PI / 2));
+        else {
+          const k2 = Math.min(1, k + 0.02), h2 = Math.sin(k2 * Math.PI) * 120;
+          const ang = Math.atan2(s.oy + (s.y - s.oy) * k2 - h2 - fy, s.ox + (s.x - s.ox) * k2 - fx);
+          for (let i = 1; i <= 3; i++) {
+            g.fillStyle = PAL.fire[4 - i];
+            g.fillRect(Math.round((fx - Math.cos(ang) * (18 + i * 5)) / PX) * PX - 2, Math.round((fy - Math.sin(ang) * (18 + i * 5)) / PX) * PX - 2, 4, 4);
+          }
+          drawSprite(g, sprite('rocket', 'fire', this.makeCanvas), fx, fy, PX, ang);
+        }
+      } else {
+        g.fillStyle = hexA(s.color, 0.12 + k * 0.22); g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.fill();
+        g.strokeStyle = hexA(s.color, 0.9); g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.stroke();
+        g.beginPath(); g.arc(s.x, s.y, s.r * k, 0, 7); g.stroke();
+      }
     }
+    // efectos de habilidad a ras de suelo (campos)
+    for (const v of e.vfx) if (v.kind === 'field' && vis(v.x, v.y, v.r)) pixelField(g, v.x, v.y, v.r, v.dur - v.t, v.seed, v.pal, this.makeCanvas, PX, e.time);
     // telegráficos de jefes
     for (const en of e.enemies) {
       const a = en.atk;
@@ -147,10 +177,14 @@ export class Renderer {
     // torretas
     for (const t of e.turrets) {
       if (!vis(t.x, t.y)) continue;
-      g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.arc(t.x + 2, t.y + 3, 10, 0, 7); g.fill();
-      g.fillStyle = '#2a323d'; g.beginPath(); g.arc(t.x, t.y, 10, 0, 7); g.fill();
-      g.strokeStyle = t.color; g.lineWidth = 2; g.stroke();
-      g.fillStyle = t.color; g.fillRect(t.x - 2, t.y - 2, 12, 4);
+      if (t.t < 1.5 && Math.floor(e.time * 12) % 2) continue;   // parpadea antes de desaparecer
+      const pop = Math.min(1, (t.max - t.t) * 6);               // aparece "cayendo" un instante
+      const tx = Math.round(t.x / PX) * PX, ty = Math.round((t.y - (1 - pop) * 20) / PX) * PX;
+      g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(tx - 10, Math.round(t.y / PX) * PX + 8, 20, 4);
+      drawSprite(g, sprite('turret', 'turret', this.makeCanvas), tx, ty, PX);
+      const bc = Math.cos(snapAng(t.ang)), bs = Math.sin(snapAng(t.ang));
+      drawSprite(g, sprite('barrel', 'turret', this.makeCanvas), tx + bc * 8, ty - 2 + bs * 8, PX, t.ang);
+      if (t.cd > 0.25) { g.fillStyle = '#fff4b0'; g.fillRect(Math.round((tx + bc * 18) / PX) * PX - 2, Math.round((ty - 2 + bs * 18) / PX) * PX - 2, 4, 4); }
     }
     // enemigos
     for (const en of e.enemies) {
@@ -166,15 +200,54 @@ export class Renderer {
     }
     // proyectiles del jugador
     for (const b of e.projs) {
-      if (b.dead || !vis(b.x, b.y)) continue;
+      if (b.dead || !vis(b.x, b.y) || b.look) continue;
       const sp = Math.hypot(b.vx, b.vy) || 1;
-      const len = b.knife ? 14 : 9;
+      const len = 9;
       g.strokeStyle = hexA(b.color, 0.45); g.lineWidth = b.r * 2.4; g.lineCap = 'round';
       g.beginPath(); g.moveTo(b.x - (b.vx / sp) * len, b.y - (b.vy / sp) * len); g.lineTo(b.x, b.y); g.stroke();
       g.strokeStyle = b.crit ? '#ffe9a0' : '#ffffff'; g.lineWidth = b.r * 0.9;
       g.beginPath(); g.moveTo(b.x - (b.vx / sp) * len * 0.6, b.y - (b.vy / sp) * len * 0.6); g.lineTo(b.x, b.y); g.stroke();
     }
     g.globalCompositeOperation = 'source-over';
+    // dagas (Jett) y flechas (Sova): sprites orientados en 16 direcciones con estela de píxeles
+    for (const b of e.projs) {
+      if (b.dead || !b.look || !vis(b.x, b.y)) continue;
+      const ang = Math.atan2(b.vy, b.vx), c = Math.cos(ang), s = Math.sin(ang);
+      const trail = b.look === 'arrow' ? PAL.scan : PAL.wind;
+      for (let i = 1; i <= 3; i++) {
+        g.fillStyle = trail[4 - i];
+        g.fillRect(Math.round((b.x - c * (10 + i * 6)) / PX) * PX - 1, Math.round((b.y - s * (10 + i * 6)) / PX) * PX - 1, PX, PX);
+      }
+      drawSprite(g, b.look === 'arrow' ? sprite('arrow', b.color === '#ffffff' ? 'holy' : 'scan', this.makeCanvas) : sprite('dagger', 'wind', this.makeCanvas), b.x, b.y, PX, ang);
+    }
+    // efectos de habilidad (explosiones, anillos, llamas, haces de luz)
+    for (const v of e.vfx) {
+      const k = v.t / v.dur;
+      const vx = v.follow ? p.x + v.x : v.x, vy = v.follow ? p.y + v.y : v.y;
+      if (!vis(vx, vy, v.r)) continue;
+      if (v.kind === 'blast') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX);
+      else if (v.kind === 'ring') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX, true);
+      else if (v.kind === 'gust') {
+        // ráfagas de viento que salen detrás de Jett en la dirección del impulso
+        const c = Math.cos(v.ang), s = Math.sin(v.ang);
+        for (let i = -2; i <= 2; i++) {
+          const ox = vx - s * i * 9, oy = vy + c * i * 9 + 8, len = (60 - Math.abs(i) * 12) * (1 - k);
+          const off = k * 50 + Math.abs(i) * 6;
+          pixelLine(g, ox - c * off, oy - s * off, ox - c * (off + len), oy - s * (off + len), PAL.wind[i === 0 ? 4 : 2], PX, i === 0 ? 2 : 1);
+        }
+      }
+      else if (v.kind === 'beam') { g.globalAlpha = 1 - k * k; pixelBeam(g, vx, vy, v.r, k, v.pal, e.time, PX); g.globalAlpha = 1; }
+      else if (v.kind === 'flames') {
+        // anillo de llamas animadas que se expande y se consume (seed = número de llamas)
+        const n = v.seed, img = sprite('flame', v.pal, this.makeCanvas);
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2, d = v.r * (0.35 + 0.65 * Math.min(1, k * 2.5));
+          const fl = Math.floor(e.time * 12 + i) % 3;
+          if (k > 0.6 && (i + Math.floor(e.time * 20)) % 3 === 0) continue;
+          drawSprite(g, img, Math.round((vx + Math.cos(a) * d) / PX) * PX, Math.round((vy + Math.sin(a) * d * 0.8) / PX) * PX - fl * PX, PX * (k < 0.7 ? 2 : 1), 0, fl === 1);
+        }
+      }
+    }
     // drones
     for (let i = 0; i < e.stats.drones; i++) {
       const a = e.droneAngle + (i / e.stats.drones) * Math.PI * 2;
@@ -183,21 +256,34 @@ export class Renderer {
       g.beginPath(); g.moveTo(dx, dy - 6); g.lineTo(dx + 6, dy); g.lineTo(dx, dy + 6); g.lineTo(dx - 6, dy); g.closePath(); g.fill(); g.stroke();
     }
     this.drawPlayer(g, e);
+    // efectos sobre el personaje: ojo (Reyna/Omen) y sprites que suben (cruces, llamas, galones)
+    for (const v of e.vfx) {
+      const k = v.t / v.dur;
+      if (v.kind === 'eye') {
+        const sc = PX * (v.r || 1) * (k < 0.12 ? 0.5 : 1);
+        g.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
+        drawSprite(g, sprite('eye', v.pal, this.makeCanvas), Math.round(p.x / PX) * PX, Math.round((p.y + v.y - k * 10) / PX) * PX, sc);
+        g.globalAlpha = 1;
+      } else if (v.kind === 'rise' && v.sprite) {
+        g.globalAlpha = Math.min(1, (1 - k) * 2);
+        const x = p.x + v.x + Math.sin(k * 6 + v.seed) * 4, y = p.y + v.y - 8 - k * 46;
+        drawSprite(g, sprite(v.sprite, v.pal, this.makeCanvas), Math.round(x / PX) * PX, Math.round(y / PX) * PX, PX);
+        g.globalAlpha = 1;
+      }
+    }
     // fx
     g.globalCompositeOperation = 'lighter';
     for (const f of e.fxs.items) {
       if (f.life <= 0) continue;
       const k = 1 - f.life / f.max;
       if (f.kind === 0) {
-        g.strokeStyle = hexA(f.color, 1 - k); g.lineWidth = 5 * (1 - k) + 1;
-        g.beginPath(); g.arc(f.x, f.y, f.r * (0.25 + k * 0.75), 0, 7); g.stroke();
-        g.fillStyle = hexA(f.color, 0.18 * (1 - k)); g.beginPath(); g.arc(f.x, f.y, f.r * (0.25 + k * 0.75), 0, 7); g.fill();
+        g.globalAlpha = 1 - k;
+        pixelCircle(g, f.x, f.y, f.r * (0.25 + k * 0.75), f.color, PX, 3);
+        g.globalAlpha = 1;
       } else {
-        g.strokeStyle = hexA(f.color, 1 - k); g.lineWidth = 3;
-        g.beginPath(); g.moveTo(f.x, f.y);
-        const n = 4;
-        for (let i = 1; i < n; i++) g.lineTo(f.x + (f.x2 - f.x) * (i / n) + (Math.random() - 0.5) * 14, f.y + (f.y2 - f.y) * (i / n) + (Math.random() - 0.5) * 14);
-        g.lineTo(f.x2, f.y2); g.stroke();
+        g.globalAlpha = 1 - k;
+        pixelBolt(g, f.x, f.y, f.x2, f.y2, (f.x * 7 + Math.floor(e.time * 20)) | 0, 'electric', PX);
+        g.globalAlpha = 1;
       }
     }
     for (const q of e.particles.items) {
@@ -255,12 +341,9 @@ export class Renderer {
     const p = e.player, a = e.agent, t = e.time;
     const blink = p.iframes > 0 && Math.floor(t * 20) % 2 === 0;
     g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 14, 14, 6, 0, 0, 7); g.fill();
-    if (e.buffs.sprintT > 0 || e.buffs.frenzyT > 0 || e.buffs.stormT > 0) {
-      g.strokeStyle = hexA(a.color, 0.6 + 0.3 * Math.sin(t * 14)); g.lineWidth = 2;
-      g.beginPath(); g.arc(p.x, p.y, p.r + 12, 0, 7); g.stroke();
-    }
-    if (p.invuln > 0) { g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r + 10, 0, 7); g.stroke(); }
-    if (p.shield > 0) { g.strokeStyle = 'rgba(122,215,255,0.65)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 7, 0, 7); g.stroke(); }
+    this.drawBuffs(g, e, false);
+    if (p.invuln > 0) pixelCircle(g, p.x, p.y, p.r + 10, '#ffffff', PX, 2, t * 3);
+    if (p.shield > 0) { g.globalAlpha = 0.7; pixelCircle(g, p.x, p.y, p.r + 6, '#7ad7ff', PX, 1); g.globalAlpha = 1; }
 
     // --- animación: reposo / andar / correr / dash / lanzar habilidad
     const sprint = e.buffs.sprintT > 0;
@@ -330,6 +413,53 @@ export class Renderer {
     if (aimUp) drawGun();
     drawBody(0, 0, blink ? 0.4 : 1);
     if (!aimUp) drawGun();
+    this.drawBuffs(g, e, true);
+  }
+
+  /** Efectos mientras dura una habilidad activa. front = capa por delante del personaje. */
+  private drawBuffs(g: Ctx, e: GameEngine, front: boolean) {
+    const p = e.player, b = e.buffs, t = e.time, mk = this.makeCanvas;
+    const px = Math.round(p.x / PX) * PX, py = Math.round(p.y / PX) * PX;
+    // Neon: rayos que saltan a su alrededor
+    if (b.sprintT > 0 && !front) {
+      const R = b.sprintRad * e.stats.area, bucket = Math.floor(t * 14);
+      for (let i = 0; i < 3; i++) {
+        const a = ((bucket * 7 + i * 13) % 16) / 16 * Math.PI * 2;
+        pixelBolt(g, px, py - 10, px + Math.cos(a) * R * 0.9, py + Math.sin(a) * R * 0.9, bucket * 3 + i, 'electric', PX);
+      }
+    }
+    // Jett: dagas orbitando (las de atrás debajo del personaje, las de delante encima)
+    if (b.stormT > 0) {
+      const n = b.stormPow > 2 ? 6 : 3, img = sprite('dagger', 'wind', mk);
+      for (let i = 0; i < n; i++) {
+        const a = t * 5 + (i / n) * Math.PI * 2, sy = Math.sin(a);
+        if ((sy > 0) !== front) continue;
+        drawSprite(g, img, px + Math.cos(a) * 30, py - 8 + sy * 18, PX, a + Math.PI / 2);
+      }
+    }
+    if (b.frenzyT > 0 && b.frenzyFx === 'soul') {
+      if (!front) {
+        // llamas de alma alrededor de los pies
+        const img = sprite('flame', 'soul', mk);
+        for (let i = 0; i < 6; i++) {
+          const a = t * 2.5 + (i / 6) * Math.PI * 2;
+          drawSprite(g, img, Math.round((px + Math.cos(a) * 22) / PX) * PX, Math.round((py + 10 + Math.sin(a) * 8) / PX) * PX - (Math.floor(t * 10 + i) % 2) * PX, PX, 0, i % 2 === 0);
+        }
+      } else {
+        const bob = Math.round(Math.sin(t * 4) * 1.5) * PX;
+        drawSprite(g, sprite('eye', 'soul', mk), px, py - 46 + bob, PX);
+      }
+    }
+    if (b.frenzyT > 0 && b.frenzyFx === 'stim' && front) {
+      // Brimstone: galones que suben en bucle
+      const img = sprite('chevron', 'stim', mk);
+      for (let i = 0; i < 3; i++) {
+        const k = (t * 1.2 + i / 3) % 1;
+        g.globalAlpha = Math.sin(k * Math.PI);
+        drawSprite(g, img, px + (i - 1) * 18, Math.round((py + 6 - k * 40) / PX) * PX, PX);
+      }
+      g.globalAlpha = 1;
+    }
   }
 
   private drawEnemy(g: Ctx, en: Enemy, e: GameEngine) {
@@ -388,7 +518,15 @@ export class Renderer {
       }
     }
     g.restore();
-    if (en.markT > 0) { g.strokeStyle = '#5c8bff'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r + 5, 0, 7); g.stroke(); g.beginPath(); g.moveTo(x - r - 8, y); g.lineTo(x - r - 2, y); g.moveTo(x + r + 2, y); g.lineTo(x + r + 8, y); g.stroke(); }
+    if (en.markT > 0) {
+      // retícula de marcado: cuatro esquinas en píxeles
+      const q = Math.round((r + 6) / PX) * PX, cx = Math.round(x / PX) * PX, cy = Math.round(y / PX) * PX, L = 3 * PX;
+      g.fillStyle = Math.floor(e.time * 4) % 2 ? '#c9d8ff' : '#5c8bff';
+      for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+        g.fillRect(cx + sx * q - (sx > 0 ? L : 0), cy + sy * q - (sy > 0 ? PX : 0), L, PX);
+        g.fillRect(cx + sx * q - (sx > 0 ? PX : 0), cy + sy * q - (sy > 0 ? L : 0), PX, L);
+      }
+    }
     if (en.burnT > 0) { g.fillStyle = 'rgba(255,122,61,0.45)'; g.beginPath(); g.arc(x, y - r * 0.4, r * 0.55, 0, 7); g.fill(); }
     if (en.slowT > 0) { g.strokeStyle = 'rgba(122,184,255,0.7)'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r + 3, 0, 7); g.stroke(); }
     if (d.behavior === 'elite' || (en.hp < en.maxHp && !en.isBoss && d.id === 'tank')) {

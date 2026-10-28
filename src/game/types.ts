@@ -9,6 +9,10 @@ export type AbilityKind =
   | 'dash' | 'sprint' | 'nova' | 'strike' | 'heal'
   | 'turret' | 'seekers' | 'blink' | 'frenzy' | 'storm';
 
+export type AbilityFx =
+  | 'wind' | 'blades' | 'fire' | 'hothands' | 'heal' | 'ice' | 'holy' | 'soul' | 'grenade' | 'boom' | 'rocket'
+  | 'arrow' | 'scan' | 'electric' | 'shadow' | 'paranoia' | 'turret' | 'orbital' | 'stim';
+
 export interface AbilityDef {
   id: string;
   name: string;
@@ -27,6 +31,8 @@ export interface AbilityDef {
   burn?: number;
   slow?: number;
   mark?: number;
+  /** Estilo visual del efecto (ver game/vfx.ts y Renderer). */
+  fx?: AbilityFx;
   color: string;
 }
 
