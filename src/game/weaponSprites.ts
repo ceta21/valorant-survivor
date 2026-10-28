@@ -1,5 +1,6 @@
 // Armas pixel-art ORIGINALES (silueta reconocible por tipo: pistola, rifle, francotirador, escopeta...).
 import { Grid } from './sprites';
+import { WEAPONS } from '../data/weapons';
 
 type Part = [number, number, number, number, 'M' | 'D' | 'A' | 'W' | 'L'];
 const PARTS: Record<string, { w: number; h: number; p: Part[] }> = {
@@ -14,12 +15,14 @@ const PARTS: Record<string, { w: number; h: number; p: Part[] }> = {
 };
 const COL = { M: '#8793a3', D: '#3b4452', W: '#7a5230', L: '#c7d0dc' } as const;
 
-export function gunSize(id: string) { const d = PARTS[id] ?? PARTS.classic; return { w: d.w, h: d.h }; }
+/** Silueta del arma: las exclusivas usan la de su arma base. */
+const partsOf = (id: string) => PARTS[id] ?? PARTS[WEAPONS[id]?.sprite ?? ''] ?? PARTS.classic;
+export function gunSize(id: string) { const d = partsOf(id); return { w: d.w, h: d.h }; }
 
 export function buildGun(id: string, accent: string): Grid {
-  const d = PARTS[id] ?? PARTS.classic;
+  const d = partsOf(id), col = { ...COL, ...(WEAPONS[id]?.skin ?? {}) };
   const g: Grid = Array.from({ length: d.h }, () => Array<string | null>(d.w).fill(null));
-  for (const [x, y, w, h, k] of d.p) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (g[y + j] && x + i < d.w) g[y + j][x + i] = k === 'A' ? accent : COL[k];
+  for (const [x, y, w, h, k] of d.p) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (g[y + j] && x + i < d.w) g[y + j][x + i] = k === 'A' ? accent : col[k];
   const out: Grid = g.map(r => r.slice());
   for (let y = 0; y < d.h; y++) for (let x = 0; x < d.w; x++) {
     if (g[y][x]) continue;

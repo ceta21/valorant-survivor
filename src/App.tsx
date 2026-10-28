@@ -7,7 +7,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { RankingScreen } from './components/RankingScreen';
 import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
-import { AGENT_BY_ID } from './data/agents';
+import { AGENT_BY_ID, withKit } from './data/agents';
 import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
@@ -15,9 +15,12 @@ import { RunResult } from './game/types';
 import { SaveData, Settings, clearLegacySave, defaultSave, loadLegacySave } from './utils/storage';
 import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
+import { MarketScreen } from './components/MarketScreen';
+import { Offer, marketPeriod } from './data/market';
+import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -26,6 +29,8 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>(accountsEnabled ? 'loading' : 'menu');
   const [authFromMenu, setAuthFromMenu] = useState(false);
   const accountRef = useRef<Account | null>(null); accountRef.current = account;
+  // la tienda de un invitado cambia en cada visita (no tiene cuenta a la que atarla)
+  const [guestSeed] = useState(() => `guest-${Math.random()}`);
   const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
@@ -85,8 +90,21 @@ export default function App() {
     return names;
   };
 
+  const revealCard = (slot: number) => update(s => {
+    const period = marketPeriod(), cur = s.market.period === period ? s.market.revealed : [];
+    return cur.includes(slot) ? s : { ...s, market: { period, revealed: [...cur, slot] } };
+  });
+  const buyOffer = (o: Offer) => update(s => {
+    if (s.credits < o.price || s.exclusives.includes(o.id)) return s;
+    const a = AGENT_BY_ID[o.id];
+    const kits = o.kind === 'agent' && a ? { ...s.kits, [o.id]: { special: a.special.id, secondary: a.secondary?.id ?? '', ultimate: a.ultimate.id } } : s.kits;
+    return { ...s, credits: s.credits - o.price, exclusives: [...s.exclusives, o.id], kits, loadout: o.kind === 'weapon' ? o.id : s.loadout };
+  });
+
   const go = (s: Screen) => setScreen(s);
-  const agent = AGENT_BY_ID[run.agentId], map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
+  const startWeapon = WEAPONS[save.loadout] && (!WEAPONS[save.loadout].exclusive || save.exclusives.includes(save.loadout)) ? save.loadout : 'classic';
+  const baseAgent = AGENT_BY_ID[run.agentId];
+  const agent = baseAgent && withKit(baseAgent, save.kits[run.agentId]), map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
 
   return (
     <div className="app">
@@ -99,6 +117,8 @@ export default function App() {
       {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} />}
       {screen === 'agents' && (
         <AgentSelection save={save} back={() => go('menu')} start={start}
+          setKit={(id, kit) => update(s => ({ ...s, kits: { ...s.kits, [id]: kit } }))}
+          setLoadout={id => update(s => ({ ...s, loadout: id }))}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
       )}
       {screen === 'meta' && (
@@ -115,8 +135,9 @@ export default function App() {
         <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} />
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
+      {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} startWeapon={startWeapon} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={() => go('menu')} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

@@ -32,6 +32,9 @@ const LOOKS: Record<string, Look> = {
   neon: { skin: '#c88a62', hair: '#2fe6ff', style: 'pony', main: '#2a3f66', sleeve: '#2fe6ff', accent: '#fff04a', pants: '#1c2a46', boots: '#2fe6ff', acc: ['bolt'] },
   omen: { skin: '#1b1f2e', hair: '#2b2f6a', style: 'hood', main: '#2b2f6a', sleeve: '#1a1d44', accent: '#6b7cff', pants: '#141733', boots: '#0c0e22', dark: true, eyes: '#ffffff' },
   killjoy: { skin: '#f3d3b6', hair: '#f0d26a', style: 'short', main: '#ffe14a', sleeve: '#2f3440', accent: '#ffffff', pants: '#2f3440', boots: '#1a1d24', acc: ['headphones', 'glasses'] },
+  eclipse: { skin: '#d8b49a', hair: '#1b1530', style: 'long', main: '#2a1f4a', sleeve: '#9b7bff', accent: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['halo'] },
+  vortice: { skin: '#c98d6a', hair: '#ff3d81', style: 'pony', main: '#1f1f2a', sleeve: '#ff3d81', accent: '#ffffff', pants: '#2a2a36', boots: '#ff3d81', acc: ['goggles'] },
+  quimera: { skin: '#8a5a3a', hair: '#e8f1f8', style: 'crest', extra: '#5dff9a', main: '#24413a', sleeve: '#5dff9a', accent: '#ffe14a', pants: '#1a2a26', boots: '#0f1a18', acc: ['beard'] },
   brimstone: { skin: '#d9a98a', hair: '#cfcfcf', style: 'cap', extra: '#8a6a3a', main: '#8a6a3a', sleeve: '#5a4a30', accent: '#d9a066', pants: '#4a4a3a', boots: '#2a2a22', acc: ['beard'] },
 };
 

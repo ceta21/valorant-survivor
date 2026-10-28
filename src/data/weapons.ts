@@ -50,4 +50,51 @@ export const WEAPONS: Record<string, WeaponDef> = {
     evolved: { name: 'Odin Furia', desc: 'Atraviesa 1 enemigo y +40% daño', pierce: 1, dmgMul: 1.4 },
   },
 };
-export const WEAPON_LIST = Object.values(WEAPONS);
+// Armas exclusivas del mercado nocturno (se fusionan en WEAPONS para que el motor las encuentre).
+export const EXCLUSIVE_WEAPONS: WeaponDef[] = [
+  {
+    id: 'ares_inferno', name: 'Ares Infernal', desc: 'Ametralladora forjada en lava: lluvia de balas incandescentes.', exclusive: true, sprite: 'odin', price: 12000,
+    skin: { M: '#c9301c', D: '#3a0e08', L: '#ffb02e', W: '#5a1a10' },
+    damage: 7, cooldown: 0.07, speed: 660, range: 380, count: 1, fan: 0.16, jitter: 0.16, pierce: 0,
+    crit: 0.05, critMul: 0.2, size: 3.5, color: '#ff5a2a', heavy: false, rare: 3,
+    evolved: { name: 'Ares Volcánico', desc: 'Atraviesa 1 enemigo, +50% daño y balas explosivas', pierce: 1, dmgMul: 1.5, explode: 0.25 },
+  },
+  {
+    id: 'marshal_vacio', name: 'Marshal del Vacío', desc: 'Francotirador que perfora la realidad. Críticos devastadores.', exclusive: true, sprite: 'operator', price: 14000,
+    skin: { M: '#5a2a9a', D: '#120a24', L: '#d6a8ff', W: '#2a1240' },
+    damage: 58, cooldown: 0.95, speed: 1250, range: 720, count: 1, fan: 0.1, jitter: 0, pierce: 99,
+    crit: 0.35, critMul: 1.2, size: 6, color: '#b05cff', heavy: true, rare: 3,
+    evolved: { name: 'Marshal Singularidad', desc: 'Recarga 25% más rápida y estalla al impactar', cdMul: 0.75, explode: 0.8 },
+  },
+  {
+    id: 'bucky_tormenta', name: 'Bucky Tormenta', desc: 'Escopeta eléctrica: perdigones que atraviesan enemigos.', exclusive: true, sprite: 'judge', price: 10000,
+    skin: { M: '#1f8fb0', D: '#0a2a3a', L: '#c4faff', W: '#2a3f66' },
+    damage: 9, cooldown: 0.75, speed: 620, range: 260, count: 8, fan: 0.11, jitter: 0.08, pierce: 1,
+    crit: 0.05, critMul: 0, size: 3.5, color: '#2fe6ff', heavy: true, rare: 3,
+    evolved: { name: 'Bucky Huracán', desc: '+4 perdigones con descarga explosiva', count: 4, explode: 0.25 },
+  },
+  {
+    id: 'guardian_aurora', name: 'Guardian Aurora', desc: 'Rifle de precisión con munición que estalla en luz.', exclusive: true, sprite: 'vandal', price: 11000,
+    skin: { M: '#2fb88a', D: '#0f2a22', L: '#d6ffe6', W: '#24413a' },
+    damage: 30, cooldown: 0.55, speed: 900, range: 520, count: 1, fan: 0.1, jitter: 0.01, pierce: 2,
+    crit: 0.15, critMul: 0.4, size: 5, color: '#5dff9a', heavy: true, rare: 3,
+    evolved: { name: 'Guardian Boreal', desc: '+40% daño y atraviesa 2 enemigos más', dmgMul: 1.4, pierce: 2 },
+  },
+  {
+    id: 'frenzy_cosmos', name: 'Frenzy Cósmico', desc: 'Pistola automática que dispara pares de estrellas.', exclusive: true, sprite: 'classic', price: 9000,
+    skin: { M: '#d946ef', D: '#2a0a36', L: '#ffd6ff', W: '#7a2a9a' },
+    damage: 7, cooldown: 0.12, speed: 640, range: 360, count: 2, fan: 0.18, jitter: 0.08, pierce: 0,
+    crit: 0.1, critMul: 0.3, size: 3.5, color: '#ff9cff', heavy: false, rare: 3,
+    evolved: { name: 'Frenzy Supernova', desc: '+2 balas por disparo y +20% crítico', count: 2, crit: 0.2 },
+  },
+  {
+    id: 'bulldog_draco', name: 'Bulldog Dracónico', desc: 'Fusil de asalto con balas de fuego de dragón que explotan.', exclusive: true, sprite: 'phantom', price: 13000,
+    skin: { M: '#d8b04a', D: '#3a2a10', L: '#fff0b0', W: '#8a5a1a' },
+    damage: 14, cooldown: 0.22, speed: 720, range: 440, count: 1, fan: 0.12, jitter: 0.04, pierce: 1,
+    crit: 0.1, critMul: 0.3, size: 4, color: '#ffd24a', heavy: false, rare: 3, explode: 0.2,
+    evolved: { name: 'Bulldog Ancestral', desc: '+1 bala, +30% daño y explosiones mayores', count: 1, dmgMul: 1.3, explode: 0.4 },
+  },
+];
+for (const w of EXCLUSIVE_WEAPONS) WEAPONS[w.id] = w;
+/** Armas que pueden salir al subir de nivel (las exclusivas no). */
+export const WEAPON_LIST = Object.values(WEAPONS).filter(w => !w.exclusive);

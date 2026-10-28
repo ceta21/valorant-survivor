@@ -131,8 +131,9 @@ export class GameEngine {
   private endlessBossT: number;
   private endlessWaveT = 0;
 
-  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal) {
+  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic') {
     this.agent = agent;
+    if (WEAPONS[startWeapon]) { this.weapons = [{ id: startWeapon, lvl: 1, cd: 0.2 }]; this.held = startWeapon; }
     this.map = map;
     this.ev = ev;
     this.diff = diff;

@@ -60,6 +60,8 @@ export interface AgentDef {
   trait: { label: string; desc: string; mods: Partial<Stats> };
   cost: number;
   emblem: string;      // path SVG (viewBox 24)
+  /** Agente exclusivo del mercado nocturno: sus habilidades las elige el jugador. */
+  exclusive?: boolean;
 }
 
 export interface MapDef {
@@ -104,6 +106,13 @@ export interface WeaponDef {
   color: string;
   heavy: boolean;
   rare: Rarity;
+  /** Exclusiva del mercado nocturno: no sale en las mejoras, se elige como arma inicial. */
+  exclusive?: boolean;
+  /** Silueta base (id de otra arma) y colores propios del arma exclusiva. */
+  sprite?: string;
+  skin?: { M?: string; D?: string; L?: string; W?: string };
+  /** Precio base en el mercado nocturno. */
+  price?: number;
   explode?: number;
   evolved: { name: string; desc: string; count?: number; pierce?: number; dmgMul?: number; cdMul?: number; crit?: number; explode?: number };
 }

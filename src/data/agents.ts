@@ -1,4 +1,4 @@
-import { AgentDef } from '../game/types';
+import { AbilityDef, AgentDef } from '../game/types';
 
 export const AGENTS: AgentDef[] = [
   {
@@ -89,4 +89,50 @@ export const AGENTS: AgentDef[] = [
     emblem: 'M12 3 A9 9 0 1 0 12.01 3 M12 7 A5 5 0 1 0 12.01 7',
   },
 ];
-export const AGENT_BY_ID: Record<string, AgentDef> = Object.fromEntries(AGENTS.map(a => [a.id, a]));
+
+/* ------------------------------------------------------------------ mercado nocturno */
+// Habilidades disponibles para personalizar a los agentes exclusivos.
+export const ABILITIES: AbilityDef[] = AGENTS.flatMap(a => [a.special, ...(a.secondary ? [a.secondary] : [])]);
+export const ULTIMATES: AbilityDef[] = AGENTS.map(a => a.ultimate);
+export const ABILITY_BY_ID: Record<string, AbilityDef> = Object.fromEntries([...ABILITIES, ...ULTIMATES].map(x => [x.id, x]));
+/** De qué agente viene cada habilidad (para mostrarlo al elegir). */
+export const ABILITY_OWNER: Record<string, string> = Object.fromEntries(AGENTS.flatMap(a => [a.special, a.secondary, a.ultimate].filter(Boolean).map(x => [x!.id, a.name])));
+
+/** Personajes ORIGINALES que solo aparecen en el mercado nocturno. cost = precio base. */
+export const EXCLUSIVE_AGENTS: AgentDef[] = [
+  {
+    id: 'eclipse', name: 'Eclipse', role: 'Controladora', color: '#9b7bff', accent: '#e2d6ff', hp: 115, speed: 190, damage: 11, cost: 42000, exclusive: true,
+    desc: 'Guardiana de la penumbra. Combina los poderes que tú elijas con un dominio total del área.',
+    trait: { label: 'Penumbra', desc: '+15% área de efecto y -10% recarga de habilidades', mods: { area: 0.15, cdr: 0.1 } },
+    special: ABILITY_BY_ID.shadowstep, secondary: ABILITY_BY_ID.sloworb, ultimate: ABILITY_BY_ID.orbitalstorm,
+    emblem: 'M15 4 A8 8 0 1 0 15 20 A6 6 0 1 1 15 4',
+  },
+  {
+    id: 'vortice', name: 'Vórtice', role: 'Duelista', color: '#ff3d81', accent: '#ffd0e0', hp: 100, speed: 212, damage: 11, cost: 38000, exclusive: true,
+    desc: 'Un torbellino imparable. Velocidad extrema y los poderes que tú elijas.',
+    trait: { label: 'Torbellino', desc: '+25 velocidad y +8% daño', mods: { speed: 25, dmg: 0.08 } },
+    special: ABILITY_BY_ID.tailwind, secondary: ABILITY_BY_ID.blastpack, ultimate: ABILITY_BY_ID.bladestorm,
+    emblem: 'M4 12 Q12 2 20 12 Q12 22 4 12 M8 12 L16 12',
+  },
+  {
+    id: 'quimera', name: 'Quimera', role: 'Iniciador', color: '#5dff9a', accent: '#d6ffe6', hp: 125, speed: 185, damage: 10, cost: 45000, exclusive: true,
+    desc: 'Mitad bestia, mitad máquina. Resiste lo imposible y usa los poderes que tú elijas.',
+    trait: { label: 'Regeneración', desc: '+1.5 vida por segundo y +10% experiencia', mods: { regen: 1.5, xp: 0.1 } },
+    special: ABILITY_BY_ID.hunterdrone, secondary: ABILITY_BY_ID.healorb, ultimate: ABILITY_BY_ID.rematch,
+    emblem: 'M4 20 L12 4 L20 20 Z M8 14 L16 14',
+  },
+];
+export const ALL_AGENTS: AgentDef[] = [...AGENTS, ...EXCLUSIVE_AGENTS];
+export const AGENT_BY_ID: Record<string, AgentDef> = Object.fromEntries(ALL_AGENTS.map(a => [a.id, a]));
+
+export interface Kit { special: string; secondary: string; ultimate: string }
+/** Agente con las habilidades elegidas por el jugador (solo afecta a los exclusivos). */
+export function withKit(agent: AgentDef, kit?: Kit): AgentDef {
+  if (!agent.exclusive || !kit) return agent;
+  return {
+    ...agent,
+    special: ABILITY_BY_ID[kit.special] ?? agent.special,
+    secondary: ABILITY_BY_ID[kit.secondary] ?? agent.secondary,
+    ultimate: ABILITY_BY_ID[kit.ultimate] ?? agent.ultimate,
+  };
+}

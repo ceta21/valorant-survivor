@@ -226,3 +226,36 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .rank-table .pid { font-style: normal; font-family: var(--font-px); font-size: 9px; color: #ffd24a; } .rank-table .pid.guest { font-family: var(--font); font-size: 13px; color: var(--mute); }
 .auth-box > *, .auth-form label, .auth-form input { min-width: 0; width: 100%; }
 .auth-box .logo-mark { width: 52px; } .auth-box .logo-bot { font-size: clamp(20px, 6vw, 30px); } .auth-box .logo-top { font-size: 11px; }
+
+/* mercado nocturno */
+.btn-market { background: #2a1240; box-shadow: inset 0 0 0 var(--p) #b05cff, var(--bevel); } .btn-market b { color: #e2c4ff; }
+.btn-market:hover:not(:disabled), .btn-market:focus-visible { background: #3a1a5a; }
+.market .lead b { color: var(--cream); } .market-timer { font-family: var(--font-px); font-size: 12px; color: #ffd24a !important; }
+.market-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; align-items: stretch; }
+.mcard { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 18px 16px 16px; min-height: 420px; border: 0; text-align: left; color: var(--cream);
+  background: var(--ink2); background-image: linear-gradient(180deg, color-mix(in srgb, var(--mc, #b05cff) 26%, var(--ink2)) 0 25%, color-mix(in srgb, var(--mc, #b05cff) 12%, var(--ink2)) 25% 45%, var(--ink2) 45%);
+  box-shadow: inset 0 0 0 var(--p) var(--mc, #b05cff), var(--bevel); clip-path: var(--notch); animation: mreveal .35s steps(4) both; }
+@keyframes mreveal { from { transform: scaleX(0.1); } }
+.mcard.back { align-items: center; justify-content: center; cursor: pointer; animation: none; --mc: #b05cff;
+  background: #1a0f2a repeating-linear-gradient(45deg, rgba(176, 92, 255, .14) 0 8px, transparent 8px 16px); }
+.mcard.back:hover { transform: translateY(-6px); } .mcard.back.flipping { animation: mflip .38s steps(4) forwards; }
+@keyframes mflip { to { transform: scaleX(0.05); } }
+.mcard-q { font-family: var(--font-px); font-size: 64px; color: #e2c4ff; text-shadow: 6px 6px 0 #000; animation: pulse-q 1.2s steps(2) infinite; }
+@keyframes pulse-q { 50% { color: #b05cff; } }
+.mcard-hint { font-family: var(--font-px); font-size: 10px; color: #b05cff; text-transform: uppercase; }
+.mcard-kind { font-family: var(--font-px); font-size: 9px; color: var(--mc); text-transform: uppercase; }
+.mcard-off { position: absolute; right: 12px; top: 12px; background: #ffd24a; color: #000; font-family: var(--font-px); font-size: 11px; padding: 6px 7px 5px; box-shadow: 3px 3px 0 #000; }
+.mcard-art { height: 150px; display: grid; place-items: center; background: rgba(0, 0, 0, .35); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .08); overflow: hidden; }
+.mcard-art .portrait { width: auto; height: 100%; aspect-ratio: 5 / 6; }
+.market-gun { width: 92%; height: 90%; }
+.mcard h3 { margin: 4px 0 0; color: var(--cream); font-size: 20px; letter-spacing: .04em; }
+.mcard-desc { margin: 0; color: #c8c4bd; font-size: 15px; line-height: 1.25; }
+.mcard-stats { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 14px; } .mcard-stats li { display: flex; justify-content: space-between; gap: 10px; } .mcard-stats span { color: var(--mute); } .mcard-stats b { text-align: right; }
+.mcard-price { margin-top: auto; display: flex; align-items: baseline; gap: 10px; } .mcard-price s { color: var(--mute); font-size: 15px; } .mcard-price strong { font-family: var(--font-px); font-size: 15px; color: #ffd24a; }
+.mcard .btn { width: 100%; min-width: 0; } .mcard-confirm { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mcard.owned { opacity: .85; } .mcard-owned { margin: 0; color: var(--green); font-size: 14px; }
+.agent-card.exclusive::before { content: "★"; position: absolute; left: 8px; top: 6px; z-index: 1; color: #ffd24a; font-size: 18px; text-shadow: 2px 2px 0 #000; }
+.kit-editor, .loadout { display: grid; gap: 8px; padding: 10px 12px; background: rgba(176, 92, 255, .1); box-shadow: inset var(--p) 0 0 #b05cff; }
+.kit-editor b { color: #e2c4ff; text-transform: uppercase; font-size: 14px; }
+.kit-editor label { display: grid; grid-template-columns: 64px 1fr; gap: 8px; align-items: center; } .kit-editor select, .loadout select { min-width: 0; width: 100%; }
+.loadout { grid-template-columns: auto 1fr; align-items: center; } .loadout span { text-transform: uppercase; font-weight: 700; font-size: 14px; }

@@ -5,7 +5,7 @@ create table if not exists public.scores (
   id bigint generated always as identity primary key,
   created_at timestamptz not null default now(),
   name text not null check (char_length(name) between 1 and 16),
-  agent text not null check (agent in ('jett','phoenix','sage','reyna','raze','sova','neon','omen','killjoy','brimstone')),
+  agent text not null check (agent in ('jett','phoenix','sage','reyna','raze','sova','neon','omen','killjoy','brimstone','eclipse','vortice','quimera')),
   difficulty text not null check (difficulty in ('facil','normal','dificil','pesadilla')),
   map text not null check (map in ('ascent','bind','haven')),
   time real not null check (time >= 0 and time <= 86400),

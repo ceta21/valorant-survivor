@@ -13,7 +13,7 @@ import { cleanName, isGlobal, submitScore } from '../utils/leaderboard';
 import type { Account } from '../utils/account';
 
 interface Props {
-  agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
+  agent: AgentDef; map: MapDef; difficulty: DifficultyDef; startWeapon: string; meta: MetaLevels; settings: Settings;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
@@ -53,7 +53,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ agent, map, difficulty, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
+export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -81,7 +81,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, account, pl
       onLevelUp: c => setChoices([...c]),
       onEnd: r => { const ach = onEndRef.current(r); setResult({ r, ach }); },
       sfx: n => audio.play(n),
-    }, difficulty);
+    }, difficulty, startWeapon);
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;

@@ -5,7 +5,7 @@ import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 import type { Account } from '../utils/account';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -39,6 +39,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn btn-red btn-xl" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Jugar</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Agentes</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>Mejoras</b></button>
+          <button className="btn btn-market" onClick={click('market')} onMouseEnter={() => audio.play('hover')}><b>Mercado nocturno</b></button>
           <button className="btn" onClick={click('ranking')} onMouseEnter={() => audio.play('hover')}><b>Ranking global</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={() => audio.play('hover')}><b>Estadísticas</b></button>
           <button className="btn" onClick={click('settings')} onMouseEnter={() => audio.play('hover')}><b>Configuración</b></button>

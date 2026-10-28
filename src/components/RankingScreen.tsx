@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AGENTS, AGENT_BY_ID } from '../data/agents';
+import { ALL_AGENTS as AGENTS, AGENT_BY_ID } from '../data/agents';
 import { DIFFICULTIES, DIFFICULTY_BY_ID } from '../data/difficulty';
 import { MAP_BY_ID } from '../data/maps';
 import { Filters, ScoreEntry, fetchScores, isGlobal } from '../utils/leaderboard';

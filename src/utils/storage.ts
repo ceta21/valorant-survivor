@@ -21,6 +21,14 @@ export interface SaveData {
   lastMap: string;
   lastDifficulty: string;
   playerName: string;
+  /** Mercado nocturno: armas y agentes exclusivos comprados. */
+  exclusives: string[];
+  /** Habilidades elegidas para cada agente exclusivo. */
+  kits: Record<string, { special: string; secondary: string; ultimate: string }>;
+  /** Arma con la que se empieza la partida. */
+  loadout: string;
+  /** Cartas del mercado ya descubiertas en la rotación actual. */
+  market: { period: number; revealed: number[] };
 }
 
 const KEY = 'valorant-survivors-save-v1';
@@ -39,6 +47,10 @@ export const defaultSave = (): SaveData => ({
   lastMap: 'ascent',
   lastDifficulty: 'normal',
   playerName: '',
+  exclusives: [],
+  kits: {},
+  loadout: 'classic',
+  market: { period: 0, revealed: [] },
 });
 
 /** Completa un guardado (local o de la nube) con los valores por defecto que falten. */
@@ -54,6 +66,9 @@ export function normalizeSave(p: any): SaveData {
     unlocked: Array.isArray(p.unlocked) && p.unlocked.length ? p.unlocked : d.unlocked,
     claimed: p.claimed || [],
     achievements: p.achievements || [],
+    exclusives: Array.isArray(p.exclusives) ? p.exclusives : [],
+    kits: p.kits && typeof p.kits === 'object' ? p.kits : {},
+    market: p.market && typeof p.market.period === 'number' ? p.market : d.market,
   };
 }
 
