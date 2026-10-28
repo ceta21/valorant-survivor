@@ -16,11 +16,13 @@ import { SaveData, Settings, clearLegacySave, defaultSave, loadLegacySave } from
 import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
+import { NewsScreen } from './components/NewsScreen';
+import { LATEST_NEWS } from './data/news';
 import { Offer, marketPeriod } from './data/market';
 import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -101,7 +103,10 @@ export default function App() {
     return { ...s, credits: s.credits - o.price, exclusives: [...s.exclusives, o.id], kits, loadout: o.kind === 'weapon' ? o.id : s.loadout };
   });
 
-  const go = (s: Screen) => setScreen(s);
+  const go = (s: Screen) => {
+    if (s === 'news') update(v => (v.newsSeen === LATEST_NEWS ? v : { ...v, newsSeen: LATEST_NEWS }));
+    setScreen(s);
+  };
   const startWeapon = WEAPONS[save.loadout] && (!WEAPONS[save.loadout].exclusive || save.exclusives.includes(save.loadout)) ? save.loadout : 'classic';
   const baseAgent = AGENT_BY_ID[run.agentId];
   const agent = baseAgent && withKit(baseAgent, save.kits[run.agentId]), map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
@@ -135,6 +140,7 @@ export default function App() {
         <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} />
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
+      {screen === 'news' && <NewsScreen back={() => go('menu')} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
         <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} startWeapon={startWeapon} meta={save.meta} settings={save.settings}

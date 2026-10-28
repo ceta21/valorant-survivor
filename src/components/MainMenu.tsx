@@ -4,8 +4,9 @@ import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 import type { Account } from '../utils/account';
+import { LATEST_NEWS } from '../data/news';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -41,6 +42,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>Mejoras</b></button>
           <button className="btn btn-market" onClick={click('market')} onMouseEnter={() => audio.play('hover')}><b>Mercado nocturno</b></button>
           <button className="btn" onClick={click('ranking')} onMouseEnter={() => audio.play('hover')}><b>Ranking global</b></button>
+          <button className="btn" onClick={click('news')} onMouseEnter={() => audio.play('hover')}><b>Novedades{save.newsSeen !== LATEST_NEWS && <i className="news-badge">Nuevo</i>}</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={() => audio.play('hover')}><b>Estadísticas</b></button>
           <button className="btn" onClick={click('settings')} onMouseEnter={() => audio.play('hover')}><b>Configuración</b></button>
         </nav>

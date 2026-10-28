@@ -29,6 +29,8 @@ export interface SaveData {
   loadout: string;
   /** Cartas del mercado ya descubiertas en la rotación actual. */
   market: { period: number; revealed: number[] };
+  /** Última versión de las novedades que ha visto el jugador. */
+  newsSeen: string;
 }
 
 const KEY = 'valorant-survivors-save-v1';
@@ -51,6 +53,7 @@ export const defaultSave = (): SaveData => ({
   kits: {},
   loadout: 'classic',
   market: { period: 0, revealed: [] },
+  newsSeen: '',
 });
 
 /** Completa un guardado (local o de la nube) con los valores por defecto que falten. */
