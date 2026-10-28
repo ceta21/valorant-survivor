@@ -24,13 +24,14 @@ npm run preview    # sirve dist/ para probar la build
 Los disparos son automáticos. En móvil: arrastra con el dedo para moverte y toca las habilidades del HUD.
 
 ## Publicar en Internet
-**GitHub Pages**
-1. Sube el proyecto a un repositorio de GitHub (rama `main`).
-2. En *Settings → Pages* elige **Source: GitHub Actions**.
-3. Cada push despliega con `.github/workflows/deploy.yml`. Tu URL: `https://TU_USUARIO.github.io/NOMBRE_REPO/`.
-
-**Vercel**
+**Vercel (actual: funciona con el repositorio privado)**
 1. Importa el repositorio en vercel.com (detecta Vite solo; `vercel.json` ya está incluido), o ejecuta `npx vercel`.
+2. Cada push a `main` publica una versión nueva automáticamente.
+
+**GitHub Pages (solo si el repositorio es público en el plan gratuito)**
+1. En *Settings → Pages* elige **Source: GitHub Actions**.
+2. Lanza el workflow a mano en *Actions → Deploy a GitHub Pages → Run workflow*
+   (el despliegue automático en cada push está desactivado en `.github/workflows/deploy.yml`).
 
 `vite.config.ts` usa `base: './'`, por lo que funciona tanto en subcarpeta (Pages) como en raíz (Vercel).
 

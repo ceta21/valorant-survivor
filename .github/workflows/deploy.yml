@@ -1,7 +1,7 @@
 name: Deploy a GitHub Pages
+# Desactivado al hacer push: el repo es privado y la web se publica en Vercel.
+# Si el repo vuelve a ser público, se puede lanzar a mano desde Actions.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
