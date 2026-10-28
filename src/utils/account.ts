@@ -3,6 +3,7 @@
 // (no se envían correos; en Supabase debe estar desactivado "Confirm email").
 import { supabase } from './supabase';
 import { SaveData, normalizeSave } from './storage';
+import { t } from '../i18n';
 
 export interface Account { uid: string; username: string; playerId: number; isAdmin?: boolean }
 export const accountsEnabled = Boolean(supabase);
@@ -13,6 +14,10 @@ export const USERNAME_RE = /^[A-Za-z0-9_]{3,16}$/;
 
 /** Traduce los errores de Supabase a mensajes para el jugador. */
 function friendly(err: unknown): Error {
+  const e = friendlyEs(err);
+  return new Error(t(e.message));
+}
+function friendlyEs(err: unknown): Error {
   const m = String((err as any)?.message ?? err);
   if (/invalid login credentials/i.test(m)) return new Error('Usuario o contraseña incorrectos');
   if (/already registered|already exists|duplicate/i.test(m)) return new Error('Ese nombre de usuario ya existe');
@@ -41,7 +46,7 @@ export async function restoreSession() {
 }
 
 export async function signIn(username: string, password: string) {
-  if (!supabase) throw new Error('Las cuentas no están disponibles');
+  if (!supabase) throw new Error(t('Las cuentas no están disponibles'));
   const { data, error } = await supabase.auth.signInWithPassword({ email: emailFor(username.trim()), password });
   if (error) throw friendly(error);
   return loadProfile(data.user.id);
@@ -49,16 +54,16 @@ export async function signIn(username: string, password: string) {
 
 /** Crea la cuenta. initial = progreso con el que empieza (el de la sesión de invitado). */
 export async function signUp(username: string, password: string, initial: SaveData) {
-  if (!supabase) throw new Error('Las cuentas no están disponibles');
+  if (!supabase) throw new Error(t('Las cuentas no están disponibles'));
   const name = username.trim();
-  if (!USERNAME_RE.test(name)) throw new Error('El nombre debe tener de 3 a 16 letras, números o _');
-  if (password.length < 6) throw new Error('La contraseña debe tener al menos 6 caracteres');
+  if (!USERNAME_RE.test(name)) throw new Error(t('El nombre debe tener de 3 a 16 letras, números o _'));
+  if (password.length < 6) throw new Error(t('La contraseña debe tener al menos 6 caracteres'));
   const free = await supabase.rpc('username_available', { name });
   if (free.error) throw friendly(free.error);
-  if (free.data === false) throw new Error('Ese nombre de usuario ya existe');
+  if (free.data === false) throw new Error(t('Ese nombre de usuario ya existe'));
   const { data, error } = await supabase.auth.signUp({ email: emailFor(name), password, options: { data: { username: name } } });
   if (error) throw friendly(error);
-  if (!data.session) throw new Error('Cuenta creada, pero falta desactivar "Confirm email" en Supabase para poder entrar');
+  if (!data.session) throw new Error(t('Cuenta creada, pero falta desactivar "Confirm email" en Supabase para poder entrar'));
   // el progreso inicial va a la tabla (no a los metadatos, que viajan en cada token)
   const up = await supabase.from('profiles').update({ save: initial, updated_at: new Date().toISOString() }).eq('id', data.user!.id);
   if (up.error) throw friendly(up.error);

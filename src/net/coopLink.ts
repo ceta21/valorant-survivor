@@ -4,6 +4,7 @@
 //   los mensajes siguen pasando por Supabase ("por servidor"), con menos fotos por segundo.
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../utils/supabase';
+import { t } from '../i18n';
 
 export type Role = 'host' | 'guest';
 export type LinkMode = 'connecting' | 'p2p' | 'relay';
@@ -33,7 +34,7 @@ export class CoopLink {
   private pendingIce: RTCIceCandidateInit[] = [];
 
   private constructor(code: string, role: Role, name: string) {
-    if (!supabase) throw new Error('El modo cooperativo necesita conexión con el servidor');
+    if (!supabase) throw new Error(t('El modo cooperativo necesita conexión con el servidor'));
     this.code = code; this.role = role; this.name = name;
     this.ch = supabase.channel(`vs-coop-${code}`, { config: { broadcast: { self: false, ack: false }, presence: { key: this.selfId } } });
   }
@@ -46,7 +47,7 @@ export class CoopLink {
       if (!(await link.othersPresent()).some(p => p.role === 'host')) return link;
       await link.close();          // código ocupado: probar otro
     }
-    throw new Error('No se pudo crear la sala. Inténtalo de nuevo');
+    throw new Error(t('No se pudo crear la sala. Inténtalo de nuevo'));
   }
 
   /** Entra en la sala de un amigo. */
@@ -56,8 +57,8 @@ export class CoopLink {
     let others: PeerInfo[] = [];
     for (let i = 0; i < 6 && !others.some(p => p.role === 'host'); i++) { await wait(400); others = await link.othersPresent(); }
     const host = others.find(p => p.role === 'host');
-    if (!host) { await link.close(); throw new Error('No existe ninguna sala con ese código'); }
-    if (others.some(p => p.role === 'guest')) { await link.close(); throw new Error('Esa sala ya está llena'); }
+    if (!host) { await link.close(); throw new Error(t('No existe ninguna sala con ese código')); }
+    if (others.some(p => p.role === 'guest')) { await link.close(); throw new Error(t('Esa sala ya está llena')); }
     link.peer = host;
     link.onStatus();
     return link;
@@ -70,7 +71,7 @@ export class CoopLink {
       this.ch.on('presence', { event: 'sync' }, () => this.presence());
       this.ch.subscribe(async status => {
         if (status === 'SUBSCRIBED') { await this.ch.track({ name: this.name, role: this.role }); resolve(); }
-        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(new Error('No se pudo conectar con el servidor de salas'));
+        else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') reject(new Error(t('No se pudo conectar con el servidor de salas')));
       });
     });
   }

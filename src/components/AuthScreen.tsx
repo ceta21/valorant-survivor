@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 import { USERNAME_RE } from '../utils/account';
+import { t } from '../i18n';
 
 interface Props {
   /** Si se viene del menú como invitado, se puede volver atrás. */
@@ -25,10 +26,10 @@ export function AuthScreen({ back, guestHasProgress, onSignIn, onSignUp, onGuest
     ev.preventDefault();
     setError('');
     if (mode === 'register') {
-      if (!USERNAME_RE.test(user.trim())) return setError('El nombre debe tener de 3 a 16 letras, números o _');
-      if (pass.length < 6) return setError('La contraseña debe tener al menos 6 caracteres');
-      if (pass !== pass2) return setError('Las contraseñas no coinciden');
-    } else if (!user.trim() || !pass) return setError('Escribe tu usuario y tu contraseña');
+      if (!USERNAME_RE.test(user.trim())) return setError(t('El nombre debe tener de 3 a 16 letras, números o _'));
+      if (pass.length < 6) return setError(t('La contraseña debe tener al menos 6 caracteres'));
+      if (pass !== pass2) return setError(t('Las contraseñas no coinciden'));
+    } else if (!user.trim() || !pass) return setError(t('Escribe tu usuario y tu contraseña'));
     setBusy(true);
     audio.play('click');
     try {
@@ -42,38 +43,38 @@ export function AuthScreen({ back, guestHasProgress, onSignIn, onSignUp, onGuest
 
   return (
     <div className="screen auth">
-      {back && <button className="btn btn-sm auth-back" onClick={() => { audio.play('click'); back(); }}><b>Volver</b></button>}
+      {back && <button className="btn btn-sm auth-back" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>}
       <div className="auth-box">
         <Logo />
         <div className="auth-tabs" role="tablist">
-          <button role="tab" aria-selected={mode === 'login'} className={`map-chip ${mode === 'login' ? 'on' : ''}`} onClick={() => swap('login')}><b>Iniciar sesión</b></button>
-          <button role="tab" aria-selected={mode === 'register'} className={`map-chip ${mode === 'register' ? 'on' : ''}`} onClick={() => swap('register')}><b>Registrarse</b></button>
+          <button role="tab" aria-selected={mode === 'login'} className={`map-chip ${mode === 'login' ? 'on' : ''}`} onClick={() => swap('login')}><b>{t('Iniciar sesión')}</b></button>
+          <button role="tab" aria-selected={mode === 'register'} className={`map-chip ${mode === 'register' ? 'on' : ''}`} onClick={() => swap('register')}><b>{t('Registrarse')}</b></button>
         </div>
         <form className="auth-form" onSubmit={submit}>
           <label>
-            <span>Nombre de usuario</span>
+            <span>{t('Nombre de usuario')}</span>
             <input value={user} onChange={e => setUser(e.target.value)} maxLength={16} autoComplete="username" autoFocus placeholder="Jugador_1" />
           </label>
           <label>
-            <span>Contraseña</span>
+            <span>{t('Contraseña')}</span>
             <input type="password" value={pass} onChange={e => setPass(e.target.value)} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} />
           </label>
           {mode === 'register' && (
             <label>
-              <span>Repite la contraseña</span>
+              <span>{t('Repite la contraseña')}</span>
               <input type="password" value={pass2} onChange={e => setPass2(e.target.value)} autoComplete="new-password" />
             </label>
           )}
-          {mode === 'register' && <p className="auth-note">Al registrarte recibirás un <b>ID de jugador</b> único.{guestHasProgress ? ' Tu progreso como invitado se guardará en la cuenta.' : ''}</p>}
+          {mode === 'register' && <p className="auth-note">{t('Al registrarte recibirás un ID de jugador único.')}{guestHasProgress ? ' ' + t('Tu progreso como invitado se guardará en la cuenta.') : ''}</p>}
           {error && <p className="rank-err" role="alert">{error}</p>}
           <button className="btn btn-red btn-xl" type="submit" disabled={busy}>
-            <b>{busy ? 'Un momento…' : mode === 'login' ? 'Entrar' : 'Crear cuenta'}</b>
+            <b>{busy ? t('Un momento…') : mode === 'login' ? t('Entrar') : t('Crear cuenta')}</b>
           </button>
         </form>
         {!back && (
           <div className="auth-guest">
-            <button className="btn" onClick={() => { audio.play('click'); onGuest(); }} disabled={busy}><b>Jugar como invitado</b></button>
-            <p className="auth-note">Como invitado, tu progreso se pierde al cerrar la página.</p>
+            <button className="btn" onClick={() => { audio.play('click'); onGuest(); }} disabled={busy}><b>{t('Jugar como invitado')}</b></button>
+            <p className="auth-note">{t('Como invitado, tu progreso se pierde al cerrar la página.')}</p>
           </div>
         )}
       </div>

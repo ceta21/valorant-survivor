@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { AgentDef } from '../game/types';
 import { SW, SH, spriteRuns } from '../game/sprites';
+import { t } from '../i18n';
 
 // candado pixel-art (rejilla de 10x12)
 const LOCK = ['  ######  ', ' ##    ## ', ' #      # ', ' #      # ', '##########', '##########', '####  ####', '####  ####', '##### ####', '##########', '##########', '##########'];
@@ -10,7 +11,7 @@ export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; lock
   const runs = useMemo(() => spriteRuns(agent.id), [agent.id]);
   const c = agent.color, a = agent.accent, id = agent.id;
   return (
-    <svg className="portrait" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges" role="img" aria-label={`Retrato de ${agent.name}`}>
+    <svg className="portrait" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid slice" shapeRendering="crispEdges" role="img" aria-label={t('Retrato de {n}', { n: t(agent.name) })}>
       <defs>
         <pattern id={`st-${id}`} width="16" height="16" patternUnits="userSpaceOnUse">
           <rect width="4" height="4" fill="#fff" opacity="0.06" /><rect x="8" y="8" width="4" height="4" fill="#fff" opacity="0.06" />

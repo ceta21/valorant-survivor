@@ -1,6 +1,7 @@
 // Ranking global en Supabase. Si no hay proyecto configurado, se usa un ranking local
 // guardado en este navegador con la misma interfaz.
 import { supabase } from './supabase';
+import { t } from '../i18n';
 
 export interface ScoreEntry {
   name: string; agent: string; difficulty: string; map: string;
@@ -39,14 +40,14 @@ export async function fetchScores(f: Filters, limit = 50): Promise<ScoreEntry[]>
   if (f.agent !== 'all') q = q.eq('agent', f.agent);
   if (f.difficulty !== 'all') q = q.eq('difficulty', f.difficulty);
   const { data, error } = await q;
-  if (error) throw new Error(`Ranking no disponible (${error.message})`);
+  if (error) throw new Error(`${t('Ranking no disponible')} (${error.message})`);
   return bestPerPlayer(data as ScoreEntry[], limit);
 }
 
 /** Publica una marca. Con sesión iniciada, el servidor pone el nombre y el ID de la cuenta. */
 export async function submitScore(s: ScoreEntry): Promise<void> {
   const row = { ...s, name: cleanName(s.name), time: Math.round(s.time * 10) / 10 };
-  if (!row.name) throw new Error('Escribe un nombre');
+  if (!row.name) throw new Error(t('Escribe un nombre'));
   if (!supabase) {
     const all = readLocal();
     all.push({ ...row, created_at: new Date().toISOString() });
@@ -54,5 +55,5 @@ export async function submitScore(s: ScoreEntry): Promise<void> {
     return;
   }
   const { error } = await supabase.from('scores').insert(row);
-  if (error) throw new Error(/registrada/.test(error.message) ? 'Ese nombre pertenece a una cuenta registrada' : `No se pudo enviar (${error.message})`);
+  if (error) throw new Error(/registrada/.test(error.message) ? t('Ese nombre pertenece a una cuenta registrada') : `${t('No se pudo enviar')} (${error.message})`);
 }

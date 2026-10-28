@@ -6,6 +6,7 @@ import { Offer, marketOffers, marketPeriod, msToNextRotation } from '../data/mar
 import { gunRuns, gunSize } from '../game/weaponSprites';
 import { AgentPortrait } from './AgentPortrait';
 import { audio } from '../utils/audio';
+import { t, nf } from '../i18n';
 
 interface Props {
   save: SaveData;
@@ -21,7 +22,7 @@ const fmtCountdown = (ms: number) => {
   const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 };
-const credits = (n: number) => n.toLocaleString('es-ES');
+const credits = (n: number) => nf(n);
 
 function GunArt({ id }: { id: string }) {
   const s = gunSize(id), w = WEAPONS[id];
@@ -52,11 +53,11 @@ export function MarketScreen({ save, seed, reveal, buy, back, goAgents }: Props)
   return (
     <div className="screen market">
       <header className="top">
-        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>Volver</b></button>
-        <h2>Mercado nocturno</h2>
+        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
+        <h2>{t('Mercado nocturno')}</h2>
         <span className="credits">◈ {credits(save.credits)}</span>
       </header>
-      <p className="lead">Descubre tus cartas. Cada día aparecen armas y agentes <b>exclusivos</b> que no se consiguen de otra forma. Nueva rotación en <b className="market-timer">{fmtCountdown(left)}</b>.</p>
+      <p className="lead">{t('Descubre tus cartas. Cada día aparecen armas y agentes exclusivos que no se consiguen de otra forma.')} {t('Nueva rotación en')} <b className="market-timer">{fmtCountdown(left)}</b>.</p>
       <div className="market-cards">
         {offers.map((o, i) => {
           const open = revealed.includes(i);
@@ -67,47 +68,47 @@ export function MarketScreen({ save, seed, reveal, buy, back, goAgents }: Props)
           const color = agent?.color ?? weapon?.color ?? '#ff4655';
           if (!open) {
             return (
-              <button key={i} className={`mcard back ${flipping === i ? 'flipping' : ''}`} onClick={() => flip(i)} aria-label={`Descubrir carta ${i + 1}`}>
+              <button key={i} className={`mcard back ${flipping === i ? 'flipping' : ''}`} onClick={() => flip(i)} aria-label={t('Descubrir carta {n}', { n: i + 1 })}>
                 <span className="mcard-q">?</span>
-                <span className="mcard-hint">Descubrir</span>
+                <span className="mcard-hint">{t('Descubrir')}</span>
               </button>
             );
           }
           return (
             <article key={i} className={`mcard ${o.kind} ${owned ? 'owned' : ''}`} style={{ ['--mc' as any]: color }}>
-              <span className="mcard-kind">{o.kind === 'agent' ? 'Agente exclusivo' : 'Arma exclusiva'}</span>
+              <span className="mcard-kind">{o.kind === 'agent' ? t('Agente exclusivo') : t('Arma exclusiva')}</span>
               <span className="mcard-off">-{o.discount}%</span>
               <div className="mcard-art">{agent ? <AgentPortrait agent={agent} /> : <GunArt id={o.id} />}</div>
-              <h3>{agent?.name ?? weapon?.name}</h3>
-              <p className="mcard-desc">{agent?.desc ?? weapon?.desc}</p>
+              <h3>{t(agent?.name ?? weapon?.name ?? '')}</h3>
+              <p className="mcard-desc">{t(agent?.desc ?? weapon?.desc ?? '')}</p>
               {weapon && (
                 <ul className="mcard-stats">
-                  <li><span>Daño</span><b>{weapon.damage}{weapon.count > 1 ? ` ×${weapon.count}` : ''}</b></li>
-                  <li><span>Disparos/s</span><b>{(1 / weapon.cooldown).toFixed(1)}</b></li>
-                  <li><span>Evolución</span><b>{weapon.evolved.name}</b></li>
+                  <li><span>{t('Daño')}</span><b>{weapon.damage}{weapon.count > 1 ? ` ×${weapon.count}` : ''}</b></li>
+                  <li><span>{t('Disparos/s')}</span><b>{(1 / weapon.cooldown).toFixed(1)}</b></li>
+                  <li><span>{t('Evolución')}</span><b>{t(weapon.evolved.name)}</b></li>
                 </ul>
               )}
               {agent && (
                 <ul className="mcard-stats">
-                  <li><span>Vida</span><b>{agent.hp}</b></li>
-                  <li><span>Velocidad</span><b>{agent.speed}</b></li>
-                  <li><span>{agent.trait.label}</span><b>{agent.trait.desc}</b></li>
-                  <li><span>Habilidades</span><b>Las eliges tú</b></li>
+                  <li><span>{t('Vida')}</span><b>{agent.hp}</b></li>
+                  <li><span>{t('Velocidad')}</span><b>{agent.speed}</b></li>
+                  <li><span>{t(agent.trait.label)}</span><b>{t(agent.trait.desc)}</b></li>
+                  <li><span>{t('Habilidades')}</span><b>{t('Las eliges tú')}</b></li>
                 </ul>
               )}
               <div className="mcard-price"><s>◈ {credits(o.base)}</s><strong>◈ {credits(o.price)}</strong></div>
               {owned ? (
                 o.kind === 'agent'
-                  ? <button className="btn btn-sm" onClick={() => { audio.play('click'); goAgents(); }}><b>Personalizar</b></button>
-                  : <p className="mcard-owned">En tu colección · equípala al elegir agente</p>
+                  ? <button className="btn btn-sm" onClick={() => { audio.play('click'); goAgents(); }}><b>{t('Personalizar')}</b></button>
+                  : <p className="mcard-owned">{t('En tu colección · equípala al elegir agente')}</p>
               ) : confirm === i ? (
                 <div className="mcard-confirm">
-                  <button className="btn btn-red btn-sm" onClick={() => { audio.play('pick'); buy(o); setConfirm(null); }}><b>Confirmar</b></button>
-                  <button className="btn btn-sm" onClick={() => setConfirm(null)}><b>Cancelar</b></button>
+                  <button className="btn btn-red btn-sm" onClick={() => { audio.play('pick'); buy(o); setConfirm(null); }}><b>{t('Confirmar')}</b></button>
+                  <button className="btn btn-sm" onClick={() => setConfirm(null)}><b>{t('Cancelar')}</b></button>
                 </div>
               ) : (
                 <button className="btn btn-red btn-sm" disabled={!can} onClick={() => { audio.play('click'); setConfirm(i); }}>
-                  <b>{can ? 'Comprar' : `Te faltan ◈ ${credits(o.price - save.credits)}`}</b>
+                  <b>{can ? t('Comprar') : t('Te faltan ◈ {n}', { n: credits(o.price - save.credits) })}</b>
                 </button>
               )}
             </article>

@@ -12,7 +12,8 @@ import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
-import { SaveData, Settings, clearLegacySave, defaultSave, loadLegacySave } from './utils/storage';
+import { SaveData, Settings, Prefs, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
+import { setLang, t } from './i18n';
 import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
@@ -31,6 +32,10 @@ type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'setti
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
   const [save, setSave] = useState<SaveData>(loadLegacySave);
+  // idioma y controles: preferencias de este dispositivo
+  const [prefs, setPrefs] = useState<Prefs>(loadPrefs);
+  setLang(prefs.lang);   // antes de pintar, para que toda la interfaz salga en el idioma elegido
+  const changePrefs = (p: Partial<Prefs>) => setPrefs(o => { const n = { ...o, ...p }; savePrefs(n); return n; });
   const [account, setAccount] = useState<Account | null>(null);
   const [screen, setScreen] = useState<Screen>(accountsEnabled ? 'loading' : 'menu');
   const [authFromMenu, setAuthFromMenu] = useState(false);
@@ -129,14 +134,14 @@ export default function App() {
   return (
     <div className="app">
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
-      {screen === 'loading' && <div className="screen auth"><p className="rank-msg">Cargando…</p></div>}
+      {screen === 'loading' && <div className="screen auth"><p className="rank-msg">{t('Cargando…')}</p></div>}
       {screen === 'auth' && (
         <AuthScreen back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}
           onSignIn={doSignIn} onSignUp={doSignUp} onGuest={() => go('menu')} />
       )}
-      {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} />}
+      {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} keys={prefs.keys} />}
       {screen === 'agents' && (
-        <AgentSelection save={save} back={() => go('menu')} start={start}
+        <AgentSelection save={save} back={() => go('menu')} start={start} keys={prefs.keys}
           setKit={(id, kit) => update(s => ({ ...s, kits: { ...s.kits, [id]: kit } }))}
           setLoadout={id => update(s => ({ ...s, loadout: id }))}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
@@ -152,7 +157,7 @@ export default function App() {
         <StatsScreen save={save} back={() => go('menu')} claim={(id, reward) => update(s => (s.claimed.includes(id) ? s : { ...s, credits: s.credits + reward, claimed: [...s.claimed, id] }))} />
       )}
       {screen === 'settings' && (
-        <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} />
+        <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} prefs={prefs} changePrefs={changePrefs} />
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
@@ -160,7 +165,7 @@ export default function App() {
       {screen === 'coop' && <CoopScreen save={save} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} keys={prefs.keys} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

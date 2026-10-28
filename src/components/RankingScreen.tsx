@@ -4,6 +4,7 @@ import { DIFFICULTIES, DIFFICULTY_BY_ID } from '../data/difficulty';
 import { MAP_BY_ID } from '../data/maps';
 import { Filters, ScoreEntry, fetchScores, isGlobal } from '../utils/leaderboard';
 import { audio } from '../utils/audio';
+import { t, nf } from '../i18n';
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -25,43 +26,43 @@ export function RankingScreen({ back }: { back: () => void }) {
   return (
     <div className="screen ranking">
       <header className="top">
-        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>Volver</b></button>
-        <h2>Ranking {isGlobal ? 'global' : 'local'}</h2>
+        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
+        <h2>{isGlobal ? t('Ranking global') : t('Ranking local')}</h2>
         <span />
       </header>
-      {!isGlobal && <p className="lead">El ranking global aún no está conectado: se muestran las partidas de este navegador.</p>}
+      {!isGlobal && <p className="lead">{t('El ranking global aún no está conectado: se muestran las partidas de este navegador.')}</p>}
       <div className="rank-filters">
         <label>
-          <span>Agente</span>
+          <span>{t('Agente')}</span>
           <select value={f.agent} onChange={e => pick({ agent: e.target.value })}>
-            <option value="all">Todos</option>
-            {AGENTS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            <option value="all">{t('Todos')}</option>
+            {AGENTS.map(a => <option key={a.id} value={a.id}>{t(a.name)}</option>)}
           </select>
         </label>
-        <div className="map-pick" role="radiogroup" aria-label="Dificultad">
+        <div className="map-pick" role="radiogroup" aria-label={t('Dificultad')}>
           {[{ id: 'all', name: 'Todas', color: '#ece8e1' }, ...DIFFICULTIES].map(d => (
             <button key={d.id} role="radio" aria-checked={f.difficulty === d.id} className={`map-chip ${f.difficulty === d.id ? 'on' : ''}`} onClick={() => pick({ difficulty: d.id })}>
-              <i style={{ background: d.color }} /><b>{d.name}</b>
+              <i style={{ background: d.color }} /><b>{t(d.name)}</b>
             </button>
           ))}
         </div>
       </div>
       <div className="rank-table-wrap">
-        {error ? <p className="rank-msg">{error}</p> : !rows ? <p className="rank-msg">Cargando…</p> : rows.length === 0 ? <p className="rank-msg">Todavía no hay partidas con estos filtros.</p> : (
+        {error ? <p className="rank-msg">{error}</p> : !rows ? <p className="rank-msg">{t('Cargando…')}</p> : rows.length === 0 ? <p className="rank-msg">{t('Todavía no hay partidas con estos filtros.')}</p> : (
           <table className="records rank-table">
-            <thead><tr><th>#</th><th>Jugador</th><th>Tiempo</th><th>Agente</th><th>Dificultad</th><th className="opt">Mapa</th><th className="opt">Bajas</th><th className="opt">Nivel</th><th className="opt">Jefes</th></tr></thead>
+            <thead><tr><th>#</th><th>{t('Jugador')}</th><th>{t('Tiempo')}</th><th>{t('Agente')}</th><th>{t('Dificultad')}</th><th className="opt">{t('Mapa')}</th><th className="opt">{t('Bajas')}</th><th className="opt">{t('Nivel')}</th><th className="opt">{t('Jefes')}</th></tr></thead>
             <tbody>
               {rows.map((r, i) => {
                 const d = DIFFICULTY_BY_ID[r.difficulty];
                 return (
                   <tr key={`${r.name}-${i}`} className={i < 3 ? `top${i + 1}` : ''}>
                     <td className="pos">{i + 1}</td>
-                    <td><b>{r.name}</b>{r.player_id ? <em className="pid"> #{r.player_id}</em> : <em className="pid guest"> invitado</em>}</td>
+                    <td><b>{r.name}</b>{r.player_id ? <em className="pid"> #{r.player_id}</em> : <em className="pid guest"> {t('invitado')}</em>}</td>
                     <td className="time">{fmt(r.time)}</td>
-                    <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{AGENT_BY_ID[r.agent]?.name ?? r.agent}</td>
-                    <td style={{ color: d?.color }}>{d?.name ?? r.difficulty}</td>
+                    <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{t(AGENT_BY_ID[r.agent]?.name ?? r.agent)}</td>
+                    <td style={{ color: d?.color }}>{d ? t(d.name) : r.difficulty}</td>
                     <td className="opt">{MAP_BY_ID[r.map]?.name ?? r.map}</td>
-                    <td className="opt">{r.kills.toLocaleString('es-ES')}</td>
+                    <td className="opt">{nf(r.kills)}</td>
                     <td className="opt">{r.level}</td>
                     <td className="opt">{r.boss_kills}</td>
                   </tr>

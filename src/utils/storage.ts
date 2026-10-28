@@ -1,3 +1,6 @@
+import type { Lang } from '../i18n';
+import { browserLang } from '../i18n';
+import { KeyMap, normalizeKeys } from '../game/controls';
 export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
 }
@@ -90,4 +93,22 @@ export function loadLegacySave(): SaveData {
 
 export function clearLegacySave(): void {
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
+}
+
+/* ------------------------------------------------------------------ preferencias del dispositivo */
+// Idioma y controles se guardan en este navegador (también en modo invitado y antes de entrar).
+
+export interface Prefs { lang: Lang; keys: KeyMap }
+const PREFS = 'valorant-survivors-prefs-v1';
+
+export function loadPrefs(): Prefs {
+  try {
+    const p = JSON.parse(localStorage.getItem(PREFS) || '{}');
+    return { lang: p.lang === 'en' || p.lang === 'es' ? p.lang : browserLang(), keys: normalizeKeys(p.keys) };
+  } catch {
+    return { lang: browserLang(), keys: normalizeKeys() };
+  }
+}
+export function savePrefs(p: Prefs): void {
+  try { localStorage.setItem(PREFS, JSON.stringify(p)); } catch { /* sin almacenamiento */ }
 }

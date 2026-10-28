@@ -14,6 +14,8 @@ import type { Account } from '../utils/account';
 import type { PlayerSetup } from '../game/GameEngine';
 import type { CoopLink } from '../net/coopLink';
 import { applySnapshot, makeSnapshot, mirrorTick, Snap } from '../game/netSync';
+import { t, nf } from '../i18n';
+import { KeyMap } from '../game/controls';
 
 interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; startWeapon: string; meta: MetaLevels; settings: Settings;
@@ -22,6 +24,7 @@ interface Props {
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
   /** Partida cooperativa: conexión, jugadores e índice del de esta pantalla (0 = anfitrión). */
   coop?: { link: CoopLink; setups: PlayerSetup[]; local: number };
+  keys: KeyMap;
 }
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -37,28 +40,28 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   useEffect(() => { if (account && !sent.current) { sent.current = true; send(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const send = async () => {
     const n = account ? account.username : cleanName(draft);
-    if (!n) { setState('error'); setMsg('Escribe un nombre'); return; }
+    if (!n) { setState('error'); setMsg(t('Escribe un nombre')); return; }
     setState('sending'); if (!account) setName(n);
     try {
       await submitScore({ name: n, agent: r.agentId, difficulty: r.difficulty, map: r.mapId, time: r.time, kills: r.kills, level: r.level, boss_kills: r.bossKills });
-      setState('done'); setMsg(isGlobal ? '¡Marca publicada en el ranking global!' : 'Marca guardada en el ranking local.');
+      setState('done'); setMsg(isGlobal ? t('¡Marca publicada en el ranking global!') : t('Marca guardada en el ranking local.'));
     } catch (e: any) { setState('error'); setMsg(String(e?.message ?? e)); }
   };
   if (state === 'done') return <p className="rank-sent">{msg}</p>;
-  if (account) return <p className={state === 'error' ? 'rank-err' : 'rank-sent'}>{state === 'error' ? msg : `Publicando como ${account.username} #${account.playerId}…`}</p>;
+  if (account) return <p className={state === 'error' ? 'rank-err' : 'rank-sent'}>{state === 'error' ? msg : t('Publicando como {n} #{id}…', { n: account.username, id: account.playerId })}</p>;
   return (
     <form className="rank-submit" onSubmit={e => { e.preventDefault(); send(); }}>
-      <label htmlFor="rank-name">Tu nombre para el ranking</label>
+      <label htmlFor="rank-name">{t('Tu nombre para el ranking')}</label>
       <div>
-        <input id="rank-name" value={draft} maxLength={16} autoComplete="nickname" placeholder="Jugador" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.stopPropagation()} />
-        <button className="btn btn-sm" type="submit" disabled={state === 'sending'}><b>{state === 'sending' ? 'Enviando…' : 'Publicar'}</b></button>
+        <input id="rank-name" value={draft} maxLength={16} autoComplete="nickname" placeholder={t('Jugador')} onChange={e => setDraft(e.target.value)} onKeyDown={e => e.stopPropagation()} />
+        <button className="btn btn-sm" type="submit" disabled={state === 'sending'}><b>{state === 'sending' ? t('Enviando…') : t('Publicar')}</b></button>
       </div>
       {state === 'error' && <p className="rank-err">{msg}</p>}
     </form>
   );
 }
 
-export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop }: Props) {
+export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -134,7 +137,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
       const gone = () => {
         if (engine.state === 'lost') return;
         engine.state = 'lost';
-        setLost('Se perdió la conexión con el anfitrión.');
+        setLost(t('Se perdió la conexión con el anfitrión.'));
         const r = engine.resultFor(1);
         const ach = onEndRef.current(r); setResult({ r, ach });
       };
@@ -143,7 +146,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;
-    const input = new Input(engine, togglePause, cast);
+    const input = new Input(engine, togglePause, cast, keys);
     inputRef.current = input;
 
     // pixel-art: se dibuja a baja resolución y el navegador lo amplía sin suavizar,
@@ -240,50 +243,50 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
   return (
     <div className="game" ref={wrap}>
       <canvas ref={canvasRef} className="game-canvas" />
-      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} />}
+      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} />}
       {coop && hud?.state === 'levelup' && !choices && !result && (
-        <div className="coop-wait-banner">Esperando a que tu compañero elija su mejora…</div>
+        <div className="coop-wait-banner">{t('Esperando a que tu compañero elija su mejora…')}</div>
       )}
-      {coop && hud?.dead && !result && <div className="coop-wait-banner down">Has caído · vuelves en la próxima oleada</div>}
+      {coop && hud?.dead && !result && <div className="coop-wait-banner down">{t('Has caído · vuelves en la próxima oleada')}</div>}
       {choices && hud?.state === 'levelup' && engine && (
-        <UpgradeSelection choices={choices} rerolls={engine.rerolls} level={engine.level} pick={pick} reroll={reroll} />
+        <UpgradeSelection choices={choices} rerolls={engine.rerolls} level={engine.level} pick={pick} reroll={reroll} rerollKey={keys.reroll} />
       )}
       {paused && !result && (
-        <div className="overlay pause" role="dialog" aria-label="Pausa">
-          <h2>{coop ? 'Menú' : 'Pausa'}</h2>
-          {coop && <p className="sub">La partida sigue en marcha mientras tanto.</p>}
+        <div className="overlay pause" role="dialog" aria-label={t('Pausa')}>
+          <h2>{coop ? t('Menú') : t('Pausa')}</h2>
+          {coop && <p className="sub">{t('La partida sigue en marcha mientras tanto.')}</p>}
           <div className="pause-box">
             <AudioControls settings={settings} change={changeSettings} />
           </div>
           <div className="pause-btns">
-            <button className="btn btn-red btn-xl" onClick={togglePause}><b>{coop ? 'Volver a la partida' : 'Reanudar'}</b></button>
-            {!coop && <button className="btn" onClick={onRestart}><b>Reiniciar</b></button>}
-            <button className="btn" onClick={onMenu}><b>Abandonar</b></button>
+            <button className="btn btn-red btn-xl" onClick={togglePause}><b>{coop ? t('Volver a la partida') : t('Reanudar')}</b></button>
+            {!coop && <button className="btn" onClick={onRestart}><b>{t('Reiniciar')}</b></button>}
+            <button className="btn" onClick={onMenu}><b>{t('Abandonar')}</b></button>
           </div>
         </div>
       )}
       {result && (
-        <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label="Resultado">
+        <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label={t('Resultado')}>
           <h1>{fmt(result.r.time)}</h1>
           <p className="sub">
-            {lost || (result.r.win ? 'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.' : coop ? 'Habéis caído los dos.' : 'Has caído en combate.')}
-            {' '}<span style={{ color: difficulty.color }}>{difficulty.name}</span>
+            {lost || (result.r.win ? t('Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.') : coop ? t('Habéis caído los dos.') : t('Has caído en combate.'))}
+            {' '}<span style={{ color: difficulty.color }}>{t(difficulty.name)}</span>
           </p>
           {coop
-            ? <p className="sub">Las partidas en pareja no cuentan para el ranking.</p>
+            ? <p className="sub">{t('Las partidas en pareja no cuentan para el ranking.')}</p>
             : <SubmitScore r={result.r} account={account} name={playerName} setName={setPlayerName} />}
           <dl className="end-stats">
-            <div><dt>Tiempo</dt><dd>{fmt(result.r.time)}</dd></div>
-            <div><dt>Eliminaciones</dt><dd>{result.r.kills}</dd></div>
-            <div><dt>Nivel</dt><dd>{result.r.level}</dd></div>
-            <div><dt>Daño</dt><dd>{result.r.damage.toLocaleString('es-ES')}</dd></div>
-            <div><dt>Jefes</dt><dd>{result.r.bossKills}</dd></div>
-            <div className="reward"><dt>Créditos</dt><dd>+◈ {result.r.credits}</dd></div>
+            <div><dt>{t('Tiempo')}</dt><dd>{fmt(result.r.time)}</dd></div>
+            <div><dt>{t('Eliminaciones')}</dt><dd>{nf(result.r.kills)}</dd></div>
+            <div><dt>{t('Nivel')}</dt><dd>{result.r.level}</dd></div>
+            <div><dt>{t('Daño')}</dt><dd>{nf(result.r.damage)}</dd></div>
+            <div><dt>{t('Jefes')}</dt><dd>{result.r.bossKills}</dd></div>
+            <div className="reward"><dt>{t('Créditos')}</dt><dd>+◈ {nf(result.r.credits)}</dd></div>
           </dl>
-          {result.ach.length > 0 && <p className="ach">Logro desbloqueado: {result.ach.join(', ')}</p>}
+          {result.ach.length > 0 && <p className="ach">{t('Logro desbloqueado:')} {result.ach.map(a => t(a)).join(', ')}</p>}
           <div className="pause-btns">
-            {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>Jugar otra vez</b></button>}
-            <button className={`btn ${coop ? 'btn-red btn-xl' : ''}`} onClick={onMenu}><b>Volver al menú</b></button>
+            {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>{t('Jugar otra vez')}</b></button>}
+            <button className={`btn ${coop ? 'btn-red btn-xl' : ''}`} onClick={onMenu}><b>{t('Volver al menú')}</b></button>
           </div>
         </div>
       )}

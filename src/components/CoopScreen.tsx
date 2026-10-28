@@ -7,6 +7,7 @@ import { SaveData, MetaLevels } from '../utils/storage';
 import { CoopLink } from '../net/coopLink';
 import { AgentPortrait } from './AgentPortrait';
 import { audio } from '../utils/audio';
+import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
 export interface CoopSetup { agentId: string; kit?: Kit; loadout: string; meta: MetaLevels; name: string }
@@ -72,7 +73,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
     setBusy(false);
   };
   const join = async () => {
-    if (code.trim().length !== 4) { setError('El código tiene 4 caracteres'); return; }
+    if (code.trim().length !== 4) { setError(t('El código tiene 4 caracteres')); return; }
     setBusy(true); setError(''); audio.play('click');
     try { setLink(await CoopLink.guest(code, name)); } catch (e: any) { setError(String(e?.message ?? e)); }
     setBusy(false);
@@ -92,27 +93,27 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
     return (
       <div className="screen coop">
         <header className="top">
-          <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>Volver</b></button>
-          <h2>Jugar en pareja</h2>
+          <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
+          <h2>{t('Jugar en pareja')}</h2>
           <span />
         </header>
         <div className="coop-start">
           <section className="coop-box">
-            <h3>Crear sala</h3>
-            <p>Crea una sala y pásale el código a tu amigo.</p>
-            <button className="btn btn-red btn-xl" disabled={busy} onClick={create}><b>Crear sala</b></button>
+            <h3>{t('Crear sala')}</h3>
+            <p>{t('Crea una sala y pásale el código a tu amigo.')}</p>
+            <button className="btn btn-red btn-xl" disabled={busy} onClick={create}><b>{t('Crear sala')}</b></button>
           </section>
           <section className="coop-box">
-            <h3>Unirse</h3>
-            <p>Escribe el código que te ha pasado tu amigo.</p>
+            <h3>{t('Unirse')}</h3>
+            <p>{t('Escribe el código que te ha pasado tu amigo.')}</p>
             <form onSubmit={e => { e.preventDefault(); join(); }}>
-              <input className="coop-code-input" value={code} maxLength={4} placeholder="ABCD" onChange={e => setCode(e.target.value.toUpperCase())} aria-label="Código de sala" />
-              <button className="btn btn-xl" type="submit" disabled={busy}><b>Unirse</b></button>
+              <input className="coop-code-input" value={code} maxLength={4} placeholder="ABCD" onChange={e => setCode(e.target.value.toUpperCase())} aria-label={t('Código de sala')} />
+              <button className="btn btn-xl" type="submit" disabled={busy}><b>{t('Unirse')}</b></button>
             </form>
           </section>
         </div>
         {error && <p className="rank-err coop-err" role="alert">{error}</p>}
-        <p className="lead coop-note">Partida para 2 jugadores contra las mismas oleadas. Si caes, vuelves en la siguiente oleada. Las partidas en pareja no cuentan para el ranking.</p>
+        <p className="lead coop-note">{t('Partida para 2 jugadores contra las mismas oleadas. Si caes, vuelves en la siguiente oleada. Las partidas en pareja no cuentan para el ranking.')}</p>
       </div>
     );
   }
@@ -125,57 +126,57 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   return (
     <div className="screen coop">
       <header className="top">
-        <button className="btn btn-sm" onClick={leave}><b>Salir de la sala</b></button>
-        <h2>Sala <span className="coop-code">{link.code}</span></h2>
-        <span className={`coop-mode ${link.mode}`}>{link.peer ? MODE_TEXT[link.mode] : 'Esperando…'}</span>
+        <button className="btn btn-sm" onClick={leave}><b>{t('Salir de la sala')}</b></button>
+        <h2>{t('Sala')} <span className="coop-code">{link.code}</span></h2>
+        <span className={`coop-mode ${link.mode}`}>{link.peer ? t(MODE_TEXT[link.mode]) : t('Esperando…')}</span>
       </header>
       <div className="coop-lobby">
         <section className="coop-slot" style={{ ['--ac' as any]: agent.color }}>
-          <small>{isHost ? 'Anfitrión' : 'Invitado'} · Tú</small>
+          <small>{isHost ? t('Anfitrión') : t('Invitado')} · {t('Tú')}</small>
           <div className="coop-portrait"><AgentPortrait agent={agent} /></div>
           <b>{name}</b>
           <select value={agentId} onChange={e => { audio.play('click'); setAgentId(e.target.value); setReady(false); }}>
-            {roster.map(a => <option key={a.id} value={a.id}>{a.name}{a.exclusive ? ' ★' : ''}</option>)}
+            {roster.map(a => <option key={a.id} value={a.id}>{t(a.name)}{a.exclusive ? ' ★' : ''}</option>)}
           </select>
           {!isHost && (
-            <button className={`btn ${ready ? '' : 'btn-red'}`} onClick={() => { audio.play('click'); setReady(r => !r); }}><b>{ready ? 'No estoy listo' : 'Estoy listo'}</b></button>
+            <button className={`btn ${ready ? '' : 'btn-red'}`} onClick={() => { audio.play('click'); setReady(r => !r); }}><b>{ready ? t('No estoy listo') : t('Estoy listo')}</b></button>
           )}
         </section>
         <section className="coop-slot" style={{ ['--ac' as any]: peerAgent?.color ?? '#34495c' }}>
-          <small>{isHost ? 'Invitado' : 'Anfitrión'}</small>
+          <small>{isHost ? t('Invitado') : t('Anfitrión')}</small>
           {peerState && peerAgent ? (
             <>
               <div className="coop-portrait"><AgentPortrait agent={peerAgent} /></div>
               <b>{peerState.name}</b>
-              <span>{peerAgent.name}</span>
-              <span className={peerState.ready ? 'coop-ready' : 'coop-wait'}>{peerState.ready ? 'Listo' : 'Eligiendo…'}</span>
+              <span>{t(peerAgent.name)}</span>
+              <span className={peerState.ready ? 'coop-ready' : 'coop-wait'}>{peerState.ready ? t('Listo') : t('Eligiendo…')}</span>
             </>
           ) : (
             <div className="coop-empty">
-              <p>Esperando a tu compañero…</p>
-              <p>Código: <span className="coop-code">{link.code}</span></p>
+              <p>{t('Esperando a tu compañero…')}</p>
+              <p>{t('Código')}: <span className="coop-code">{link.code}</span></p>
             </div>
           )}
         </section>
       </div>
       <div className="coop-settings">
-        <div className="map-pick" role="radiogroup" aria-label="Mapa">
+        <div className="map-pick" role="radiogroup" aria-label={t('Mapa')}>
           {MAPS.map(m => (
             <button key={m.id} role="radio" aria-checked={m.id === shownMap} disabled={!isHost} className={`map-chip ${m.id === shownMap ? 'on' : ''}`} onClick={() => { audio.play('click'); setMapId(m.id); }}>
               <i style={{ background: m.colors.wallTop }} /><b>{m.name}</b>
             </button>
           ))}
         </div>
-        <div className="map-pick" role="radiogroup" aria-label="Dificultad">
+        <div className="map-pick" role="radiogroup" aria-label={t('Dificultad')}>
           {DIFFICULTIES.map(d => (
             <button key={d.id} role="radio" aria-checked={d.id === shownDiff} disabled={!isHost} className={`map-chip ${d.id === shownDiff ? 'on' : ''}`} onClick={() => { audio.play('click'); setDifficulty(d.id); }}>
-              <i style={{ background: d.color }} /><b>{d.name}</b>
+              <i style={{ background: d.color }} /><b>{t(d.name)}</b>
             </button>
           ))}
         </div>
         {isHost
-          ? <button className="btn btn-red btn-xl" disabled={!peerState?.ready} onClick={start}><b>{peerState ? (peerState.ready ? 'Empezar partida' : 'Esperando a que esté listo') : 'Esperando compañero'}</b></button>
-          : <p className="lead">El anfitrión elige mapa y dificultad y empieza la partida.</p>}
+          ? <button className="btn btn-red btn-xl" disabled={!peerState?.ready} onClick={start}><b>{peerState ? (peerState.ready ? t('Empezar partida') : t('Esperando a que esté listo')) : t('Esperando compañero')}</b></button>
+          : <p className="lead">{t('El anfitrión elige mapa y dificultad y empieza la partida.')}</p>}
       </div>
     </div>
   );

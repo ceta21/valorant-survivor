@@ -1,4 +1,5 @@
 import { GameEngine } from './GameEngine';
+import { DEFAULT_KEYS, KeyMap } from './controls';
 
 /** Teclado → motor. Gestiona y limpia sus propios listeners. */
 export class Input {
@@ -10,19 +11,23 @@ export class Input {
   private castFn: (slot: 'special' | 'secondary' | 'ultimate') => void;
   private handlers: [string, (ev: any) => void][] = [];
 
-  constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void) {
+  private map: KeyMap;
+
+  constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void, keys: KeyMap = DEFAULT_KEYS) {
     this.engine = engine;
+    this.map = keys;
     this.onPause = onPause;
     this.castFn = castFn ?? (slot => { this.engine.cast(slot); });
     const down = (ev: KeyboardEvent) => {
       const k = ev.code;
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) ev.preventDefault();
+      const m = this.map;
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', m.special, m.secondary, m.ultimate].includes(k)) ev.preventDefault();
       if (ev.repeat) return;
       this.keys.add(k);
-      if (k === 'Space') this.castFn('special');
-      else if (k === 'KeyE') this.castFn('secondary');
-      else if (k === 'KeyQ') this.castFn('ultimate');
-      else if (k === 'Escape' || k === 'KeyP') this.onPause();
+      if (k === m.special) this.castFn('special');
+      else if (k === m.secondary) this.castFn('secondary');
+      else if (k === m.ultimate) this.castFn('ultimate');
+      else if (k === 'Escape' || k === m.pause) this.onPause();
     };
     const up = (ev: KeyboardEvent) => { this.keys.delete(ev.code); };
     const blur = () => this.keys.clear();
@@ -36,10 +41,11 @@ export class Input {
   poll() {
     const k = this.keys;
     let x = 0, y = 0;
-    if (k.has('KeyA') || k.has('ArrowLeft')) x -= 1;
-    if (k.has('KeyD') || k.has('ArrowRight')) x += 1;
-    if (k.has('KeyW') || k.has('ArrowUp')) y -= 1;
-    if (k.has('KeyS') || k.has('ArrowDown')) y += 1;
+    const m = this.map;
+    if (k.has(m.left) || k.has('ArrowLeft')) x -= 1;
+    if (k.has(m.right) || k.has('ArrowRight')) x += 1;
+    if (k.has(m.up) || k.has('ArrowUp')) y -= 1;
+    if (k.has(m.down) || k.has('ArrowDown')) y += 1;
     if (x === 0 && y === 0) { x = this.stick.x; y = this.stick.y; }
     else if (x !== 0 && y !== 0) { x *= Math.SQRT1_2; y *= Math.SQRT1_2; }
     this.engine.inputMove.x = x; this.engine.inputMove.y = y;

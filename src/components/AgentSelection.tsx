@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ABILITIES, ABILITY_OWNER, AGENTS, EXCLUSIVE_AGENTS, Kit, ULTIMATES, withKit } from '../data/agents';
 import { WEAPONS } from '../data/weapons';
+import { t, nf } from '../i18n';
+import { KeyMap, keyLabel } from '../game/controls';
 import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
 import { SaveData } from '../utils/storage';
@@ -14,9 +16,11 @@ interface Props {
   unlock: (agentId: string) => void;
   setKit: (agentId: string, kit: Kit) => void;
   setLoadout: (weaponId: string) => void;
+  keys: KeyMap;
 }
 
-export function AgentSelection({ save, back, start, unlock, setKit, setLoadout }: Props) {
+export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, keys }: Props) {
+  const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
   const [sel, setSel] = useState(save.lastAgent);
   const [mapId, setMapId] = useState(save.lastMap);
   const [diffId, setDiffId] = useState(save.lastDifficulty);
@@ -37,19 +41,19 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout }
   return (
     <div className="screen select">
       <header className="top">
-        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>Volver</b></button>
-        <h2>Elige tu agente</h2>
-        <span className="credits">◈ {save.credits.toLocaleString('es-ES')}</span>
+        <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
+        <h2>{t('Elige tu agente')}</h2>
+        <span className="credits">◈ {nf(save.credits)}</span>
       </header>
       <div className="select-body">
-        <div className="agent-grid" role="listbox" aria-label="Agentes">
+        <div className="agent-grid" role="listbox" aria-label={t('Agentes')}>
           {roster.map(a => {
             const open = save.unlocked.includes(a.id) || save.exclusives.includes(a.id);
             return (
               <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open ? '' : 'locked'} ${a.exclusive ? 'exclusive' : ''}`}
                 style={{ ['--ac' as any]: a.color }} onClick={() => { audio.play('click'); setSel(a.id); }} onMouseEnter={() => audio.play('hover')}>
                 <AgentPortrait agent={a} locked={!open} />
-                <span className="agent-card-name">{a.name}</span>
+                <span className="agent-card-name">{t(a.name)}</span>
                 {!open && <span className="agent-card-cost">◈ {a.cost}</span>}
               </button>
             );
@@ -57,35 +61,35 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout }
         </div>
         <aside className="agent-panel" style={{ ['--ac' as any]: agent.color }}>
           <div className="panel-head">
-            <small>{agent.role}</small>
-            <h3>{agent.name}</h3>
+            <small>{t(agent.role)}</small>
+            <h3>{t(agent.name)}</h3>
           </div>
-          <p className="panel-desc">{agent.desc}</p>
+          <p className="panel-desc">{t(agent.desc)}</p>
           <ul className="stat-bars">
-            <StatBar label="Vida" v={agent.hp} max={140} />
-            <StatBar label="Velocidad" v={agent.speed} max={215} />
-            <StatBar label="Daño" v={agent.damage} max={12} />
+            <StatBar label={t('Vida')} v={agent.hp} max={140} />
+            <StatBar label={t('Velocidad')} v={agent.speed} max={215} />
+            <StatBar label={t('Daño')} v={agent.damage} max={12} />
           </ul>
-          <div className="trait"><b>{agent.trait.label}</b><span>{agent.trait.desc}</span></div>
+          <div className="trait"><b>{t(agent.trait.label)}</b><span>{t(agent.trait.desc)}</span></div>
           {agent.exclusive && (
             <div className="kit-editor">
-              <b>Elige sus habilidades</b>
-              {([['special', 'Espacio', ABILITIES], ['secondary', 'E', ABILITIES], ['ultimate', 'Q', ULTIMATES]] as const).map(([slot, key, list]) => (
+              <b>{t('Elige sus habilidades')}</b>
+              {([['special', K.special, ABILITIES], ['secondary', K.secondary, ABILITIES], ['ultimate', K.ultimate, ULTIMATES]] as const).map(([slot, key, list]) => (
                 <label key={slot}>
                   <kbd>{key}</kbd>
                   <select value={agent[slot]?.id ?? ''} onChange={e => changeKit(slot, e.target.value)}>
-                    {list.map(ab => <option key={ab.id} value={ab.id}>{ab.name} ({ABILITY_OWNER[ab.id]})</option>)}
+                    {list.map(ab => <option key={ab.id} value={ab.id}>{t(ab.name)} ({ABILITY_OWNER[ab.id]})</option>)}
                   </select>
                 </label>
               ))}
             </div>
           )}
           <ul className="abilities">
-            <li><kbd>Espacio</kbd><div><b>{agent.special.name}</b><span>{agent.special.desc}</span></div></li>
-            {agent.secondary && <li><kbd>E</kbd><div><b>{agent.secondary.name}</b><span>{agent.secondary.desc}</span></div></li>}
-            <li><kbd>Q</kbd><div><b>{agent.ultimate.name}</b><span>{agent.ultimate.desc}</span></div></li>
+            <li><kbd>{K.special}</kbd><div><b>{t(agent.special.name)}</b><span>{t(agent.special.desc)}</span></div></li>
+            {agent.secondary && <li><kbd>{K.secondary}</kbd><div><b>{t(agent.secondary.name)}</b><span>{t(agent.secondary.desc)}</span></div></li>}
+            <li><kbd>{K.ultimate}</kbd><div><b>{t(agent.ultimate.name)}</b><span>{t(agent.ultimate.desc)}</span></div></li>
           </ul>
-          <div className="map-pick" role="radiogroup" aria-label="Mapa">
+          <div className="map-pick" role="radiogroup" aria-label={t('Mapa')}>
             {MAPS.map(m => (
               <button key={m.id} role="radio" aria-checked={m.id === mapId} className={`map-chip ${m.id === mapId ? 'on' : ''}`} onClick={() => { audio.play('click'); setMapId(m.id); }}>
                 <i style={{ background: m.colors.wallTop, boxShadow: `0 0 0 2px ${m.colors.accent}` }} />
@@ -93,30 +97,30 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout }
               </button>
             ))}
           </div>
-          <p className="map-desc">{MAPS.find(m => m.id === mapId)?.desc}{rec ? ` · Mejor: ${Math.floor(rec.bestTime / 60)}:${String(Math.floor(rec.bestTime % 60)).padStart(2, '0')}, nivel ${rec.bestLevel}` : ''}</p>
+          <p className="map-desc">{t(MAPS.find(m => m.id === mapId)?.desc ?? '')}{rec ? t(' · Mejor: {time}, nivel {level}', { time: `${Math.floor(rec.bestTime / 60)}:${String(Math.floor(rec.bestTime % 60)).padStart(2, '0')}`, level: rec.bestLevel }) : ''}</p>
           {guns.length > 1 && (
             <label className="loadout">
-              <span>Arma inicial</span>
+              <span>{t('Arma inicial')}</span>
               <select value={loadout} onChange={e => { audio.play('click'); setLoadout(e.target.value); }}>
-                {guns.map(id => <option key={id} value={id}>{WEAPONS[id].name}{WEAPONS[id].exclusive ? ' ★' : ''}</option>)}
+                {guns.map(id => <option key={id} value={id}>{t(WEAPONS[id].name)}{WEAPONS[id].exclusive ? ' ★' : ''}</option>)}
               </select>
             </label>
           )}
-          <div className="map-pick diff-pick" role="radiogroup" aria-label="Dificultad">
+          <div className="map-pick diff-pick" role="radiogroup" aria-label={t('Dificultad')}>
             {DIFFICULTIES.map(d => (
               <button key={d.id} role="radio" aria-checked={d.id === diffId} className={`map-chip ${d.id === diffId ? 'on' : ''}`} style={{ ['--dc' as any]: d.color }}
                 onClick={() => { audio.play('click'); setDiffId(d.id); }}>
                 <i style={{ background: d.color }} />
-                <b>{d.name}</b>
+                <b>{t(d.name)}</b>
               </button>
             ))}
           </div>
-          <p className="map-desc">{DIFFICULTIES.find(d => d.id === diffId)?.desc} Créditos ×{DIFFICULTIES.find(d => d.id === diffId)?.credits}.</p>
+          <p className="map-desc">{t(DIFFICULTIES.find(d => d.id === diffId)?.desc ?? '')} {t('Créditos')} ×{DIFFICULTIES.find(d => d.id === diffId)?.credits}.</p>
           {isOpen ? (
-            <button className="btn btn-red btn-xl" onClick={() => { audio.play('click'); start(agent.id, mapId, diffId); }}><b>Confirmar y jugar</b></button>
+            <button className="btn btn-red btn-xl" onClick={() => { audio.play('click'); start(agent.id, mapId, diffId); }}><b>{t('Confirmar y jugar')}</b></button>
           ) : (
             <button className="btn btn-red btn-xl" disabled={!canBuy} onClick={() => { audio.play('pick'); unlock(agent.id); }}>
-              <b>{canBuy ? `Desbloquear por ◈ ${agent.cost}` : `Te faltan ◈ ${agent.cost - save.credits}`}</b>
+              <b>{canBuy ? t('Desbloquear por ◈ {n}', { n: nf(agent.cost) }) : t('Te faltan ◈ {n}', { n: nf(agent.cost - save.credits) })}</b>
             </button>
           )}
         </aside>

@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.10', date: '2026-10-28', title: 'Idiomas y controles', tag: 'Nuevo', color: '#4fd0ff',
+    items: [
+      'El juego ya está disponible en español e inglés: cámbialo en Configuración > Idioma.',
+      'Nuevo apartado de Controles: cambia la tecla de moverte, de cada habilidad, de la pausa y de relanzar mejoras.',
+      'Las flechas siguen sirviendo para moverte y Esc siempre pausa.',
+      'El idioma y los controles se recuerdan en este dispositivo.',
+    ],
+  },
+  {
     id: '1.9', date: '2026-10-28', title: 'Nuevo enemigo: Artillero', tag: 'Nuevo', color: '#ffd24a',
     items: [
       'El Artillero es un robot de orugas que lanza obuses de mortero en parábola.',

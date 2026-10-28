@@ -107,7 +107,8 @@ export class GameEngine {
   viewH = 650;
   shakeT = 0;
   hurtFlash = 0;
-  banner = { text: '', t: 0, color: '#ff4655' };
+  /** Aviso grande. key/p: plantilla traducible y nombres (sin traducir) que van en ella. */
+  banner: { text: string; t: number; color: string; key?: string; p?: Record<string, string> } = { text: '', t: 0, color: '#ff4655' };
   inputMove!: { x: number; y: number };
   held = 'classic';
   heldSince = -9;
@@ -238,7 +239,7 @@ export class GameEngine {
 
   /* ------------------------------------------------------------------ utilidades */
   setView(w: number, h: number) { this.viewW = w; this.viewH = h; }
-  showBanner(text: string, color = '#ff4655', t = 2.4) { this.banner = { text, t, color }; }
+  showBanner(text: string, color = '#ff4655', t = 2.4, key?: string, p?: Record<string, string>) { this.banner = { text, t, color, key, p }; }
   sfx(name: string, gap = 0.03) {
     if (this.netOut) this.netOut.push(['a', name]);
     const now = performance_now();
@@ -443,7 +444,7 @@ export class GameEngine {
     if (this.players.every(x => x.dead)) { this.end(); return; }
     this.sparks(p.x, p.y, '#ff4655', 30, 300, 0.8);
     this.addFx(0, p.x, p.y, 0, 0, 90, 0.5, '#ff4655');
-    this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA CAÍDO! VUELVE EN LA PRÓXIMA OLEADA`, '#ff4655', 3);
+    this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA CAÍDO! VUELVE EN LA PRÓXIMA OLEADA`, '#ff4655', 3, '¡{n} HA CAÍDO! VUELVE EN LA PRÓXIMA OLEADA', { n: pl.name || 'Jugador' });
   }
   /** Al empezar una oleada, los caídos vuelven junto a un compañero con media vida. */
   private reviveDead() {
@@ -457,7 +458,7 @@ export class GameEngine {
       pl.body.hp = pl.stats.maxHp * 0.5; pl.body.invuln = 2.5; pl.body.iframes = 0;
       this.addFx(0, pl.body.x, pl.body.y, 0, 0, 110, 0.6, '#5dff9a');
       this.sparks(pl.body.x, pl.body.y, '#5dff9a', 24, 260, 0.7);
-      this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA VUELTO!`, '#5dff9a', 2.4);
+      this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA VUELTO!`, '#5dff9a', 2.4, '¡{n} HA VUELTO!', { n: pl.name || 'Jugador' });
     }
     this.use(back);
   }
@@ -651,7 +652,7 @@ export class GameEngine {
       const b = BOSS_SCHEDULE[this.bossIdx++];
       const e = this.spawnEnemy(b.id);
       if (b.id === 'final') this.finalSpawned = true;
-      this.showBanner(`¡JEFE: ${ENEMIES[b.id].name.toUpperCase()}!`, '#ff4655', 3);
+      this.showBanner(`¡JEFE: ${ENEMIES[b.id].name.toUpperCase()}!`, '#ff4655', 3, '¡JEFE: {n}!', { n: ENEMIES[b.id].name });
       this.sfx('boss', 0.5);
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
@@ -682,7 +683,7 @@ export class GameEngine {
           const id = ENDLESS_BOSSES[(Math.random() * ENDLESS_BOSSES.length) | 0];
           const e = this.spawnEnemy(id);
           this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
-          this.showBanner(`¡JEFE: ${ENEMIES[id].name.toUpperCase()}!`, '#ff4655', 2.4);
+          this.showBanner(`¡JEFE: ${ENEMIES[id].name.toUpperCase()}!`, '#ff4655', 2.4, '¡JEFE: {n}!', { n: ENEMIES[id].name });
         }
         this.sfx('boss', 0.5);
         this.shakeT = 0.5;
@@ -1013,7 +1014,7 @@ export class GameEngine {
       this.bossKills++;
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
-      this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6);
+      this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
       if (e.def.id === 'final' && !this.finalKilled) {
         this.finalKilled = true;
         this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
@@ -1158,7 +1159,7 @@ export class GameEngine {
       this.weapons.push({ id: c.weaponId as string, lvl: 1, cd: 0.1 });
     } else {
       const w = this.weapons.find(x => x.id === c.weaponId);
-      if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${WEAPONS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2); }
+      if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${WEAPONS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2, '¡{n}!', { n: WEAPONS[w.id].evolved.name }); }
     }
     this.sfx('pick', 0);
     pl.pending--;
@@ -1308,7 +1309,7 @@ export class GameEngine {
     if (ab.shield) p.shield = Math.min(s.maxShield + 100, p.shield + ab.shield);
     if (ab.invuln && ab.kind !== 'dash') p.invuln = Math.max(p.invuln, ab.invuln);
     if (ab.kind === 'heal' || ab.heal) this.sparks(p.x, p.y, '#5dff9a', 10, 120, 0.7);
-    if (ult) { this.showBanner(ab.name.toUpperCase(), ab.color, 1.6); this.shakeT = Math.max(this.shakeT, 0.3); }
+    if (ult) { this.showBanner(ab.name.toUpperCase(), ab.color, 1.6, '{n}', { n: ab.name }); this.shakeT = Math.max(this.shakeT, 0.3); }
     this.abilityFx(ab, ult, ox, oy, false);
   }
 
@@ -1500,7 +1501,7 @@ export class GameEngine {
     pl.pending = 0; pl.choices = [];
     if (this.state === 'levelup' && this.players.every(x => x.pending <= 0)) this.state = 'playing';
     if (this.players.every(x => x.dead)) this.end();
-    else this.showBanner(`${(pl.name || 'Tu compañero').toUpperCase()} HA SALIDO DE LA PARTIDA`, '#ffb020', 3);
+    else this.showBanner(`${(pl.name || 'Tu compañero').toUpperCase()} HA SALIDO DE LA PARTIDA`, '#ffb020', 3, '{n} HA SALIDO DE LA PARTIDA', { n: pl.name || 'Tu compañero' });
   }
 
   /** Solo para pruebas y depuración. */
@@ -1517,7 +1518,7 @@ export class GameEngine {
       secondary: this.agent.secondary ? { cd: this.cds.secondary, max: this.abCd(this.agent.secondary) } : null,
       weapons: this.weapons.map(w => ({ id: w.id, lvl: w.lvl })),
       boss: boss ? { name: boss.def.name, hp: boss.hp, max: boss.maxHp } : null,
-      banner: this.banner.t > 0 ? { text: this.banner.text, color: this.banner.color } : null,
+      banner: this.banner.t > 0 ? { text: this.banner.text, color: this.banner.color, key: this.banner.key, p: this.banner.p } : null,
       finalAt: FINAL_TIME,
       finalSpawned: this.finalSpawned,
       endless: this.time >= FINAL_TIME,
