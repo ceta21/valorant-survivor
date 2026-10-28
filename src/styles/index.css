@@ -151,7 +151,7 @@ input[type=checkbox]:checked { background: var(--red); box-shadow: inset 0 0 0 2
 .bossbar { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); width: min(560px, 70vw); text-align: center; text-transform: uppercase; letter-spacing: .1em; font-size: 18px; text-shadow: var(--hard); }
 .bossbar div { height: 18px; background: #000; padding: 3px; box-shadow: inset 0 0 0 2px #fff5; margin-top: 6px; } .bossbar i { display: block; height: 100%; background: var(--red); box-shadow: inset 0 3px 0 #ff8a94, inset 0 -3px 0 #8c1624; }
 .banner { position: absolute; top: 30%; left: 0; right: 0; text-align: center; font-weight: 700; font-size: clamp(32px, 6vw, 68px); text-transform: uppercase; text-shadow: 4px 4px 0 #000, -2px -2px 0 #000; animation: banner 2.4s steps(1) both; }
-@keyframes banner { 0% { opacity: 0; transform: scale(1.5); } 6% { opacity: 1; transform: scale(1.2); } 12% { transform: scale(1); } 76% { opacity: 1; } 82% { opacity: 0; } 88% { opacity: 1; } 94%, 100% { opacity: 0; } }
+@keyframes banner { 0% { opacity: 0; transform: scale(1.12); } 6% { opacity: 1; transform: scale(1.06); } 12% { transform: scale(1); } 76% { opacity: 1; } 82% { opacity: 0; } 88% { opacity: 1; } 94%, 100% { opacity: 0; } }
 .weapons { position: absolute; left: 16px; bottom: 16px; display: grid; gap: 5px; }
 .wslot { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-width: 190px; background: rgba(0, 0, 0, .75); box-shadow: inset var(--p) 0 0 var(--wc); padding: 6px 10px 6px 14px; font-size: 15px; text-transform: uppercase; } .wslot span { margin-left: auto; color: #cfcac2; } .wslot.evo { box-shadow: inset var(--p) 0 0 var(--wc), inset 0 0 0 2px var(--wc); }
 .gunicon { width: 54px; height: 20px; flex: none; }
@@ -335,3 +335,60 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .support-box p { margin: 0; color: #d6ffe6; line-height: 1.4; }
 .btn-linkedin { text-decoration: none; background: #0a66c2; box-shadow: inset 0 0 0 var(--p) #004182, var(--bevel); }
 .btn-linkedin b { color: #fff; } .btn-linkedin:hover { background: #1f7ad6; }
+
+/* ===================================================================== ajuste a todas las pantallas */
+/* Centrado "seguro": si el contenido no cabe en alto, se hace scroll en vez de cortarse por arriba. */
+.menu-left, .menu-right, .menu-mid, .overlay, .auth { justify-content: flex-start; align-content: normal; }
+.menu-mid { display: flex; flex-direction: column; }
+.menu-left > :first-child, .menu-right > :first-child, .menu-mid > :first-child, .overlay > :first-child { margin-top: auto; }
+.menu-left > :last-child, .menu-right > :last-child, .menu-mid > :last-child, .overlay > :last-child { margin-bottom: auto; }
+.auth-box { margin-block: auto; }
+.banner { padding: 0 16px; overflow-wrap: anywhere; }
+.lvl { white-space: nowrap; }
+
+/* Pantallas bajas (portátiles 1366x768, 1280x720…): menú más compacto para que quepa sin scroll */
+@media (max-height: 820px) and (min-width: 861px) {
+  .screen { padding: 18px 28px; }
+  .menu-left { gap: 14px; } .menu-nav { gap: 6px; }
+  .menu-nav .btn { font-size: 16px; } .menu-nav .btn b { padding: 9px 18px; }
+  .menu-nav .btn-xl { font-size: 20px; } .menu-nav .btn-xl b { padding: 12px 22px; }
+  .logo-mark { width: 54px; } .logo-text { gap: 6px; } .logo-top { font-size: 11px; } .logo-bot { font-size: clamp(22px, 3.2vw, 34px); }
+  .account-bar { padding: 6px 10px; } .hint { font-size: 13px; }
+  .menu-hero { max-height: 52vh; } .progress dd { font-size: 12px; } .progress div { padding: 6px 8px; }
+  .menu-mid { gap: 8px; } .hub-card { padding: 10px 14px; gap: 6px; } .hub-card > b { font-size: 17px; } .hub-card ul li:nth-child(2) { display: none; }
+  .top { margin-bottom: 10px; }
+  .ucard { min-height: 0; padding: 16px 16px 14px; } .ucard-icon { font-size: 34px; }
+}
+@media (max-height: 660px) and (min-width: 861px) {
+  .hint, .hub-missions { display: none; }
+  .menu-nav .btn b { padding: 7px 16px; } .menu-nav .btn-xl b { padding: 10px 20px; }
+}
+
+/* Móvil y tablet estrecha */
+@media (max-width: 860px) {
+  .menu-right { flex-direction: column; align-items: center; }
+  .menu-hero { width: min(70vw, 260px); max-height: none; }
+  .progress { width: 100%; }
+  .menu-nav .btn, .menu-nav .btn-xl { width: 100%; max-width: none; }
+  .records td, .records th { padding: 6px; }
+  .rank-table-wrap { padding: 6px; }
+}
+@media (max-width: 600px) {
+  .screen { padding: 14px; }
+  .top h2 { font-size: 20px; } .top { gap: 8px; }
+  /* HUD de la partida */
+  .hud-top { top: 16px; left: 8px; right: 8px; gap: 6px; }
+  .hud-left { gap: 6px; } .lvl { font-size: 10px; padding: 6px 7px 5px; }
+  .hp, .sh, .mate { width: 36vw; } .hp { height: 20px; } .hp span { font-size: 8px; }
+  .timer { font-size: 18px; } .hud-mid small, .hud-right small { display: none; }
+  .kills { font-size: 12px; } .hud-right .btn { margin-top: 4px; }
+  .bossbar { top: 76px; width: 92vw; font-size: 14px; }
+  .weapons { left: 8px; bottom: 84px; } .wslot { min-width: 0; font-size: 12px; padding: 4px 8px 4px 10px; gap: 8px; } .gunicon { width: 40px; height: 15px; }
+  .abilities-bar { gap: 6px; width: calc(100% - 16px); justify-content: center; }
+  .ab { width: 30vw; max-width: 120px; height: 58px; font-size: 11px; }
+  .banner { font-size: 24px; }
+  .ucard { width: 100%; } .cards { gap: 10px; }
+  .end-stats { grid-template-columns: repeat(2, 1fr); }
+  .coop-code-input { font-size: 22px; }
+  .market-cards { grid-template-columns: 1fr; }
+}
