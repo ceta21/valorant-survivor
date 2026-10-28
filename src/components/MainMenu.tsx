@@ -6,7 +6,7 @@ import { audio } from '../utils/audio';
 import type { Account } from '../utils/account';
 import { LATEST_NEWS } from '../data/news';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -38,6 +38,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
         )}
         <nav className="menu-nav" aria-label="Menú principal">
           <button className="btn btn-red btn-xl" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Jugar</b></button>
+          <button className="btn btn-coop" onClick={click('coop')} onMouseEnter={() => audio.play('hover')}><b>Jugar en pareja</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Agentes</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>Mejoras</b></button>
           <button className="btn btn-market" onClick={click('market')} onMouseEnter={() => audio.play('hover')}><b>Mercado nocturno</b></button>

@@ -29,26 +29,47 @@ export interface Enemy {
   atkT: number; windup: number; fuse: number; atk: BossAtk | null; phase: number; isBoss: boolean;
   anim: number; suicide: boolean; face: number;
   lx: number; ly: number; stuckT: number; sideT: number; side: number; esc: number; escReset: number;
+  /** Solo en el invitado: posición recibida hacia la que se suaviza el movimiento. */
+  tx?: number; ty?: number;
 }
 export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
   crit: boolean; color: string; hit: number[]; homing: boolean; target: Enemy | null; burn: number;
-  explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean;
+  explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean; owner: number;
 }
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
-export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number }
+export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number; tx?: number; ty?: number }
 export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number }
-export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number }
+export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number; owner: number }
 /** Efecto visual de habilidad (solo decorativo). follow: x,y son relativos al jugador. */
-export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string }
+export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number }
 export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise';
 export type ProjLook = '' | 'dagger' | 'arrow';
 export interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string; circle: boolean }
 export interface FloatText { x: number; y: number; life: number; text: string; color: string; size: number }
+export interface PlayerBody {
+  x: number; y: number; r: number; hp: number; shield: number; face: number; iframes: number; invuln: number; sinceHit: number;
+  dashT: number; dashVx: number; dashVy: number; dashPow: number; dashHit: number[]; lastDirX: number; lastDirY: number;
+}
+export type Buffs = { sprintT: number; sprintPow: number; sprintRad: number; sprintAcc: number; frenzyT: number; frenzyMul: number; frenzyHeal: number; frenzyFx: string; stormT: number; stormAcc: number; stormPow: number };
+/** Datos con los que entra cada jugador a la partida. */
+export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; startWeapon: string; name: string }
+/** Estado propio de cada jugador. El motor "carga" uno a la vez en sus campos (ver use()). */
+export interface Pl {
+  idx: number; name: string; agent: AgentDef; stats: Stats; body: PlayerBody; buffs: Buffs; cds: { special: number; secondary: number };
+  ult: number; weapons: WeaponInst[]; held: string; heldSince: number; lastShotT: number; castT: number; castUlt: boolean;
+  inputMove: { x: number; y: number }; taken: Record<string, number>; rerolls: number; choices: UpgradeChoice[]; pending: number;
+  droneAngle: number; droneCd: number[]; turrets: Turret[]; portalCd: number; healTextT: number; hurtFlash: number;
+  /** Caído: vuelve en la siguiente oleada (en solitario, caer termina la partida). */
+  dead: boolean;
+  /** Se fue de la partida (cooperativo): ya no vuelve. */
+  gone?: boolean;
+}
 export interface Fx { kind: 0 | 1; x: number; y: number; x2: number; y2: number; r: number; life: number; max: number; color: string }
 
 export interface EngineEvents {
-  onLevelUp(choices: UpgradeChoice[]): void;
+  /** idx = jugador al que le toca elegir (0 en solitario). */
+  onLevelUp(choices: UpgradeChoice[], idx: number): void;
   onEnd(r: RunResult): void;
   sfx(name: string): void;
 }
@@ -61,11 +82,16 @@ function ring<T>(n: number, make: () => T) {
 }
 
 export class GameEngine {
-  agent: AgentDef;
+  /** Jugadores de la partida (1 en solitario, 2 en cooperativo) y cuál es el de esta pantalla. */
+  players: Pl[] = [];
+  local = 0;
+  private cur!: Pl;
+  // --- campos del jugador cargado ahora mismo (ver use())
+  agent!: AgentDef;
   map: MapDef;
   world: World;
   ev: EngineEvents;
-  stats: Stats;
+  stats!: Stats;
   state: EngineState = 'playing';
   time = 0;
   kills = 0;
@@ -73,17 +99,14 @@ export class GameEngine {
   damageDealt = 0;
   level = 1;
   xp = 0;
-  pending = 0;
-  rerolls = 2;
-  choices: UpgradeChoice[] = [];
-  taken: Record<string, number> = {};
-  weapons: WeaponInst[] = [{ id: 'classic', lvl: 1, cd: 0.2 }];
+  taken!: Record<string, number>;
+  weapons!: WeaponInst[];
   viewW = 1100;
   viewH = 650;
   shakeT = 0;
   hurtFlash = 0;
   banner = { text: '', t: 0, color: '#ff4655' };
-  inputMove = { x: 0, y: 0 };
+  inputMove!: { x: number; y: number };
   held = 'classic';
   heldSince = -9;
   lastShotT = -9;
@@ -91,12 +114,9 @@ export class GameEngine {
   castUlt = false;
   portalCd = 0;
 
-  player = {
-    x: 0, y: 0, r: 12, hp: 100, shield: 0, face: 0, iframes: 0, invuln: 0, sinceHit: 99,
-    dashT: 0, dashVx: 0, dashVy: 0, dashPow: 0, dashHit: [] as number[], lastDirX: 1, lastDirY: 0,
-  };
-  buffs = { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '' as string, stormT: 0, stormAcc: 0, stormPow: 0 };
-  cds = { special: 0, secondary: 0 };
+  player!: PlayerBody;
+  buffs!: Buffs;
+  cds!: { special: number; secondary: number };
   ult = 25;
 
   enemies: Enemy[] = [];
@@ -107,7 +127,7 @@ export class GameEngine {
   strikes: Strike[] = [];
   vfx: Vfx[] = [];
   droneAngle = 0;
-  droneCd: number[] = [];
+  droneCd!: number[];
   particles = ring<Particle>(700, () => ({ x: 0, y: 0, vx: 0, vy: 0, life: 0, max: 1, size: 2, color: '#fff', circle: false }));
   texts = ring<FloatText>(70, () => ({ x: 0, y: 0, life: 0, text: '', color: '#fff', size: 12 }));
   fxs = ring<Fx>(120, () => ({ kind: 0, x: 0, y: 0, x2: 0, y2: 0, r: 0, life: 0, max: 1, color: '#fff' }));
@@ -124,42 +144,100 @@ export class GameEngine {
   private bossIdx = 0;
   private eliteT = 200;
   private sfxT: Record<string, number> = {};
-  private finalSpawned = false;
-  private finalKilled = false;
+  finalSpawned = false;
+  finalKilled = false;
+  /** Anfitrión en cooperativo: aquí se apuntan los efectos visuales para enviarlos al invitado. */
+  netOut: unknown[][] | null = null;
   private healTextT = 0;
   diff: DifficultyDef;
-  private endlessBossT: number;
+  endlessBossT: number;
   private endlessWaveT = 0;
 
-  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic') {
-    this.agent = agent;
-    if (WEAPONS[startWeapon]) { this.weapons = [{ id: startWeapon, lvl: 1, cd: 0.2 }]; this.held = startWeapon; }
+  /** coop: varios jugadores; local = índice del de esta pantalla. Sin coop, partida en solitario. */
+  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic',
+    coop?: { setups: PlayerSetup[]; local: number }) {
     this.map = map;
     this.ev = ev;
     this.diff = diff;
     this.endlessBossT = FINAL_TIME + ENDLESS_BOSS_START * diff.bossEvery;
     this.world = new World(map);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
-    const m = (id: keyof MetaLevels) => meta[id] * META.find(x => x.id === id)!.per;
-    this.stats = {
-      maxHp: agent.hp * (1 + m('hp')), speed: agent.speed * (1 + m('speed')), dmg: agent.damage / 10 + m('dmg'),
+    const setups = coop?.setups ?? [{ agent, meta, startWeapon, name: '' }];
+    this.players = setups.map((st, i) => this.makePlayer(i, st));
+    this.local = coop?.local ?? 0;
+    this.use(this.players[this.local]);
+    this.showBanner('¡SOBREVIVE!', '#ff4655', 2);
+  }
+
+  private makePlayer(idx: number, st: PlayerSetup): Pl {
+    const m = (id: keyof MetaLevels) => st.meta[id] * META.find(x => x.id === id)!.per;
+    const a = st.agent;
+    const stats: Stats = {
+      maxHp: a.hp * (1 + m('hp')), speed: a.speed * (1 + m('speed')), dmg: a.damage / 10 + m('dmg'),
       aspd: 1, crit: 0.05, critMul: 1.6, extraProj: 0, pierce: 0, range: 1, area: 1, cdr: 0, heal: 1,
       xp: 1 + m('xp'), chain: 0, drones: 0, maxShield: 0, killExplode: 0, regen: 0.5, magnet: 1, burn: 0, ult: 1, lifeOnKill: 0,
     };
-    const mods = agent.trait.mods;
-    for (const k of Object.keys(mods) as (keyof Stats)[]) this.stats[k] += mods[k] as number;
-    this.player.x = this.world.spawn.x;
-    this.player.y = this.world.spawn.y;
-    this.player.hp = this.stats.maxHp;
-    this.player.shield = this.stats.maxShield;
-    this.syncDrones();
-    this.showBanner('¡SOBREVIVE!', '#ff4655', 2);
+    for (const k of Object.keys(a.trait.mods) as (keyof Stats)[]) stats[k] += a.trait.mods[k] as number;
+    const w = WEAPONS[st.startWeapon] ? st.startWeapon : 'classic';
+    const sp = this.world.spawn;
+    const droneCd: number[] = [];
+    while (droneCd.length < stats.drones) droneCd.push(rnd(0.5));
+    return {
+      idx, name: st.name, agent: a, stats,
+      body: { x: sp.x + idx * 36, y: sp.y, r: 12, hp: stats.maxHp, shield: stats.maxShield, face: 0, iframes: 0, invuln: 0, sinceHit: 99,
+        dashT: 0, dashVx: 0, dashVy: 0, dashPow: 0, dashHit: [], lastDirX: 1, lastDirY: 0 },
+      buffs: { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '', stormT: 0, stormAcc: 0, stormPow: 0 },
+      cds: { special: 0, secondary: 0 }, ult: 25, weapons: [{ id: w, lvl: 1, cd: 0.2 }], held: w, heldSince: -9, lastShotT: -9, castT: -9, castUlt: false,
+      inputMove: { x: 0, y: 0 }, taken: {}, rerolls: 2, choices: [], pending: 0, droneAngle: 0, droneCd, turrets: [], portalCd: 0, healTextT: 0, hurtFlash: 0, dead: false,
+    };
   }
+
+  /**
+   * Carga un jugador en los campos del motor (player, stats, buffs…). Toda la lógica de un
+   * jugador lee esos campos, así que funciona igual con 1 que con 2 jugadores.
+   */
+  use(pl: Pl) {
+    if (this.cur === pl) return;
+    this.sync();
+    this.cur = pl;
+    this.agent = pl.agent; this.stats = pl.stats; this.player = pl.body; this.buffs = pl.buffs; this.cds = pl.cds; this.weapons = pl.weapons;
+    this.inputMove = pl.inputMove; this.taken = pl.taken; this.droneCd = pl.droneCd; this.turrets = pl.turrets;
+    this.ult = pl.ult; this.held = pl.held; this.heldSince = pl.heldSince; this.lastShotT = pl.lastShotT; this.castT = pl.castT; this.castUlt = pl.castUlt;
+    this.droneAngle = pl.droneAngle; this.portalCd = pl.portalCd; this.healTextT = pl.healTextT; this.hurtFlash = pl.hurtFlash;
+  }
+  /** Guarda en su Pl el estado del jugador cargado (antes de leer los Pl desde fuera). */
+  sync() {
+    const c = this.cur;
+    if (!c) return;
+    c.ult = this.ult; c.held = this.held; c.heldSince = this.heldSince; c.lastShotT = this.lastShotT; c.castT = this.castT; c.castUlt = this.castUlt;
+    c.droneAngle = this.droneAngle; c.turrets = this.turrets; c.portalCd = this.portalCd; c.healTextT = this.healTextT; c.hurtFlash = this.hurtFlash;
+  }
+  /** Ejecuta fn con otro jugador cargado y vuelve al anterior (para dibujar o leer su estado). */
+  withPlayer<T>(pl: Pl, fn: () => T): T { const back = this.cur; this.use(pl); try { return fn(); } finally { this.use(back); } }
+  get me() { return this.players[this.local]; }
+  get current() { return this.cur; }
+  /** Opciones de mejora del jugador de esta pantalla. */
+  get choices() { return this.me.choices; }
+  get rerolls() { return this.me.rerolls; }
+  private alivePlayers() { return this.players.filter(p => !p.dead); }
+  /** Jugador vivo más cercano a un punto (al que persiguen los enemigos). */
+  nearestPlayer(x: number, y: number): Pl {
+    let best = this.cur, bd = Infinity;
+    for (const pl of this.players) {
+      if (pl.dead) continue;
+      const d = (pl.body.x - x) ** 2 + (pl.body.y - y) ** 2;
+      if (d < bd) { bd = d; best = pl; }
+    }
+    return best;
+  }
+  /** Alrededor de quién aparecen los enemigos: un jugador vivo al azar. */
+  private spawnFocus() { const a = this.alivePlayers(); return (a.length ? a[(Math.random() * a.length) | 0] : this.cur).body; }
 
   /* ------------------------------------------------------------------ utilidades */
   setView(w: number, h: number) { this.viewW = w; this.viewH = h; }
   showBanner(text: string, color = '#ff4655', t = 2.4) { this.banner = { text, t, color }; }
   sfx(name: string, gap = 0.03) {
+    if (this.netOut) this.netOut.push(['a', name]);
     const now = performance_now();
     if ((this.sfxT[name] ?? -9) + gap > now) return;
     this.sfxT[name] = now;
@@ -195,11 +273,16 @@ export class GameEngine {
     this.time += dt;
     if (this.banner.t > 0) this.banner.t -= dt;
     if (this.shakeT > 0) this.shakeT -= dt;
-    if (this.hurtFlash > 0) this.hurtFlash -= dt;
     this.buildGrid();
-    this.updatePlayer(dt);
-    this.updateWeapons(dt);
-    this.updateAllies(dt);
+    for (const pl of this.players) {
+      this.use(pl);
+      if (this.hurtFlash > 0) this.hurtFlash -= dt;
+      if (pl.dead) continue;
+      this.updatePlayer(dt);
+      this.updateWeapons(dt);
+      this.updateAllies(dt);
+      this.ult = Math.min(100, this.ult + dt * 0.6 * this.stats.ult);
+    }
     this.updateProjs(dt);
     this.updateEnemies(dt);
     this.updateEProjs(dt);
@@ -209,8 +292,8 @@ export class GameEngine {
     this.updateFx(dt);
     this.cleanup();
     this.pruneT -= dt;
-    if (this.pruneT <= 0) { this.pruneT = 3; this.world.prune(this.player.x, this.player.y); }
-    this.ult = Math.min(100, this.ult + dt * 0.6 * this.stats.ult);
+    if (this.pruneT <= 0) { this.pruneT = 3; const f = this.me.body; this.world.prune(f.x, f.y, this.players.length > 1 ? 12 : 6); }
+    this.use(this.me);
   }
 
   private buildGrid() {
@@ -347,7 +430,32 @@ export class GameEngine {
       this.sparks(p.x, p.y, '#ff4655', 8, 200);
     }
     this.sfx('hurt', 0.1);
-    if (p.hp <= 0) { p.hp = 0; this.end(); }
+    if (p.hp <= 0) { p.hp = 0; this.playerDown(); }
+  }
+  private playerDown() {
+    const pl = this.cur, p = pl.body;
+    pl.dead = true; p.dashT = 0;
+    this.buffs.sprintT = this.buffs.frenzyT = this.buffs.stormT = 0;
+    if (this.players.every(x => x.dead)) { this.end(); return; }
+    this.sparks(p.x, p.y, '#ff4655', 30, 300, 0.8);
+    this.addFx(0, p.x, p.y, 0, 0, 90, 0.5, '#ff4655');
+    this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA CAÍDO! VUELVE EN LA PRÓXIMA OLEADA`, '#ff4655', 3);
+  }
+  /** Al empezar una oleada, los caídos vuelven junto a un compañero con media vida. */
+  private reviveDead() {
+    const back = this.cur, alive = this.alivePlayers();
+    if (!alive.length) return;
+    for (const pl of this.players) {
+      if (!pl.dead || pl.gone) continue;
+      const mate = alive[0].body;
+      pl.dead = false;
+      pl.body.x = mate.x + 40; pl.body.y = mate.y; this.resolve(pl.body, pl.body.r);
+      pl.body.hp = pl.stats.maxHp * 0.5; pl.body.invuln = 2.5; pl.body.iframes = 0;
+      this.addFx(0, pl.body.x, pl.body.y, 0, 0, 110, 0.6, '#5dff9a');
+      this.sparks(pl.body.x, pl.body.y, '#5dff9a', 24, 260, 0.7);
+      this.showBanner(`¡${(pl.name || 'Jugador').toUpperCase()} HA VUELTO!`, '#5dff9a', 2.4);
+    }
+    this.use(back);
   }
   heal(amount: number, quiet = false) {
     const p = this.player;
@@ -408,7 +516,7 @@ export class GameEngine {
     p.x = x; p.y = y; p.vx = Math.cos(a) * speed; p.vy = Math.sin(a) * speed; p.dmg = dmg; p.r = r;
     p.life = range / speed; p.pierce = pierce; p.crit = crit; p.color = color; p.hit.length = 0;
     p.homing = !!o.homing; p.target = o.target ?? null; p.burn = o.burn ?? 0; p.explode = o.explode ?? 0;
-    p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain;
+    p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain; p.owner = this.cur.idx;
     this.projs.push(p);
   }
 
@@ -416,6 +524,7 @@ export class GameEngine {
     for (let i = 0; i < this.projs.length; i++) {
       const p = this.projs[i];
       if (p.dead) continue;
+      this.use(this.players[p.owner] ?? this.cur);
       if (p.homing) {
         if (!p.target || p.target.dead) p.target = this.nearestEnemy(p.x, p.y, 600);
         if (p.target) {
@@ -512,7 +621,7 @@ export class GameEngine {
     return e;
   }
   private edgeSpawn(): { x: number; y: number } {
-    const p = this.player, R = Math.hypot(this.viewW, this.viewH) / 2 + 50;
+    const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 50;
     for (let i = 0; i < 14; i++) {
       const a = rnd(Math.PI * 2);
       const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
@@ -547,9 +656,10 @@ export class GameEngine {
     if (this.waveIdx < WAVE_TIMES.length && t >= WAVE_TIMES[this.waveIdx]) {
       const n = 22 + this.waveIdx * 6;
       this.showBanner('¡OLEADA INTENSA!', '#ffb020', 2.6);
+      this.reviveDead();
       this.sfx('wave', 0.5);
       const types = SPAWNABLE.filter(id => ENEMIES[id].minTime <= t && id !== 'tank');
-      const p = this.player, R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
+      const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
       for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 40; i++) {
         const a = (i / n) * Math.PI * 2;
         const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
@@ -578,9 +688,10 @@ export class GameEngine {
     if (this.endlessWaveT > 0 && t >= this.endlessWaveT) {
       const n = 40 + Math.floor(this.overtime / 30) * 4;
       this.showBanner('¡OLEADA INTENSA!', '#ffb020', 2.2);
+      this.reviveDead();
       this.sfx('wave', 0.5);
       const types = SPAWNABLE.filter(id => id !== 'tank');
-      const p = this.player, R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
+      const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
       for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 60; i++) {
         const a = (i / n) * Math.PI * 2;
         const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
@@ -621,11 +732,12 @@ export class GameEngine {
   }
 
   private updateEnemies(dt: number) {
-    const p = this.player;
     const dmgScale = this.dmgScale;
     for (let i = 0; i < this.enemies.length; i++) {
       const e = this.enemies[i];
       if (e.dead) continue;
+      this.use(this.nearestPlayer(e.x, e.y));
+      const p = this.player;
       e.anim += dt;
       if (e.flash > 0) e.flash -= dt;
       if (e.markT > 0) e.markT -= dt;
@@ -829,13 +941,15 @@ export class GameEngine {
   }
 
   private updateEProjs(dt: number) {
-    const p = this.player;
     for (const b of this.eprojs) {
       if (b.dead) continue;
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
       if (b.life <= 0 || this.inObstacle(b.x, b.y, 0)) { b.dead = true; continue; }
-      const dx = b.x - p.x, dy = b.y - p.y, rr = b.r + p.r;
-      if (dx * dx + dy * dy < rr * rr) { this.hurtPlayer(b.dmg); b.dead = true; }
+      for (const pl of this.players) {
+        if (pl.dead) continue;
+        const p = pl.body, dx = b.x - p.x, dy = b.y - p.y, rr = b.r + p.r;
+        if (dx * dx + dy * dy < rr * rr) { this.use(pl); this.hurtPlayer(b.dmg); b.dead = true; break; }
+      }
     }
   }
 
@@ -879,9 +993,10 @@ export class GameEngine {
     this.gems.push({ x, y, v, kind, mag: near, dead: false, t: 0 });
   }
   private updateGems(dt: number) {
-    const p = this.player, mag = 120 * this.stats.magnet;
     for (const g of this.gems) {
       if (g.dead) continue;
+      this.use(this.nearestPlayer(g.x, g.y));
+      const p = this.player, mag = 120 * this.stats.magnet;
       g.t += dt;
       const dx = p.x - g.x, dy = p.y - g.y, d = Math.hypot(dx, dy) || 1;
       if (d < mag || g.t > 8) g.mag = true;
@@ -901,15 +1016,22 @@ export class GameEngine {
     while (this.xp >= this.need) {
       this.xp -= this.need;
       this.level++;
-      this.pending++;
+      for (const pl of this.players) if (!pl.gone) pl.pending++;
     }
-    if (this.pending > 0 && this.state === 'playing') this.startLevelUp();
+    if (this.state === 'playing' && this.players.some(pl => pl.pending > 0)) this.startLevelUp();
   }
+  /** Subida de nivel: la partida se detiene hasta que todos los jugadores eligen. */
   private startLevelUp() {
     this.state = 'levelup';
-    this.choices = this.rollChoices();
+    const back = this.cur;
+    for (const pl of this.players) {
+      if (pl.pending <= 0 || pl.choices.length) continue;
+      this.use(pl);
+      pl.choices = this.rollChoices();
+      this.ev.onLevelUp(pl.choices, pl.idx);
+    }
+    this.use(back);
     this.sfx('levelup', 0);
-    this.ev.onLevelUp(this.choices);
   }
 
   private rollRarity(): Rarity {
@@ -970,16 +1092,19 @@ export class GameEngine {
     if (!out.length) out.push({ id: 'healnow', kind: 'stat', name: 'Kit de reparación', desc: 'Recuperas 30% de vida', icon: '♥', rarity: 0, value: 0.3 });
     return out;
   }
-  reroll() {
-    if (this.state !== 'levelup' || this.rerolls <= 0) return;
-    this.rerolls--;
-    this.choices = this.rollChoices();
-    this.ev.onLevelUp(this.choices);
+  reroll(idx = this.local) {
+    const pl = this.players[idx];
+    if (this.state !== 'levelup' || !pl || pl.rerolls <= 0 || !pl.choices.length) return;
+    this.withPlayer(pl, () => { pl.rerolls--; pl.choices = this.rollChoices(); });
+    this.ev.onLevelUp(pl.choices, idx);
   }
-  chooseUpgrade(i: number) {
-    if (this.state !== 'levelup') return;
-    const c = this.choices[i];
+  chooseUpgrade(i: number, idx = this.local) {
+    const pl = this.players[idx];
+    if (this.state !== 'levelup' || !pl) return;
+    const c = pl.choices[i];
     if (!c) return;
+    const back = this.cur;
+    this.use(pl);
     if (c.kind === 'stat') {
       this.taken[c.id] = (this.taken[c.id] ?? 0) + 1;
       UPGRADE_BY_ID[c.id]?.apply({ stats: this.stats, healPct: f => this.healPct(f) }, c.value);
@@ -991,9 +1116,11 @@ export class GameEngine {
       if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${WEAPONS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2); }
     }
     this.sfx('pick', 0);
-    this.pending--;
-    this.state = 'playing';
-    if (this.pending > 0) this.startLevelUp();
+    pl.pending--;
+    pl.choices = pl.pending > 0 ? this.rollChoices() : [];
+    if (pl.choices.length) this.ev.onLevelUp(pl.choices, idx);
+    this.use(back);
+    if (this.players.every(x => x.pending <= 0)) this.state = 'playing';
   }
 
   /* ------------------------------------------------------------------ aliados: drones y torretas */
@@ -1031,8 +1158,12 @@ export class GameEngine {
   }
 
   /* ------------------------------------------------------------------ habilidades */
-  cast(slot: 'special' | 'secondary' | 'ultimate') {
-    if (this.state !== 'playing') return false;
+  cast(slot: 'special' | 'secondary' | 'ultimate', idx = this.local) {
+    const pl = this.players[idx];
+    if (this.state !== 'playing' || !pl || pl.dead) return false;
+    return this.withPlayer(pl, () => this.castNow(slot));
+  }
+  private castNow(slot: 'special' | 'secondary' | 'ultimate') {
     const ab = slot === 'special' ? this.agent.special : slot === 'secondary' ? this.agent.secondary : this.agent.ultimate;
     if (!ab) return false;
     if (slot === 'ultimate') {
@@ -1078,7 +1209,7 @@ export class GameEngine {
           if (pool.length) { const e = pool[(Math.random() * pool.length) | 0]; x = e.x + rnd(-20, 20); y = e.y + rnd(-20, 20); }
           else { const a = rnd(Math.PI * 2), d = rnd(120, 300); x = p.x + Math.cos(a) * d; y = p.y + Math.sin(a) * d; }
           const delay = (ab.delay ?? 0.5) + (ult ? i * 0.07 : i * 0.12);
-          this.strikes.push({ x, y, r: R, t: 0, dur: delay, dmg, color: ab.color, stun: 0, burn: 0, slow: 0, mark: 0, dead: false, fx: ab.fx, ox: p.x, oy: p.y });
+          this.strikes.push({ x, y, r: R, t: 0, dur: delay, dmg, color: ab.color, stun: 0, burn: 0, slow: 0, mark: 0, dead: false, fx: ab.fx, ox: p.x, oy: p.y, owner: this.cur.idx });
         }
         break;
       }
@@ -1139,7 +1270,7 @@ export class GameEngine {
   /* ------------------------------------------------------------------ efectos de habilidades (decorativos) */
   addVfx(kind: Vfx['kind'], pal: string, x: number, y: number, r: number, dur: number, o: Partial<Vfx> = {}) {
     if (this.vfx.length > 160) return;
-    this.vfx.push({ kind, pal, x, y, r, t: 0, dur, ang: 0, seed: (Math.random() * 1e6) | 0, ...o });
+    this.vfx.push({ kind, pal, x, y, r, t: 0, dur, ang: 0, seed: (Math.random() * 1e6) | 0, owner: this.cur.idx, ...o });
   }
   /** Lanza los efectos de una habilidad. before = antes de aplicarla (p. ej. origen de un teletransporte). */
   private abilityFx(ab: AbilityDef, ult: boolean, ox: number, oy: number, before: boolean) {
@@ -1214,6 +1345,7 @@ export class GameEngine {
       s.t += dt;
       if (s.t >= s.dur) {
         s.dead = true;
+        this.use(this.players[s.owner] ?? this.cur);
         this.explodeAt(s.x, s.y, s.r, s.dmg, s.color);
         if (s.fx === 'orbital') {
           this.addVfx('beam', 'orbital', s.x, s.y, s.r * 0.8, 0.45);
@@ -1230,6 +1362,7 @@ export class GameEngine {
 
   /* ------------------------------------------------------------------ efectos visuales */
   sparks(x: number, y: number, color: string, n: number, speed: number, life = 0.4) {
+    if (this.netOut) this.netOut.push(['s', Math.round(x), Math.round(y), color, n, Math.round(speed), life]);
     for (let i = 0; i < n; i++) {
       const p = this.particles.next();
       const a = rnd(Math.PI * 2), sp = rnd(speed * 0.3, speed);
@@ -1238,12 +1371,23 @@ export class GameEngine {
     }
   }
   text(x: number, y: number, text: string, color: string, size: number) {
+    if (this.netOut) this.netOut.push(['t', Math.round(x), Math.round(y), text, color, size]);
     const t = this.texts.next();
     t.x = x; t.y = y; t.text = text; t.color = color; t.size = size; t.life = 0.7;
   }
   addFx(kind: 0 | 1, x: number, y: number, _a: number, _b: number, r: number, life: number, color: string, x2 = 0, y2 = 0) {
+    if (this.netOut) this.netOut.push(['f', kind, Math.round(x), Math.round(y), Math.round(r), life, color, Math.round(x2), Math.round(y2)]);
     const f = this.fxs.next();
     f.kind = kind; f.x = x; f.y = y; f.x2 = x2; f.y2 = y2; f.r = r; f.life = f.max = life; f.color = color;
+  }
+  /** Vuelve a cargar en los campos del motor el jugador actual (tras cambiar su Pl desde fuera). */
+  reload() { const c = this.cur; this.cur = undefined as unknown as Pl; this.use(c); }
+  /** Avanza solo lo visual (partículas, textos, ondas): lo usa el invitado, que no simula la partida. */
+  tickVisuals(dt: number) {
+    if (this.banner.t > 0) this.banner.t -= dt;
+    if (this.shakeT > 0) this.shakeT -= dt;
+    if (this.hurtFlash > 0) this.hurtFlash -= dt;
+    this.updateFx(dt);
   }
   private updateFx(dt: number) {
     for (const p of this.particles.items) {
@@ -1285,14 +1429,32 @@ export class GameEngine {
   /** La partida solo termina al morir; cuenta como victoria si se derrotó al jefe final. */
   private end() {
     if (this.state === 'won' || this.state === 'lost') return;
-    const win = this.finalKilled;
     this.state = 'lost';
+    this.use(this.me);
+    this.sfx(this.finalKilled ? 'win' : 'lose', 0);
+    this.ev.onEnd(this.resultFor(this.local));
+  }
+  /** Resultado de la partida para un jugador (en cooperativo, las bajas y el tiempo son del equipo). */
+  resultFor(idx: number): RunResult {
+    const win = this.finalKilled;
     const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits);
-    this.sfx(win ? 'win' : 'lose', 0);
-    this.ev.onEnd({
+    return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: this.agent.id, mapId: this.map.id, difficulty: this.diff.id,
-    });
+      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id,
+    };
+  }
+  /** Termina la partida desde fuera (p. ej. se pierde la conexión en cooperativo). */
+  abort() { this.end(); }
+  /** Un jugador abandona la partida cooperativa: cae y ya no vuelve. Si no queda nadie, termina. */
+  leave(idx: number) {
+    const pl = this.players[idx];
+    if (!pl || pl.gone) return;
+    pl.gone = true; pl.dead = true;
+    // quien se va no puede bloquear la elección de mejoras del resto
+    pl.pending = 0; pl.choices = [];
+    if (this.state === 'levelup' && this.players.every(x => x.pending <= 0)) this.state = 'playing';
+    if (this.players.every(x => x.dead)) this.end();
+    else this.showBanner(`${(pl.name || 'Tu compañero').toUpperCase()} HA SALIDO DE LA PARTIDA`, '#ffb020', 3);
   }
 
   /** Solo para pruebas y depuración. */
@@ -1315,6 +1477,9 @@ export class GameEngine {
       endless: this.time >= FINAL_TIME,
       nextBoss: Math.max(0, this.endlessBossT - this.time),
       difficulty: this.diff,
+      dead: this.me.dead,
+      /** Compañeros en cooperativo (vacío en solitario). */
+      mates: this.players.filter(p => p !== this.me).map(p => ({ name: p.name, hp: p.body.hp, maxHp: p.stats.maxHp, dead: p.dead, gone: !!p.gone, color: p.agent.color, agent: p.agent.name })),
     };
   }
 }

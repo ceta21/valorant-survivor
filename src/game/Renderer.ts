@@ -70,6 +70,7 @@ export class Renderer {
   }
 
   render(e: GameEngine) {
+    e.sync();
     const g = this.ctx;
     const z = this.zoom;
     const vw = this.vw / z, vh = this.vh / z;
@@ -175,7 +176,7 @@ export class Renderer {
       }
     }
     // torretas
-    for (const t of e.turrets) {
+    for (const t of e.players.flatMap(pl => pl.turrets)) {
       if (!vis(t.x, t.y)) continue;
       if (t.t < 1.5 && Math.floor(e.time * 12) % 2) continue;   // parpadea antes de desaparecer
       const pop = Math.min(1, (t.max - t.t) * 6);               // aparece "cayendo" un instante
@@ -223,7 +224,8 @@ export class Renderer {
     // efectos de habilidad (explosiones, anillos, llamas, haces de luz)
     for (const v of e.vfx) {
       const k = v.t / v.dur;
-      const vx = v.follow ? p.x + v.x : v.x, vy = v.follow ? p.y + v.y : v.y;
+      const fb = (e.players[v.owner ?? e.local] ?? e.me).body;
+      const vx = v.follow ? fb.x + v.x : v.x, vy = v.follow ? fb.y + v.y : v.y;
       if (!vis(vx, vy, v.r)) continue;
       if (v.kind === 'blast') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX);
       else if (v.kind === 'ring') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX, true);
@@ -248,25 +250,32 @@ export class Renderer {
         }
       }
     }
-    // drones
-    for (let i = 0; i < e.stats.drones; i++) {
-      const a = e.droneAngle + (i / e.stats.drones) * Math.PI * 2;
-      const dx = p.x + Math.cos(a) * 52, dy = p.y + Math.sin(a) * 52;
-      g.fillStyle = '#1a2230'; g.strokeStyle = e.agent.accent; g.lineWidth = 2;
-      g.beginPath(); g.moveTo(dx, dy - 6); g.lineTo(dx + 6, dy); g.lineTo(dx, dy + 6); g.lineTo(dx - 6, dy); g.closePath(); g.fill(); g.stroke();
+    // jugadores (con sus drones); los caídos se ven como un fantasma hasta la siguiente oleada
+    for (const pl of e.players) {
+      if (pl.dead) { this.drawGhost(g, e, pl); continue; }
+      e.withPlayer(pl, () => {
+        const q = e.player;
+        for (let i = 0; i < e.stats.drones; i++) {
+          const a = e.droneAngle + (i / e.stats.drones) * Math.PI * 2;
+          const dx = q.x + Math.cos(a) * 52, dy = q.y + Math.sin(a) * 52;
+          g.fillStyle = '#1a2230'; g.strokeStyle = e.agent.accent; g.lineWidth = 2;
+          g.beginPath(); g.moveTo(dx, dy - 6); g.lineTo(dx + 6, dy); g.lineTo(dx, dy + 6); g.lineTo(dx - 6, dy); g.closePath(); g.fill(); g.stroke();
+        }
+        this.drawPlayer(g, e);
+      });
     }
-    this.drawPlayer(g, e);
     // efectos sobre el personaje: ojo (Reyna/Omen) y sprites que suben (cruces, llamas, galones)
     for (const v of e.vfx) {
       const k = v.t / v.dur;
+      const ob = (e.players[v.owner ?? e.local] ?? e.me).body;
       if (v.kind === 'eye') {
         const sc = PX * (v.r || 1) * (k < 0.12 ? 0.5 : 1);
         g.globalAlpha = k > 0.7 ? (1 - k) / 0.3 : 1;
-        drawSprite(g, sprite('eye', v.pal, this.makeCanvas), Math.round(p.x / PX) * PX, Math.round((p.y + v.y - k * 10) / PX) * PX, sc);
+        drawSprite(g, sprite('eye', v.pal, this.makeCanvas), Math.round(ob.x / PX) * PX, Math.round((ob.y + v.y - k * 10) / PX) * PX, sc);
         g.globalAlpha = 1;
       } else if (v.kind === 'rise' && v.sprite) {
         g.globalAlpha = Math.min(1, (1 - k) * 2);
-        const x = p.x + v.x + Math.sin(k * 6 + v.seed) * 4, y = p.y + v.y - 8 - k * 46;
+        const x = ob.x + v.x + Math.sin(k * 6 + v.seed) * 4, y = ob.y + v.y - 8 - k * 46;
         drawSprite(g, sprite(v.sprite, v.pal, this.makeCanvas), Math.round(x / PX) * PX, Math.round(y / PX) * PX, PX);
         g.globalAlpha = 1;
       }
@@ -296,6 +305,27 @@ export class Renderer {
     g.globalCompositeOperation = 'source-over';
     g.restore();
 
+    // nombres en cooperativo (solo de los compañeros)
+    if (e.players.length > 1) {
+      g.textAlign = 'center';
+      g.font = `${Math.max(8, Math.round(z * 16 / 8) * 8)}px ${PIXEL_FONT}`;
+      for (const pl of e.players) {
+        if (pl === e.me) continue;
+        const nx = Math.round((pl.body.x - cx) * z), ny = Math.round((pl.body.y - 62 - cy) * z);
+        const label = pl.dead ? `${pl.name} (caído)` : pl.name;
+        g.fillStyle = '#000';
+        for (const [ox, oy] of OUTLINE) g.fillText(label, nx + ox, ny + oy);
+        g.fillStyle = pl.dead ? '#8b978f' : pl.agent.color;
+        g.fillText(label, nx, ny);
+        // flecha en el borde si el compañero está fuera de la pantalla
+        const W = this.vw, H = this.vh;
+        if (nx < 0 || ny < 0 || nx > W || ny > H) {
+          const ax = Math.max(10, Math.min(W - 10, nx)), ay = Math.max(14, Math.min(H - 10, ny + 20));
+          g.fillStyle = pl.agent.color; g.fillRect(ax - 3, ay - 3, 6, 6);
+          g.fillStyle = '#000'; g.fillRect(ax - 1, ay - 1, 2, 2);
+        }
+      }
+    }
     // números flotantes: en pantalla, fuente pixelada a tamaño entero y contorno de 1 píxel
     g.textAlign = 'center';
     const fs = Math.max(8, Math.round(z * 16 / 8) * 8);
@@ -414,6 +444,15 @@ export class Renderer {
     drawBody(0, 0, blink ? 0.4 : 1);
     if (!aimUp) drawGun();
     this.drawBuffs(g, e, true);
+  }
+
+  /** Jugador caído: silueta translúcida y quieta hasta la siguiente oleada. */
+  private drawGhost(g: Ctx, e: GameEngine, pl: { agent: { id: string }; body: { x: number; y: number } }) {
+    const spr = spriteCanvas(pl.agent.id, this.makeCanvas, 3, IDLE), dw = SW * PX, dh = SH * PX;
+    g.save(); g.globalAlpha = 0.3 + 0.1 * Math.sin(e.time * 4);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(spr, Math.round(pl.body.x / PX) * PX - dw / 2, Math.round((pl.body.y + 15) / PX) * PX - dh, dw, dh);
+    g.restore();
   }
 
   /** Efectos mientras dura una habilidad activa. front = capa por delante del personaje. */

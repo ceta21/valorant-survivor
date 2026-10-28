@@ -11,6 +11,16 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.7', date: '2026-10-28', title: 'Jugar en pareja', tag: 'Nuevo', color: '#2fe6ff',
+    items: [
+      'Nuevo modo cooperativo: crea una sala, pásale el código a un amigo y sobrevivid juntos.',
+      'Cada uno elige su agente y sus propias mejoras al subir de nivel.',
+      'Si caes, vuelves junto a tu compañero al empezar la siguiente oleada. La partida acaba si caéis los dos.',
+      'Los créditos y el progreso se guardan para los dos jugadores.',
+      'El modo en solitario sigue igual que siempre.',
+    ],
+  },
+  {
     id: '1.6', date: '2026-10-28', title: 'Mercado nocturno', tag: 'Nuevo', color: '#b05cff',
     items: [
       'Nueva tienda: cada día descubres 4 cartas con ofertas exclusivas y descuentos de hasta el 35 %.',

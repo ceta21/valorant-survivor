@@ -11,12 +11,17 @@ import { AudioControls } from './SettingsScreen';
 import { DifficultyDef } from '../data/difficulty';
 import { cleanName, isGlobal, submitScore } from '../utils/leaderboard';
 import type { Account } from '../utils/account';
+import type { PlayerSetup } from '../game/GameEngine';
+import type { CoopLink } from '../net/coopLink';
+import { applySnapshot, makeSnapshot, mirrorTick, Snap } from '../game/netSync';
 
 interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; startWeapon: string; meta: MetaLevels; settings: Settings;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
+  /** Partida cooperativa: conexión, jugadores e índice del de esta pantalla (0 = anfitrión). */
+  coop?: { link: CoopLink; setups: PlayerSetup[]; local: number };
 }
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -53,7 +58,9 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
+export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop }: Props) {
+  const isGuest = coop?.local === 1;
+  const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -65,27 +72,78 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
   const [result, setResult] = useState<{ r: RunResult; ach: string[] } | null>(null);
   const [paused, setPaused] = useState(false);
 
+  // en cooperativo la partida no se detiene: el menú se abre encima mientras se sigue jugando
   const togglePause = useCallback(() => {
     const e = engineRef.current;
-    if (!e || e.state === 'levelup' || e.state === 'won' || e.state === 'lost') return;
+    if (!e || e.state === 'won' || e.state === 'lost') return;
+    if (coop) { setPaused(p => !p); return; }
+    if (e.state === 'levelup') return;
     e.togglePause();
     setPaused(e.state === 'paused');
-  }, []);
+  }, [coop]);
+  const castRef = useRef<(slot: 'special' | 'secondary' | 'ultimate') => void>(() => {});
 
   useEffect(() => { if (rendererRef.current) rendererRef.current.shake = settings.shake; }, [settings.shake]);
 
   useEffect(() => {
     const canvas = canvasRef.current!, box = wrap.current!;
     const ctx = canvas.getContext('2d')!;
+    const link = coop?.link;
     const engine = new GameEngine(agent, map, meta, {
-      onLevelUp: c => setChoices([...c]),
-      onEnd: r => { const ach = onEndRef.current(r); setResult({ r, ach }); },
+      onLevelUp: (c, idx) => { if (idx === (coop?.local ?? 0)) setChoices([...c]); },
+      onEnd: r => {
+        if (isGuest) return;
+        const ach = onEndRef.current(r); setResult({ r, ach });
+        // el anfitrión manda su resultado al invitado
+        if (link) link.send({ type: 'end', r: engine.resultFor(1) });
+      },
       sfx: n => audio.play(n),
-    }, difficulty, startWeapon);
+    }, difficulty, startWeapon, coop ? { setups: coop.setups, local: coop.local } : undefined);
+    if (link && !isGuest) engine.netOut = [];
+    if (import.meta.env.DEV) (window as any).__vs = engine;   // solo en desarrollo, para depurar
+    const cast = (slot: 'special' | 'secondary' | 'ultimate') => {
+      if (isGuest) { if (engine.state === 'playing' && !engine.me.dead) link!.send({ type: 'cast', slot }); }
+      else engine.cast(slot);
+    };
+    castRef.current = cast;
+    const offs: (() => void)[] = [];
+    let lastChoices = '';
+    if (link && !isGuest) {
+      offs.push(
+        link.on('in', m => { const mv = engine.players[1]?.inputMove; if (mv) { mv.x = +(m.x as number) || 0; mv.y = +(m.y as number) || 0; } }),
+        link.on('cast', m => { engine.cast(m.slot as 'special', 1); }),
+        link.on('pick', m => { engine.chooseUpgrade(m.i as number, 1); }),
+        link.on('reroll', () => { engine.reroll(1); }),
+        link.on('bye', () => engine.leave(1)),
+        link.on('peer-left', () => engine.leave(1)),
+      );
+    } else if (link) {
+      offs.push(
+        link.on('snap', m => {
+          applySnapshot(engine, m.s as Snap);
+          const ch = engine.state === 'levelup' ? engine.me.choices : [];
+          const key = JSON.stringify(ch);
+          if (key !== lastChoices) { lastChoices = key; setChoices(ch.length ? [...ch] : null); }
+        }),
+        link.on('end', m => {
+          engine.state = 'lost';
+          const r = m.r as RunResult;
+          const ach = onEndRef.current(r); setResult({ r, ach });
+        }),
+      );
+      const gone = () => {
+        if (engine.state === 'lost') return;
+        engine.state = 'lost';
+        setLost('Se perdió la conexión con el anfitrión.');
+        const r = engine.resultFor(1);
+        const ach = onEndRef.current(r); setResult({ r, ach });
+      };
+      offs.push(link.on('bye', gone), link.on('peer-left', gone));
+    }
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;
-    const input = new Input(engine, togglePause);
+    const input = new Input(engine, togglePause, cast);
     inputRef.current = input;
 
     // pixel-art: se dibuja a baja resolución y el navegador lo amplía sin suavizar,
@@ -103,11 +161,38 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
     resize();
     const ro = new ResizeObserver(resize); ro.observe(box);
 
-    let raf = 0, last = performance.now();
+    let raf = 0, last = performance.now(), sendAcc = 0, lastIn = '', lastFrame = performance.now();
+    const hostStep = (dt: number) => {
+      engine.update(dt);
+      if (!link) return;
+      sendAcc += dt;
+      if (sendAcc >= 1 / link.snapshotRate) { sendAcc = 0; link.send({ type: 'snap', s: makeSnapshot(engine) }, true); }
+    };
+    // Anfitrión: si su pestaña queda en segundo plano el navegador deja de dibujar, pero la partida
+    // del compañero no puede pararse. Un Worker (que no se congela) da el ritmo mientras tanto.
+    let ticker: Worker | null = null;
+    if (link && !isGuest && typeof Worker !== 'undefined') {
+      const src = URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 33)'], { type: 'text/javascript' }));
+      ticker = new Worker(src);
+      URL.revokeObjectURL(src);
+      ticker.onmessage = () => {
+        const now = performance.now();
+        if (now - lastFrame < 150) return;          // los fotogramas normales ya llevan la partida
+        input.poll();
+        hostStep(Math.min(0.1, (now - last) / 1000)); last = now;
+      };
+    }
     const loop = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000); last = now;
       input.poll();
-      engine.update(dt);
+      if (isGuest) {
+        // invitado: no simula; envía su movimiento y suaviza lo que llega del anfitrión
+        mirrorTick(engine, dt);
+        sendAcc += dt;
+        const mv = engine.inputMove, key = `${mv.x.toFixed(2)},${mv.y.toFixed(2)}`;
+        if (sendAcc >= 0.05 && (key !== lastIn || sendAcc >= 0.5)) { sendAcc = 0; lastIn = key; link!.send({ type: 'in', x: mv.x, y: mv.y }, true); }
+      } else hostStep(dt);
+      lastFrame = now;
       renderer.render(engine);
       audio.setIntensity(Math.min(1, engine.time / 540));
       raf = requestAnimationFrame(loop);
@@ -115,7 +200,11 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
     raf = requestAnimationFrame(loop);
     const hudTimer = window.setInterval(() => { setHud(engine.hud()); }, 100);
 
-    const auto = () => { if (settings.autoPause && engine.state === 'playing') { engine.pause(); setPaused(true); } };
+    const auto = () => {
+      // el invitado deja de moverse si cambia de pestaña (el anfitrión conserva su última dirección)
+      if (isGuest) { engine.inputMove.x = engine.inputMove.y = 0; link!.send({ type: 'in', x: 0, y: 0 }); }
+      if (!coop && settings.autoPause && engine.state === 'playing') { engine.pause(); setPaused(true); }
+    };
     const vis = () => { if (document.hidden) auto(); };
     document.addEventListener('visibilitychange', vis);
     window.addEventListener('blur', auto);
@@ -132,7 +221,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
     canvas.addEventListener('pointerdown', pd); window.addEventListener('pointermove', pm); window.addEventListener('pointerup', pu); window.addEventListener('pointercancel', pu);
 
     return () => {
-      cancelAnimationFrame(raf); clearInterval(hudTimer); ro.disconnect(); input.destroy();
+      cancelAnimationFrame(raf); clearInterval(hudTimer); ticker?.terminate(); ro.disconnect(); input.destroy(); offs.forEach(f => f());
       document.removeEventListener('visibilitychange', vis); window.removeEventListener('blur', auto);
       canvas.removeEventListener('pointerdown', pd); window.removeEventListener('pointermove', pm); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu);
       engineRef.current = null;
@@ -141,25 +230,34 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
   }, []);
 
   const engine = engineRef.current;
-  const pick = (i: number) => { engine?.chooseUpgrade(i); setChoices(engine && engine.state === 'levelup' ? [...engine.choices] : null); };
-  const reroll = () => { engine?.reroll(); };
+  const pick = (i: number) => {
+    if (isGuest) { coop!.link.send({ type: 'pick', i }); setChoices(null); return; }
+    engine?.chooseUpgrade(i);
+    setChoices(engine && engine.state === 'levelup' && engine.choices.length ? [...engine.choices] : null);
+  };
+  const reroll = () => { if (isGuest) coop!.link.send({ type: 'reroll' }); else engine?.reroll(); };
 
   return (
     <div className="game" ref={wrap}>
       <canvas ref={canvasRef} className="game-canvas" />
-      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} />}
+      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} />}
+      {coop && hud?.state === 'levelup' && !choices && !result && (
+        <div className="coop-wait-banner">Esperando a que tu compañero elija su mejora…</div>
+      )}
+      {coop && hud?.dead && !result && <div className="coop-wait-banner down">Has caído · vuelves en la próxima oleada</div>}
       {choices && hud?.state === 'levelup' && engine && (
         <UpgradeSelection choices={choices} rerolls={engine.rerolls} level={engine.level} pick={pick} reroll={reroll} />
       )}
       {paused && !result && (
         <div className="overlay pause" role="dialog" aria-label="Pausa">
-          <h2>Pausa</h2>
+          <h2>{coop ? 'Menú' : 'Pausa'}</h2>
+          {coop && <p className="sub">La partida sigue en marcha mientras tanto.</p>}
           <div className="pause-box">
             <AudioControls settings={settings} change={changeSettings} />
           </div>
           <div className="pause-btns">
-            <button className="btn btn-red btn-xl" onClick={togglePause}><b>Reanudar</b></button>
-            <button className="btn" onClick={onRestart}><b>Reiniciar</b></button>
+            <button className="btn btn-red btn-xl" onClick={togglePause}><b>{coop ? 'Volver a la partida' : 'Reanudar'}</b></button>
+            {!coop && <button className="btn" onClick={onRestart}><b>Reiniciar</b></button>}
             <button className="btn" onClick={onMenu}><b>Abandonar</b></button>
           </div>
         </div>
@@ -168,10 +266,12 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
         <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label="Resultado">
           <h1>{fmt(result.r.time)}</h1>
           <p className="sub">
-            {result.r.win ? 'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.' : 'Has caído en combate.'}
+            {lost || (result.r.win ? 'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.' : coop ? 'Habéis caído los dos.' : 'Has caído en combate.')}
             {' '}<span style={{ color: difficulty.color }}>{difficulty.name}</span>
           </p>
-          <SubmitScore r={result.r} account={account} name={playerName} setName={setPlayerName} />
+          {coop
+            ? <p className="sub">Las partidas en pareja no cuentan para el ranking.</p>
+            : <SubmitScore r={result.r} account={account} name={playerName} setName={setPlayerName} />}
           <dl className="end-stats">
             <div><dt>Tiempo</dt><dd>{fmt(result.r.time)}</dd></div>
             <div><dt>Eliminaciones</dt><dd>{result.r.kills}</dd></div>
@@ -182,8 +282,8 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
           </dl>
           {result.ach.length > 0 && <p className="ach">Logro desbloqueado: {result.ach.join(', ')}</p>}
           <div className="pause-btns">
-            <button className="btn btn-red btn-xl" onClick={onRestart}><b>Jugar otra vez</b></button>
-            <button className="btn" onClick={onMenu}><b>Volver al menú</b></button>
+            {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>Jugar otra vez</b></button>}
+            <button className={`btn ${coop ? 'btn-red btn-xl' : ''}`} onClick={onMenu}><b>Volver al menú</b></button>
           </div>
         </div>
       )}

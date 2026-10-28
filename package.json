@@ -12,7 +12,8 @@
     "test:sim": "tsx scripts/sim.ts",
     "test:shot": "tsx scripts/shots.ts",
     "test:world": "tsx scripts/world-test.ts",
-    "test:abilities": "tsx scripts/abilities-sheet.ts"
+    "test:abilities": "tsx scripts/abilities-sheet.ts",
+    "test:coop": "tsx scripts/coop-test.ts"
   },
   "keywords": [],
   "author": "",

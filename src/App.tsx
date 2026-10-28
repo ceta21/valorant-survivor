@@ -17,12 +17,15 @@ import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, 
 import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { NewsScreen } from './components/NewsScreen';
+import { CoopScreen, CoopStart } from './components/CoopScreen';
+import type { CoopLink } from './net/coopLink';
+import type { PlayerSetup } from './game/GameEngine';
 import { LATEST_NEWS } from './data/news';
 import { Offer, marketPeriod } from './data/market';
 import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -33,7 +36,7 @@ export default function App() {
   const accountRef = useRef<Account | null>(null); accountRef.current = account;
   // la tienda de un invitado cambia en cada visita (no tiene cuenta a la que atarla)
   const [guestSeed] = useState(() => `guest-${Math.random()}`);
-  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
+  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number } }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
     setSave(prev => { const n = fn(prev); if (n !== prev && accountRef.current) saveProgress(n); return n; });
@@ -65,6 +68,17 @@ export default function App() {
   }, []);
 
   const changeSettings = (p: Partial<Settings>) => update(s => ({ ...s, settings: { ...s.settings, ...p } }));
+
+  /** Empieza una partida cooperativa con lo acordado en la sala. */
+  const startCoop = useCallback((link: CoopLink, st: CoopStart, local: number) => {
+    const setups: PlayerSetup[] = st.setups.map(c => ({
+      agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.jett, c.kit), meta: c.meta, name: c.name,
+      startWeapon: WEAPONS[c.loadout] ? c.loadout : 'classic',
+    }));
+    setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local } }));
+    setScreen('game');
+  }, []);
+  const leaveGame = () => { run.coop?.link.close(); setRun(r => ({ ...r, coop: undefined })); setScreen('menu'); };
 
   const start = (agentId: string, mapId: string, difficulty: string) => {
     update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
@@ -141,11 +155,12 @@ export default function App() {
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
+      {screen === 'coop' && <CoopScreen save={save} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} startWeapon={startWeapon} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
-          onEnd={handleEnd} onMenu={() => go('menu')} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
+          onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}
     </div>
   );

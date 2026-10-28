@@ -14,10 +14,11 @@ function GunIcon({ id }: { id: string }) {
 export type Hud = ReturnType<GameEngine['hud']>;
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-interface Props { hud: Hud; engine: GameEngine; onPause: () => void }
+interface Props { hud: Hud; engine: GameEngine; onPause: () => void; onCast?: (slot: 'special' | 'secondary' | 'ultimate') => void }
 
-export function GameHUD({ hud, engine, onPause }: Props) {
+export function GameHUD({ hud, engine, onPause, onCast }: Props) {
   const ag = engine.agent;
+  const cast = (slot: 'special' | 'secondary' | 'ultimate') => (onCast ? onCast(slot) : engine.cast(slot));
   const slot = (key: string, label: string, name: string, cd: number, max: number, ready: boolean, cast: () => void, ult = false) => {
     const frac = ult ? hud.ult / 100 : max > 0 ? 1 - cd / max : 1;
     return (
@@ -38,6 +39,12 @@ export function GameHUD({ hud, engine, onPause }: Props) {
           <div className="lvl">NV {hud.level}</div>
           <div className="hpwrap">
             <div className="hp"><i style={{ width: `${Math.max(0, (hud.hp / hud.maxHp) * 100)}%` }} /><span>{Math.ceil(hud.hp)} / {Math.round(hud.maxHp)}</span></div>
+            {hud.mates.map((m, i) => (
+              <div key={i} className={`mate ${m.dead ? 'down' : ''}`} style={{ ['--mc' as any]: m.color }}>
+                <span>{m.name} · {m.gone ? 'desconectado' : m.dead ? 'caído' : m.agent}</span>
+                <div><i style={{ width: `${m.dead ? 0 : Math.max(0, (m.hp / m.maxHp) * 100)}%` }} /></div>
+              </div>
+            ))}
             {hud.shield > 0 && <div className="sh"><i style={{ width: `${Math.min(100, (hud.shield / Math.max(1, hud.maxShield + 20)) * 100)}%` }} /><span>{Math.ceil(hud.shield)}</span></div>}
           </div>
         </div>
@@ -66,9 +73,9 @@ export function GameHUD({ hud, engine, onPause }: Props) {
         ))}
       </div>
       <div className="abilities-bar">
-        {slot('Espacio', 'Espacio', ag.special.name, hud.special.cd, hud.special.max, hud.special.cd <= 0, () => engine.cast('special'))}
-        {ag.secondary && hud.secondary && slot('E', 'E', ag.secondary.name, hud.secondary.cd, hud.secondary.max, hud.secondary.cd <= 0, () => engine.cast('secondary'))}
-        {slot('Q', 'Q', ag.ultimate.name, 0, 0, hud.ult >= 100, () => engine.cast('ultimate'), true)}
+        {slot('Espacio', 'Espacio', ag.special.name, hud.special.cd, hud.special.max, hud.special.cd <= 0, () => cast('special'))}
+        {ag.secondary && hud.secondary && slot('E', 'E', ag.secondary.name, hud.secondary.cd, hud.secondary.max, hud.secondary.cd <= 0, () => cast('secondary'))}
+        {slot('Q', 'Q', ag.ultimate.name, 0, 0, hud.ult >= 100, () => cast('ultimate'), true)}
       </div>
     </div>
   );

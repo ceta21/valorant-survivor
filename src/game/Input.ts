@@ -6,19 +6,22 @@ export class Input {
   private stick = { x: 0, y: 0 };
   private engine: GameEngine;
   private onPause: () => void;
+  /** Lanzar habilidad: por defecto en el motor; en cooperativo el invitado la envía al anfitrión. */
+  private castFn: (slot: 'special' | 'secondary' | 'ultimate') => void;
   private handlers: [string, (ev: any) => void][] = [];
 
-  constructor(engine: GameEngine, onPause: () => void) {
+  constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void) {
     this.engine = engine;
     this.onPause = onPause;
+    this.castFn = castFn ?? (slot => { this.engine.cast(slot); });
     const down = (ev: KeyboardEvent) => {
       const k = ev.code;
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(k)) ev.preventDefault();
       if (ev.repeat) return;
       this.keys.add(k);
-      if (k === 'Space') this.engine.cast('special');
-      else if (k === 'KeyE') this.engine.cast('secondary');
-      else if (k === 'KeyQ') this.engine.cast('ultimate');
+      if (k === 'Space') this.castFn('special');
+      else if (k === 'KeyE') this.castFn('secondary');
+      else if (k === 'KeyQ') this.castFn('ultimate');
       else if (k === 'Escape' || k === 'KeyP') this.onPause();
     };
     const up = (ev: KeyboardEvent) => { this.keys.delete(ev.code); };
