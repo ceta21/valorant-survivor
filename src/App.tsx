@@ -4,6 +4,8 @@ import { AgentSelection } from './components/AgentSelection';
 import { MetaScreen } from './components/MetaScreen';
 import { StatsScreen } from './components/StatsScreen';
 import { SettingsScreen } from './components/SettingsScreen';
+import { RankingScreen } from './components/RankingScreen';
+import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
 import { AGENT_BY_ID } from './data/agents';
 import { MAP_BY_ID } from './data/maps';
@@ -13,12 +15,12 @@ import { RunResult } from './game/types';
 import { SaveData, Settings, clearSave, loadSave, writeSave } from './utils/storage';
 import { audio } from './utils/audio';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'game';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'game';
 
 export default function App() {
   const [save, setSave] = useState<SaveData>(loadSave);
   const [screen, setScreen] = useState<Screen>('menu');
-  const [run, setRun] = useState<{ agentId: string; mapId: string; key: number }>({ agentId: 'jett', mapId: 'ascent', key: 0 });
+  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
     setSave(prev => { const n = fn(prev); writeSave(n); return n; });
@@ -34,9 +36,9 @@ export default function App() {
 
   const changeSettings = (p: Partial<Settings>) => update(s => ({ ...s, settings: { ...s.settings, ...p } }));
 
-  const start = (agentId: string, mapId: string) => {
-    update(s => ({ ...s, lastAgent: agentId, lastMap: mapId }));
-    setRun(r => ({ agentId, mapId, key: r.key + 1 }));
+  const start = (agentId: string, mapId: string, difficulty: string) => {
+    update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
+    setRun(r => ({ agentId, mapId, difficulty, key: r.key + 1 }));
     setScreen('game');
   };
 
@@ -61,7 +63,7 @@ export default function App() {
   };
 
   const go = (s: Screen) => setScreen(s);
-  const agent = AGENT_BY_ID[run.agentId], map = MAP_BY_ID[run.mapId];
+  const agent = AGENT_BY_ID[run.agentId], map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
 
   return (
     <div className="app">
@@ -84,8 +86,10 @@ export default function App() {
       {screen === 'settings' && (
         <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => { const d = clearSave(); setSave(d); }} />
       )}
+      {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} agent={agent} map={map} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} meta={save.meta} settings={save.settings}
+          playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={() => go('menu')} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}
     </div>

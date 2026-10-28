@@ -43,7 +43,10 @@ export function GameHUD({ hud, engine, onPause }: Props) {
         </div>
         <div className="hud-mid">
           <div className="timer">{fmt(hud.time)}</div>
-          <small>Objetivo: derrotar al jefe final ({fmt(540)})</small>
+          <small>
+            {hud.endless ? `Modo infinito · siguiente jefe en ${Math.ceil(hud.nextBoss)} s` : `Jefe final en ${fmt(hud.finalAt - hud.time)}`}
+            {' · '}<span style={{ color: hud.difficulty.color }}>{hud.difficulty.name}</span>
+          </small>
         </div>
         <div className="hud-right">
           <div className="kills">☠ {hud.kills}</div>

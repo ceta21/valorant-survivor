@@ -2,7 +2,10 @@ import {
   AbilityDef, AgentDef, BossPattern, EnemyDef, MapDef, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
 import { WEAPONS, WEAPON_LIST } from '../data/weapons';
-import { BOSS_SCHEDULE, ENEMIES, GAME_DURATION, SPAWNABLE, WAVE_TIMES } from '../data/enemies';
+import {
+  BOSS_SCHEDULE, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, WAVE_TIMES,
+} from '../data/enemies';
+import { DIFFICULTY_BY_ID, DifficultyDef } from '../data/difficulty';
 import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
 import { META } from '../data/meta';
 import { World } from './World';
@@ -117,12 +120,18 @@ export class GameEngine {
   private eliteT = 200;
   private sfxT: Record<string, number> = {};
   private finalSpawned = false;
+  private finalKilled = false;
   private healTextT = 0;
+  diff: DifficultyDef;
+  private endlessBossT: number;
+  private endlessWaveT = 0;
 
-  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents) {
+  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal) {
     this.agent = agent;
     this.map = map;
     this.ev = ev;
+    this.diff = diff;
+    this.endlessBossT = FINAL_TIME + ENDLESS_BOSS_START * diff.bossEvery;
     this.world = new World(map);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
     const m = (id: keyof MetaLevels) => meta[id] * META.find(x => x.id === id)!.per;
@@ -151,8 +160,10 @@ export class GameEngine {
     this.ev.sfx(name);
   }
   get need() { return Math.round(5 + this.level * 5 + this.level * this.level * 0.55); }
-  get hpScale() { const m = this.time / 60; return 1 + m * 0.24 + m * m * 0.02; }
-  get dmgScale() { return 1 + (this.time / 60) * 0.07; }
+  /** Segundos transcurridos en modo infinito (tras la aparición del jefe final). */
+  get overtime() { return Math.max(0, this.time - FINAL_TIME); }
+  get hpScale() { const m = this.time / 60; return (1 + m * 0.24 + m * m * 0.02) * this.diff.hp * (1 + this.overtime / 300); }
+  get dmgScale() { return (1 + (this.time / 60) * 0.07) * this.diff.dmg * (1 + this.overtime / 400); }
   private syncDrones() {
     while (this.droneCd.length < this.stats.drones) this.droneCd.push(rnd(0.5));
   }
@@ -330,7 +341,7 @@ export class GameEngine {
       this.sparks(p.x, p.y, '#ff4655', 8, 200);
     }
     this.sfx('hurt', 0.1);
-    if (p.hp <= 0) { p.hp = 0; this.end(false); }
+    if (p.hp <= 0) { p.hp = 0; this.end(); }
   }
   heal(amount: number, quiet = false) {
     const p = this.player;
@@ -484,7 +495,7 @@ export class GameEngine {
     const e = this.enemyPool.pop() ?? ({} as Enemy);
     const boss = def.behavior === 'boss';
     const t = this.time;
-    const hpMul = boss ? 1 + t / 900 : this.hpScale;
+    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) : this.hpScale;
     e.id = this.nextId++; e.def = def; e.x = x; e.y = y; e.kx = 0; e.ky = 0;
     e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : 1 + Math.min(0.25, t / 1500)); e.dmg = def.dmg;
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
@@ -540,6 +551,37 @@ export class GameEngine {
         this.spawnEnemy(types[(Math.random() * types.length) | 0], x, y);
       }
       this.waveIdx++;
+      if (this.waveIdx === WAVE_TIMES.length) this.endlessWaveT = FINAL_TIME + 30;
+    }
+    // modo infinito: jefes cada vez más seguidos y oleadas periódicas, sin final
+    if (t >= this.endlessBossT) {
+      const bosses = this.enemies.filter(e => e.isBoss && !e.dead).length;
+      if (bosses < ENDLESS_MAX_BOSSES) {
+        const n = 1 + Math.floor(this.overtime / 300);
+        for (let i = 0; i < n; i++) {
+          const id = ENDLESS_BOSSES[(Math.random() * ENDLESS_BOSSES.length) | 0];
+          const e = this.spawnEnemy(id);
+          this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
+          this.showBanner(`¡JEFE: ${ENEMIES[id].name.toUpperCase()}!`, '#ff4655', 2.4);
+        }
+        this.sfx('boss', 0.5);
+        this.shakeT = 0.5;
+      }
+      this.endlessBossT = t + this.endlessGap;
+    }
+    if (this.endlessWaveT > 0 && t >= this.endlessWaveT) {
+      const n = 40 + Math.floor(this.overtime / 30) * 4;
+      this.showBanner('¡OLEADA INTENSA!', '#ffb020', 2.2);
+      this.sfx('wave', 0.5);
+      const types = SPAWNABLE.filter(id => id !== 'tank');
+      const p = this.player, R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
+      for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 60; i++) {
+        const a = (i / n) * Math.PI * 2;
+        const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
+        if (this.inObstacle(x, y, 14)) continue;
+        this.spawnEnemy(types[(Math.random() * types.length) | 0], x, y);
+      }
+      this.endlessWaveT = t + 55;
     }
     // élites
     if (t >= this.eliteT) {
@@ -549,9 +591,9 @@ export class GameEngine {
     }
     // flujo normal
     const alive = this.alive();
-    const desired = Math.min(MAX_ENEMIES, 9 + t * 0.3) * (bossAlive ? 0.55 : 1);
+    const desired = Math.min(MAX_ENEMIES, (9 + t * 0.3) * this.diff.spawn) * (bossAlive && t < FINAL_TIME ? 0.55 : 1);
     if (alive < desired) {
-      this.spawnAcc += (2.4 + t / 40) * dt;
+      this.spawnAcc += (2.4 + t / 40) * this.diff.spawn * dt;
       while (this.spawnAcc >= 1) {
         this.spawnAcc -= 1;
         this.spawnEnemy(this.pickType(t));
@@ -761,7 +803,7 @@ export class GameEngine {
       }
       case 'summon': {
         if (a.t >= a.dur) {
-          for (let i = 0; i < 6; i++) {
+          for (let i = 0; i < 6 && this.alive() < MAX_ENEMIES + 60; i++) {
             const ang = (i / 6) * Math.PI * 2;
             this.spawnEnemy(i % 3 === 0 ? 'runner' : 'grunt', e.x + Math.cos(ang) * (e.r + 30), e.y + Math.sin(ang) * (e.r + 30));
           }
@@ -807,7 +849,10 @@ export class GameEngine {
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6);
-      if (e.def.id === 'final') this.end(true);
+      if (e.def.id === 'final' && !this.finalKilled) {
+        this.finalKilled = true;
+        this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
+      }
     } else {
       this.dropGem(e.x, e.y, v, e.def.behavior === 'elite' ? 1 : Math.random() < 0.008 ? 1 : 0, e.def.behavior === 'elite' ? 0.2 : 0.1);
       if (e.def.behavior === 'elite') this.dropGem(e.x + 10, e.y, v, 0);
@@ -1143,14 +1188,19 @@ export class GameEngine {
   resume() { if (this.state === 'paused') this.state = 'playing'; }
   togglePause() { if (this.state === 'playing') this.state = 'paused'; else if (this.state === 'paused') this.state = 'playing'; }
 
-  private end(win: boolean) {
+  /** Segundos entre jefes en modo infinito: se acortan con el tiempo y la dificultad. */
+  private get endlessGap() { return Math.max(ENDLESS_BOSS_MIN, ENDLESS_BOSS_START - this.overtime / 12) * this.diff.bossEvery; }
+
+  /** La partida solo termina al morir; cuenta como victoria si se derrotó al jefe final. */
+  private end() {
     if (this.state === 'won' || this.state === 'lost') return;
-    this.state = win ? 'won' : 'lost';
-    const credits = Math.floor(this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0));
+    const win = this.finalKilled;
+    this.state = 'lost';
+    const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits);
     this.sfx(win ? 'win' : 'lose', 0);
     this.ev.onEnd({
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: this.agent.id, mapId: this.map.id,
+      bossKills: this.bossKills, credits, agentId: this.agent.id, mapId: this.map.id, difficulty: this.diff.id,
     });
   }
 
@@ -1169,8 +1219,11 @@ export class GameEngine {
       weapons: this.weapons.map(w => ({ id: w.id, lvl: w.lvl })),
       boss: boss ? { name: boss.def.name, hp: boss.hp, max: boss.maxHp } : null,
       banner: this.banner.t > 0 ? { text: this.banner.text, color: this.banner.color } : null,
-      duration: GAME_DURATION,
+      finalAt: FINAL_TIME,
       finalSpawned: this.finalSpawned,
+      endless: this.time >= FINAL_TIME,
+      nextBoss: Math.max(0, this.endlessBossT - this.time),
+      difficulty: this.diff,
     };
   }
 }

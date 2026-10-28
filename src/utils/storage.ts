@@ -19,6 +19,8 @@ export interface SaveData {
   settings: Settings;
   lastAgent: string;
   lastMap: string;
+  lastDifficulty: string;
+  playerName: string;
 }
 
 const KEY = 'valorant-survivors-save-v1';
@@ -35,6 +37,8 @@ export const defaultSave = (): SaveData => ({
   settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true },
   lastAgent: 'jett',
   lastMap: 'ascent',
+  lastDifficulty: 'normal',
+  playerName: '',
 });
 
 export function loadSave(): SaveData {

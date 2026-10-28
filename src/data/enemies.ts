@@ -29,4 +29,10 @@ export const BOSS_SCHEDULE: { time: number; id: string }[] = [
   { time: 150, id: 'boss1' }, { time: 300, id: 'boss2' }, { time: 450, id: 'boss3' }, { time: 540, id: 'final' },
 ];
 export const WAVE_TIMES = [100, 190, 260, 345, 420, 490];
-export const GAME_DURATION = 600;
+/** Momento en que aparece el jefe final; a partir de ahí empieza el modo infinito. */
+export const FINAL_TIME = 540;
+/** Modo infinito: segundos entre jefes al empezar y como mínimo (antes de aplicar la dificultad). */
+export const ENDLESS_BOSS_START = 45;
+export const ENDLESS_BOSS_MIN = 14;
+export const ENDLESS_BOSSES = ['boss1', 'boss2', 'boss3', 'final'];
+export const ENDLESS_MAX_BOSSES = 6;

@@ -7,11 +7,15 @@ import { AGENTS } from '../src/data/agents';
 import { MAPS } from '../src/data/maps';
 
 mkdirSync('shots', { recursive: true });
-const W = 1100, H = 640;
+// como en el navegador: se dibuja a baja resolución y se amplía sin suavizado
+const W = 1100, H = 640, S = 2;
+const low = createCanvas(W / S, H / S);
 const canvas = createCanvas(W, H);
-const ctx = canvas.getContext('2d') as any;
+const out = canvas.getContext('2d') as any;
+out.imageSmoothingEnabled = false;
+const ctx = low.getContext('2d') as any;
 const rd = new Renderer(ctx, (w, h) => createCanvas(w, h) as any);
-const view = rd.resize(W, H);
+const view = rd.resizePixels(W / S, H / S);
 
 function shot(agentId: string, mapId: string, seconds: number, name: string, extra?: (e: GameEngine) => void) {
   const agent = AGENTS.find(a => a.id === agentId)!, map = MAPS.find(m => m.id === mapId)!;
@@ -29,6 +33,7 @@ function shot(agentId: string, mapId: string, seconds: number, name: string, ext
   }
   extra?.(e);
   rd.render(e);
+  out.drawImage(low, 0, 0, W, H);
   writeFileSync(`shots/${name}.png`, canvas.toBuffer('image/png'));
   console.log(name, 'ok', 'enemies', e.enemies.length, 'lvl', e.level);
 }

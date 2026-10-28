@@ -104,7 +104,7 @@ export interface WeaponDef {
 
 export interface RunResult {
   win: boolean; time: number; kills: number; level: number; damage: number;
-  bossKills: number; credits: number; agentId: string; mapId: string;
+  bossKills: number; credits: number; agentId: string; mapId: string; difficulty: string;
 }
 
 export interface UpgradeChoice {

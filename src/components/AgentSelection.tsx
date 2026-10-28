@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AGENTS } from '../data/agents';
 import { MAPS } from '../data/maps';
+import { DIFFICULTIES } from '../data/difficulty';
 import { SaveData } from '../utils/storage';
 import { AgentPortrait } from './AgentPortrait';
 import { audio } from '../utils/audio';
@@ -8,13 +9,14 @@ import { audio } from '../utils/audio';
 interface Props {
   save: SaveData;
   back: () => void;
-  start: (agentId: string, mapId: string) => void;
+  start: (agentId: string, mapId: string, difficulty: string) => void;
   unlock: (agentId: string) => void;
 }
 
 export function AgentSelection({ save, back, start, unlock }: Props) {
   const [sel, setSel] = useState(save.lastAgent);
   const [mapId, setMapId] = useState(save.lastMap);
+  const [diffId, setDiffId] = useState(save.lastDifficulty);
   const agent = AGENTS.find(a => a.id === sel) ?? AGENTS[0];
   const isOpen = save.unlocked.includes(agent.id);
   const canBuy = !isOpen && save.credits >= agent.cost;
@@ -66,8 +68,18 @@ export function AgentSelection({ save, back, start, unlock }: Props) {
             ))}
           </div>
           <p className="map-desc">{MAPS.find(m => m.id === mapId)?.desc}{rec ? ` · Mejor: ${Math.floor(rec.bestTime / 60)}:${String(Math.floor(rec.bestTime % 60)).padStart(2, '0')}, nivel ${rec.bestLevel}` : ''}</p>
+          <div className="map-pick diff-pick" role="radiogroup" aria-label="Dificultad">
+            {DIFFICULTIES.map(d => (
+              <button key={d.id} role="radio" aria-checked={d.id === diffId} className={`map-chip ${d.id === diffId ? 'on' : ''}`} style={{ ['--dc' as any]: d.color }}
+                onClick={() => { audio.play('click'); setDiffId(d.id); }}>
+                <i style={{ background: d.color }} />
+                <b>{d.name}</b>
+              </button>
+            ))}
+          </div>
+          <p className="map-desc">{DIFFICULTIES.find(d => d.id === diffId)?.desc} Créditos ×{DIFFICULTIES.find(d => d.id === diffId)?.credits}.</p>
           {isOpen ? (
-            <button className="btn btn-red btn-xl" onClick={() => { audio.play('click'); start(agent.id, mapId); }}><b>Confirmar y jugar</b></button>
+            <button className="btn btn-red btn-xl" onClick={() => { audio.play('click'); start(agent.id, mapId, diffId); }}><b>Confirmar y jugar</b></button>
           ) : (
             <button className="btn btn-red btn-xl" disabled={!canBuy} onClick={() => { audio.play('pick'); unlock(agent.id); }}>
               <b>{canBuy ? `Desbloquear por ◈ ${agent.cost}` : `Te faltan ◈ ${agent.cost - save.credits}`}</b>

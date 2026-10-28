@@ -9,6 +9,11 @@ import { gunCanvas, gunSize } from './weaponSprites';
 type Ctx = CanvasRenderingContext2D;
 type MakeCanvas = (w: number, h: number) => any;
 
+/** Unidades de mundo por píxel de juego (los sprites de personaje quedan 1:1). */
+export const PX = 2;
+const PIXEL_FONT = '"Press Start 2P", monospace';
+const OUTLINE = [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1]];
+
 function seeded(seed: number) {
   let s = seed >>> 0;
   return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
@@ -42,6 +47,15 @@ export class Renderer {
     return { w: w / this.zoom, h: h / this.zoom };
   }
 
+  /** Modo pixel-art: w,h = tamaño del lienzo en píxeles de juego (cada uno = PX unidades de mundo). */
+  resizePixels(w: number, h: number) {
+    this.dpr = 1;
+    this.zoom = 1 / PX;
+    this.vw = w; this.vh = h;
+    this.vignette = null;
+    return { w: w * PX, h: h * PX };
+  }
+
   /** Chunk pixel-art ya dibujado (caché LRU: los que salen de pantalla se descartan). */
   private chunkCanvas(e: GameEngine, cx: number, cy: number) {
     if (this.chunkWorld !== e.world) { this.chunkCache.clear(); this.chunkWorld = e.world; }
@@ -63,7 +77,8 @@ export class Renderer {
     this.camY = p.y - vh / 2;
     let sx = 0, sy = 0;
     if (this.shake && e.shakeT > 0) { const m = Math.min(1, e.shakeT * 5) * 6; sx = (Math.random() - 0.5) * m; sy = (Math.random() - 0.5) * m; }
-    const cx = this.camX + sx, cy = this.camY + sy;
+    // cámara alineada a la rejilla de píxeles: el mundo no "tiembla" al moverse
+    const cx = Math.round((this.camX + sx) * z) / z, cy = Math.round((this.camY + sy) * z) / z;
 
     g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     g.fillStyle = '#0a0e13'; g.fillRect(0, 0, this.vw, this.vh);
@@ -193,17 +208,21 @@ export class Renderer {
       else g.fillRect(q.x - q.size / 2, q.y - q.size / 2, q.size, q.size);
     }
     g.globalCompositeOperation = 'source-over';
-    // números flotantes
+    g.restore();
+
+    // números flotantes: en pantalla, fuente pixelada a tamaño entero y contorno de 1 píxel
     g.textAlign = 'center';
+    const fs = Math.max(8, Math.round(z * 16 / 8) * 8);
+    g.font = `${fs}px ${PIXEL_FONT}`;
     for (const t of e.texts.items) {
       if (t.life <= 0 || !vis(t.x, t.y)) continue;
+      const tx = Math.round((t.x - cx) * z), ty = Math.round((t.y - cy) * z);
       g.globalAlpha = Math.min(1, t.life * 2.2);
-      g.font = `800 ${t.size}px "Bahnschrift","Arial Narrow",sans-serif`;
-      g.lineWidth = 3; g.strokeStyle = 'rgba(0,0,0,0.8)'; g.strokeText(t.text, t.x, t.y);
-      g.fillStyle = t.color; g.fillText(t.text, t.x, t.y);
+      g.fillStyle = '#000';
+      for (const [ox, oy] of OUTLINE) g.fillText(t.text, tx + ox, ty + oy);
+      g.fillStyle = t.color; g.fillText(t.text, tx, ty);
     }
     g.globalAlpha = 1;
-    g.restore();
 
     // polvo ambiental (en pantalla)
     g.fillStyle = 'rgba(255,255,255,0.10)';
@@ -211,7 +230,7 @@ export class Renderer {
     for (let i = 0; i < 36; i++) {
       const x = ((i * 197 + tm * (6 + (i % 5) * 3) - this.camX * 0.25) % this.vw + this.vw) % this.vw;
       const y = ((i * 311 - tm * (4 + (i % 4) * 3) - this.camY * 0.25) % this.vh + this.vh) % this.vh;
-      g.fillRect(x, y, 2, 2);
+      g.fillRect(Math.floor(x), Math.floor(y), Math.max(1, Math.round(2 * this.dpr * z)), Math.max(1, Math.round(2 * this.dpr * z)));
     }
     // viñeta y destello de daño
     if (!this.vignette) {
@@ -254,7 +273,7 @@ export class Renderer {
     if (casting) pose = CAST;
     else if (dashing) pose = RUN[0];
     else if (moving) { frame = Math.floor(t * (sprint ? 18 : 11)) % 4; pose = (sprint ? RUN : WALK)[frame]; }
-    const k = 1.95, dw = SW * k, dh = SH * k;
+    const k = PX, dw = SW * k, dh = SH * k;
     const flip = Math.cos(p.face) < 0;
     const bob = casting ? -3 : moving ? (frame % 2) * 2 : Math.sin(t * 3) * 0.8;
     let lean = moving ? Math.max(-1, Math.min(1, e.inputMove.x)) * (sprint ? 0.16 : 0.07) : 0;

@@ -56,3 +56,18 @@ determinista (`src/game/World.ts`) y se dibuja en estilo pixel-art (`src/game/Ma
 barriles, plazas con fuente, sitios A/B/C y, en Bind, teletransportadores. Son diseños originales *inspirados* en VALORANT, sin assets oficiales.
 
 Pruebas automáticas (sin navegador): `npx tsx scripts/world-test.ts`, `scripts/stuck-test.ts`, `scripts/infinite-test.ts`, `npm run test:sim`.
+
+## Ranking global (Supabase)
+
+Sin configurar, el ranking funciona en modo local (solo este navegador). Para hacerlo global:
+
+1. Crea un proyecto gratuito en [supabase.com](https://supabase.com).
+2. En **SQL Editor**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
+3. En **Project Settings → API** copia la *Project URL* y la clave *anon public*.
+4. En local, crea un archivo `.env.local` (no se sube a git):
+   ```
+   VITE_SUPABASE_URL=https://xxxx.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJ...
+   ```
+5. Para GitHub Pages, añade esos dos valores como *secrets* del repositorio
+   (**Settings → Secrets and variables → Actions**) con los mismos nombres.

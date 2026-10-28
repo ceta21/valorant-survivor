@@ -4,7 +4,7 @@ import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking';
 
 export function MainMenu({ save, go }: { save: SaveData; go: (s: Screen) => void }) {
   const agent = AGENT_BY_ID[save.lastAgent] ?? AGENT_BY_ID.jett;
@@ -18,6 +18,7 @@ export function MainMenu({ save, go }: { save: SaveData; go: (s: Screen) => void
           <button className="btn btn-red btn-xl" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Jugar</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Agentes</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>Mejoras</b></button>
+          <button className="btn" onClick={click('ranking')} onMouseEnter={() => audio.play('hover')}><b>Ranking global</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={() => audio.play('hover')}><b>Estadísticas</b></button>
           <button className="btn" onClick={click('settings')} onMouseEnter={() => audio.play('hover')}><b>Configuración</b></button>
         </nav>

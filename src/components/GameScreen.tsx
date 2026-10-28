@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameEngine } from '../game/GameEngine';
-import { Renderer } from '../game/Renderer';
+import { Renderer, PX } from '../game/Renderer';
 import { Input } from '../game/Input';
 import { AgentDef, MapDef, RunResult, UpgradeChoice } from '../game/types';
 import { MetaLevels, Settings } from '../utils/storage';
@@ -8,15 +8,45 @@ import { audio } from '../utils/audio';
 import { GameHUD, Hud } from './GameHUD';
 import { UpgradeSelection } from './UpgradeSelection';
 import { AudioControls } from './SettingsScreen';
+import { DifficultyDef } from '../data/difficulty';
+import { cleanName, isGlobal, submitScore } from '../utils/leaderboard';
 
 interface Props {
-  agent: AgentDef; map: MapDef; meta: MetaLevels; settings: Settings;
+  agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
+  playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
 }
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-export function GameScreen({ agent, map, meta, settings, onEnd, onMenu, onRestart, changeSettings }: Props) {
+/** Formulario del final de partida para publicar la marca en el ranking. */
+function SubmitScore({ r, name, setName }: { r: RunResult; name: string; setName: (n: string) => void }) {
+  const [draft, setDraft] = useState(name);
+  const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
+  const [msg, setMsg] = useState('');
+  const send = async () => {
+    const n = cleanName(draft);
+    if (!n) { setState('error'); setMsg('Escribe un nombre'); return; }
+    setState('sending'); setName(n);
+    try {
+      await submitScore({ name: n, agent: r.agentId, difficulty: r.difficulty, map: r.mapId, time: r.time, kills: r.kills, level: r.level, boss_kills: r.bossKills });
+      setState('done'); setMsg(isGlobal ? '¡Marca publicada en el ranking global!' : 'Marca guardada en el ranking local.');
+    } catch (e: any) { setState('error'); setMsg(String(e?.message ?? e)); }
+  };
+  if (state === 'done') return <p className="rank-sent">{msg}</p>;
+  return (
+    <form className="rank-submit" onSubmit={e => { e.preventDefault(); send(); }}>
+      <label htmlFor="rank-name">Tu nombre para el ranking</label>
+      <div>
+        <input id="rank-name" value={draft} maxLength={16} autoComplete="nickname" placeholder="Jugador" onChange={e => setDraft(e.target.value)} onKeyDown={e => e.stopPropagation()} />
+        <button className="btn btn-sm" type="submit" disabled={state === 'sending'}><b>{state === 'sending' ? 'Enviando…' : 'Publicar'}</b></button>
+      </div>
+      {state === 'error' && <p className="rank-err">{msg}</p>}
+    </form>
+  );
+}
+
+export function GameScreen({ agent, map, difficulty, meta, settings, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -44,18 +74,23 @@ export function GameScreen({ agent, map, meta, settings, onEnd, onMenu, onRestar
       onLevelUp: c => setChoices([...c]),
       onEnd: r => { const ach = onEndRef.current(r); setResult({ r, ach }); },
       sfx: n => audio.play(n),
-    });
+    }, difficulty);
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;
     const input = new Input(engine, togglePause);
     inputRef.current = input;
 
+    // pixel-art: se dibuja a baja resolución y el navegador lo amplía sin suavizar,
+    // con un número entero de píxeles de pantalla por píxel de juego
     const resize = () => {
-      const w = box.clientWidth, h = box.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr);
-      renderer.dpr = dpr;
-      const v = renderer.resize(w, h);
+      const w = box.clientWidth, h = box.clientHeight, dpr = window.devicePixelRatio || 1;
+      const zoom = Math.max(0.6, Math.min(1.25, Math.min(w / 1100, h / 640)));
+      const scale = Math.max(2, Math.round(PX * zoom * dpr));
+      const cw = Math.ceil((w * dpr) / scale), ch = Math.ceil((h * dpr) / scale);
+      canvas.width = cw; canvas.height = ch;
+      canvas.style.width = `${(cw * scale) / dpr}px`; canvas.style.height = `${(ch * scale) / dpr}px`;
+      const v = renderer.resizePixels(cw, ch);
       engine.setView(v.w, v.h);
     };
     resize();
@@ -124,8 +159,12 @@ export function GameScreen({ agent, map, meta, settings, onEnd, onMenu, onRestar
       )}
       {result && (
         <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label="Resultado">
-          <h1>{result.r.win ? 'Victoria' : 'Derrota'}</h1>
-          <p className="sub">{result.r.win ? 'El Cabecilla del Protocolo ha caído.' : 'Has caído en combate.'}</p>
+          <h1>{fmt(result.r.time)}</h1>
+          <p className="sub">
+            {result.r.win ? 'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.' : 'Has caído en combate.'}
+            {' '}<span style={{ color: difficulty.color }}>{difficulty.name}</span>
+          </p>
+          <SubmitScore r={result.r} name={playerName} setName={setPlayerName} />
           <dl className="end-stats">
             <div><dt>Tiempo</dt><dd>{fmt(result.r.time)}</dd></div>
             <div><dt>Eliminaciones</dt><dd>{result.r.kills}</dd></div>

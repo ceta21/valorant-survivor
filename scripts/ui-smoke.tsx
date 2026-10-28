@@ -6,6 +6,7 @@ import { MetaScreen } from '../src/components/MetaScreen';
 import { StatsScreen } from '../src/components/StatsScreen';
 import { SettingsScreen } from '../src/components/SettingsScreen';
 import { UpgradeSelection } from '../src/components/UpgradeSelection';
+import { RankingScreen } from '../src/components/RankingScreen';
 import { defaultSave } from '../src/utils/storage';
 
 const s = defaultSave(); s.credits = 600;
@@ -16,6 +17,7 @@ const out: [string, string][] = [
   ['meta', renderToString(<MetaScreen save={s} back={noop} buy={noop} />)],
   ['stats', renderToString(<StatsScreen save={s} back={noop} claim={noop} />)],
   ['settings', renderToString(<SettingsScreen settings={s.settings} change={noop} back={noop} reset={noop} />)],
+  ['ranking', renderToString(<RankingScreen back={noop} />)],
   ['levelup', renderToString(<UpgradeSelection level={3} rerolls={2} pick={noop} reroll={noop} choices={[{ id: 'dmg', kind: 'stat', name: 'Munición', desc: '+12%', icon: '✦', rarity: 1, value: 0.12 }]} />)],
 ];
 for (const [n, h] of out) console.log(n, h.length > 500 ? 'OK' : 'VACÍO', h.length);
