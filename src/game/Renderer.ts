@@ -1,6 +1,7 @@
 import { GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { WEAPONS } from '../data/weapons';
+import { SW, SH, spriteCanvas } from './sprites';
 
 type Ctx = CanvasRenderingContext2D;
 type MakeCanvas = (w: number, h: number) => any;
@@ -326,16 +327,22 @@ export class Renderer {
     if (p.invuln > 0) { g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r + 6, 0, 7); g.stroke(); }
     if (p.shield > 0) { g.strokeStyle = 'rgba(122,215,255,0.65)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 4, 0, 7); g.stroke(); }
     g.globalAlpha = blink ? 0.4 : 1;
-    // arma
-    g.save(); g.translate(p.x, p.y); g.rotate(p.face);
-    g.fillStyle = '#d9dee6'; g.fillRect(6, -2.5, 15, 5);
-    g.fillStyle = WEAPONS[e.weapons[0].id].color; g.fillRect(17, -2.5, 4, 5);
+    // personaje pixel-art del agente (mira hacia donde apunta; rebota al caminar)
+    const spr = spriteCanvas(a.id, this.makeCanvas, 3);
+    const moving = Math.hypot(e.inputMove.x, e.inputMove.y) > 0.1 || p.dashT > 0;
+    const bob = moving ? Math.abs(Math.sin(e.time * 14)) * 3 : Math.sin(e.time * 3) * 0.8;
+    const k = 1.95, dw = SW * k, dh = SH * k;
+    const flip = Math.cos(p.face) < 0;
+    // arma detrás del cuerpo, apuntando al objetivo
+    g.save(); g.translate(p.x, p.y - 4 - bob * 0.5); g.rotate(p.face);
+    g.fillStyle = '#d9dee6'; g.fillRect(8, -2.5, 15, 5);
+    g.fillStyle = WEAPONS[e.weapons[0].id].color; g.fillRect(19, -2.5, 4, 5);
     g.restore();
-    // cuerpo
-    g.fillStyle = '#10151c'; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.fill();
-    g.fillStyle = a.color; g.beginPath(); g.arc(p.x, p.y, p.r - 3, 0, 7); g.fill();
-    g.fillStyle = '#10151c'; g.beginPath(); g.arc(p.x + Math.cos(p.face) * 3, p.y + Math.sin(p.face) * 3, 4.2, 0, 7); g.fill();
-    g.strokeStyle = '#ffffff'; g.lineWidth = 1.5; g.beginPath(); g.arc(p.x, p.y, p.r, 0, 7); g.stroke();
+    g.save(); g.translate(p.x, p.y + 15 - bob);
+    if (flip) g.scale(-1, 1);
+    g.imageSmoothingEnabled = false;
+    g.drawImage(spr, -dw / 2, -dh, dw, dh);
+    g.restore();
     g.globalAlpha = 1;
   }
 
