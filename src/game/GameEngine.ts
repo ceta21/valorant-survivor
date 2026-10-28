@@ -5,10 +5,13 @@ import { WEAPONS, WEAPON_LIST } from '../data/weapons';
 import { BOSS_SCHEDULE, ENEMIES, GAME_DURATION, SPAWNABLE, WAVE_TIMES } from '../data/enemies';
 import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
 import { META } from '../data/meta';
+import { World } from './World';
 import type { MetaLevels } from '../utils/storage';
 
 const DT = 1 / 60;
 const CELL = 64;
+const GRID = 64; // rejilla toroidal 64×64 celdas (cubre ±2048 unidades alrededor del jugador)
+const gidx = (cx: number, cy: number) => ((cy & 63) << 6) | (cx & 63);
 const MAX_ENEMIES = 230;
 const MAX_GEMS = 320;
 const rnd = (a = 1, b?: number) => (b === undefined ? Math.random() * a : a + Math.random() * (b - a));
@@ -22,6 +25,7 @@ export interface Enemy {
   burnT: number; burnDps: number; slowT: number; slowMul: number; stunT: number; markT: number;
   atkT: number; windup: number; fuse: number; atk: BossAtk | null; phase: number; isBoss: boolean;
   anim: number; suicide: boolean; face: number;
+  lx: number; ly: number; stuckT: number; sideT: number; side: number; esc: number; escReset: number;
 }
 export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
@@ -52,6 +56,7 @@ function ring<T>(n: number, make: () => T) {
 export class GameEngine {
   agent: AgentDef;
   map: MapDef;
+  world: World;
   ev: EngineEvents;
   stats: Stats;
   state: EngineState = 'playing';
@@ -103,9 +108,9 @@ export class GameEngine {
   private projPool: Proj[] = [];
   private nextId = 1;
   private acc = 0;
-  private cols: number;
-  private rows: number;
   private grid: number[][] = [];
+  private gridUsed: number[] = [];
+  private pruneT = 0;
   private spawnAcc = 0;
   private waveIdx = 0;
   private bossIdx = 0;
@@ -118,9 +123,8 @@ export class GameEngine {
     this.agent = agent;
     this.map = map;
     this.ev = ev;
-    this.cols = Math.ceil(map.width / CELL);
-    this.rows = Math.ceil(map.height / CELL);
-    for (let i = 0; i < this.cols * this.rows; i++) this.grid.push([]);
+    this.world = new World(map);
+    for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
     const m = (id: keyof MetaLevels) => meta[id] * META.find(x => x.id === id)!.per;
     this.stats = {
       maxHp: agent.hp * (1 + m('hp')), speed: agent.speed * (1 + m('speed')), dmg: agent.damage / 10 + m('dmg'),
@@ -129,8 +133,8 @@ export class GameEngine {
     };
     const mods = agent.trait.mods;
     for (const k of Object.keys(mods) as (keyof Stats)[]) this.stats[k] += mods[k] as number;
-    this.player.x = map.width / 2;
-    this.player.y = map.height / 2;
+    this.player.x = this.world.spawn.x;
+    this.player.y = this.world.spawn.y;
     this.player.hp = this.stats.maxHp;
     this.player.shield = this.stats.maxShield;
     this.syncDrones();
@@ -154,31 +158,9 @@ export class GameEngine {
   }
   private abCd(ab: AbilityDef) { return ab.cd * (1 - this.stats.cdr); }
 
-  private inObstacle(x: number, y: number, r: number) {
-    for (const o of this.map.obstacles) if (x > o.x - r && x < o.x + o.w + r && y > o.y - r && y < o.y + o.h + r) return true;
-    return false;
-  }
-  /** Empuja un círculo fuera de los obstáculos (deslizamiento natural) y lo mantiene en el mapa. */
-  resolve(o: { x: number; y: number }, r: number) {
-    for (const b of this.map.obstacles) {
-      if (o.x + r < b.x || o.x - r > b.x + b.w || o.y + r < b.y || o.y - r > b.y + b.h) continue;
-      const nx = clamp(o.x, b.x, b.x + b.w);
-      const ny = clamp(o.y, b.y, b.y + b.h);
-      let dx = o.x - nx, dy = o.y - ny;
-      const d2 = dx * dx + dy * dy;
-      if (d2 >= r * r) continue;
-      if (d2 > 0.0001) {
-        const d = Math.sqrt(d2), k = (r - d) / d;
-        o.x += dx * k; o.y += dy * k;
-      } else {
-        const l = o.x - b.x, rr = b.x + b.w - o.x, t = o.y - b.y, bb = b.y + b.h - o.y;
-        const m = Math.min(l, rr, t, bb);
-        if (m === l) o.x = b.x - r; else if (m === rr) o.x = b.x + b.w + r; else if (m === t) o.y = b.y - r; else o.y = b.y + b.h + r;
-      }
-    }
-    o.x = clamp(o.x, r, this.map.width - r);
-    o.y = clamp(o.y, r, this.map.height - r);
-  }
+  private inObstacle(x: number, y: number, r: number) { return this.world.hit(x, y, r); }
+  /** Empuja un círculo fuera de los obstáculos (deslizamiento natural). El mundo es infinito: no hay bordes. */
+  resolve(o: { x: number; y: number }, r: number) { this.world.resolve(o, r); }
 
   /* ------------------------------------------------------------------ bucle */
   update(dtReal: number) {
@@ -209,25 +191,29 @@ export class GameEngine {
     this.updateSpawner(dt);
     this.updateFx(dt);
     this.cleanup();
+    this.pruneT -= dt;
+    if (this.pruneT <= 0) { this.pruneT = 3; this.world.prune(this.player.x, this.player.y); }
     this.ult = Math.min(100, this.ult + dt * 0.6 * this.stats.ult);
   }
 
   private buildGrid() {
-    for (let i = 0; i < this.grid.length; i++) this.grid[i].length = 0;
+    for (let i = 0; i < this.gridUsed.length; i++) this.grid[this.gridUsed[i]].length = 0;
+    this.gridUsed.length = 0;
     for (let i = 0; i < this.enemies.length; i++) {
       const e = this.enemies[i];
       if (e.dead) continue;
-      const cx = clamp((e.x / CELL) | 0, 0, this.cols - 1), cy = clamp((e.y / CELL) | 0, 0, this.rows - 1);
-      this.grid[cy * this.cols + cx].push(i);
+      const gi = gidx(Math.floor(e.x / CELL), Math.floor(e.y / CELL));
+      if (this.grid[gi].length === 0) this.gridUsed.push(gi);
+      this.grid[gi].push(i);
     }
   }
   /** Llama a cb para cada enemigo vivo dentro del círculo. */
   forEnemiesIn(x: number, y: number, r: number, cb: (e: Enemy) => void) {
-    const x0 = clamp(((x - r) / CELL) | 0, 0, this.cols - 1), x1 = clamp(((x + r) / CELL) | 0, 0, this.cols - 1);
-    const y0 = clamp(((y - r) / CELL) | 0, 0, this.rows - 1), y1 = clamp(((y + r) / CELL) | 0, 0, this.rows - 1);
+    const x0 = Math.floor((x - r) / CELL), x1 = Math.floor((x + r) / CELL);
+    const y0 = Math.floor((y - r) / CELL), y1 = Math.floor((y + r) / CELL);
     for (let cy = y0; cy <= y1; cy++) {
       for (let cx = x0; cx <= x1; cx++) {
-        const cell = this.grid[cy * this.cols + cx];
+        const cell = this.grid[gidx(cx, cy)];
         for (let k = 0; k < cell.length; k++) {
           const e = this.enemies[cell[k]];
           if (!e || e.dead) continue;
@@ -306,10 +292,10 @@ export class GameEngine {
       p.x += mx * sp * dt; p.y += my * sp * dt;
     }
     this.resolve(p, p.r);
-    // teletransportadores (Bind)
+    // teletransportadores (Bind): pisas uno y apareces en su pareja
     if (this.portalCd > 0) this.portalCd -= dt;
-    else if (this.map.portals) {
-      for (const [A, B] of this.map.portals) {
+    else if (this.map.id === 'bind') {
+      for (const [A, B] of this.world.portalsNear(p.x, p.y)) {
         for (const [from, to] of [[A, B], [B, A]]) {
           if (Math.hypot(p.x - from.x, p.y - from.y) < 30) {
             this.addFx(0, from.x, from.y, 0, 0, 80, 0.4, '#b05cff');
@@ -325,7 +311,7 @@ export class GameEngine {
     }
   }
 
-  hurtPlayer(amount: number, kx = 0, ky = 0) {
+    hurtPlayer(amount: number, kx = 0, ky = 0) {
     const p = this.player;
     if (p.iframes > 0 || p.invuln > 0 || this.state !== 'playing') return;
     let a = amount;
@@ -429,7 +415,7 @@ export class GameEngine {
       p.x += p.vx * dt; p.y += p.vy * dt;
       p.life -= dt;
       if (p.life <= 0) { p.dead = true; continue; }
-      if (p.x < 0 || p.y < 0 || p.x > this.map.width || p.y > this.map.height || this.inObstacle(p.x, p.y, 0)) {
+      if (this.inObstacle(p.x, p.y, 0)) {
         p.dead = true;
         this.sparks(p.x, p.y, p.color, 2, 90, 0.2);
         continue;
@@ -504,6 +490,7 @@ export class GameEngine {
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
     e.atkT = boss ? 2 : rnd(0.5, 2.5); e.windup = 0; e.fuse = 0; e.atk = null; e.phase = 0; e.isBoss = boss;
     e.anim = rnd(6); e.suicide = false; e.face = 0;
+    e.lx = x; e.ly = y; e.stuckT = 0; e.sideT = 0; e.side = Math.random() < 0.5 ? -1 : 1; e.esc = 0; e.escReset = 0;
     this.enemies.push(e);
     return e;
   }
@@ -512,12 +499,11 @@ export class GameEngine {
     for (let i = 0; i < 14; i++) {
       const a = rnd(Math.PI * 2);
       const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
-      if (x < 30 || y < 30 || x > this.map.width - 30 || y > this.map.height - 30) continue;
       if (this.inObstacle(x, y, 16)) continue;
       return { x, y };
     }
     const a = rnd(Math.PI * 2);
-    return { x: clamp(p.x + Math.cos(a) * R, 30, this.map.width - 30), y: clamp(p.y + Math.sin(a) * R, 30, this.map.height - 30) };
+    return { x: p.x + Math.cos(a) * R, y: p.y + Math.sin(a) * R };
   }
   spawnEnemy(id: string, x?: number, y?: number) {
     const pos = x === undefined ? this.edgeSpawn() : { x, y: y as number };
@@ -549,7 +535,7 @@ export class GameEngine {
       const p = this.player, R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
       for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 40; i++) {
         const a = (i / n) * Math.PI * 2;
-        const x = clamp(p.x + Math.cos(a) * R, 30, this.map.width - 30), y = clamp(p.y + Math.sin(a) * R, 30, this.map.height - 30);
+        const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
         if (this.inObstacle(x, y, 14)) continue;
         this.spawnEnemy(types[(Math.random() * types.length) | 0], x, y);
       }
@@ -640,13 +626,30 @@ export class GameEngine {
           }
         }
       }
+      // desatasco: si empuja contra un muro sin avanzar, rodea (de lado) y, si sigue atrapado, retrocede
+      if (e.stunT <= 0 && d > 70) {
+        const moved = Math.hypot(e.x - e.lx, e.y - e.ly), want = Math.hypot(mx, my) * dt;
+        if (want > 0.01 && moved < want * 0.35) e.stuckT += dt; else e.stuckT = Math.max(0, e.stuckT - dt * 2);
+        if (e.stuckT > 0.3 && e.sideT <= 0) {
+          e.stuckT = 0; e.sideT = 1.1 + Math.random() * 0.5; e.esc++; e.escReset = 5;
+          if (e.esc <= 1) e.side = Math.random() < 0.5 ? -1 : 1; else e.side = -e.side;
+        }
+        if (e.sideT > 0) {
+          e.sideT -= dt;
+          const k = e.esc >= 2 ? -0.7 : 0.15;                  // al 2.º intento: retrocede para salir del bolsillo
+          const sm = Math.hypot(mx, my) || sp;
+          mx = (nx * k - ny * e.side * 0.9) * sm; my = (ny * k + nx * e.side * 0.9) * sm;
+        }
+        if (e.escReset > 0) { e.escReset -= dt; if (e.escReset <= 0) e.esc = 0; }
+      }
+      e.lx = e.x; e.ly = e.y;
       // separación entre enemigos
       let sx = 0, sy = 0;
       if (!e.isBoss) {
-        const cx = clamp((e.x / CELL) | 0, 0, this.cols - 1), cy = clamp((e.y / CELL) | 0, 0, this.rows - 1);
-        for (let gy = Math.max(0, cy - 1); gy <= Math.min(this.rows - 1, cy + 1); gy++) {
-          for (let gx = Math.max(0, cx - 1); gx <= Math.min(this.cols - 1, cx + 1); gx++) {
-            const cell = this.grid[gy * this.cols + gx];
+        const cx = Math.floor(e.x / CELL), cy = Math.floor(e.y / CELL);
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          for (let gx = cx - 1; gx <= cx + 1; gx++) {
+            const cell = this.grid[gidx(gx, gy)];
             for (let k = 0; k < cell.length; k++) {
               const o = this.enemies[cell[k]];
               if (o === e || !o || o.dead) continue;
@@ -666,7 +669,7 @@ export class GameEngine {
       e.kx *= kd; e.ky *= kd;
       this.resolve(e, e.r);
       // lejos del jugador: reubicar
-      if (!e.isBoss && d > 1500) { const s = this.edgeSpawn(); e.x = s.x; e.y = s.y; }
+      if (d > (e.isBoss ? 1500 : 1100)) { const s = this.edgeSpawn(); e.x = s.x; e.y = s.y; e.kx = 0; e.ky = 0; if (e.atk) e.atk = null; }
       // contacto
       const cd = e.r + p.r;
       if (d < cd + 1 && e.def.behavior !== 'exploder') {
@@ -782,7 +785,7 @@ export class GameEngine {
     for (const b of this.eprojs) {
       if (b.dead) continue;
       b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-      if (b.life <= 0 || this.inObstacle(b.x, b.y, 0) || b.x < 0 || b.y < 0 || b.x > this.map.width || b.y > this.map.height) { b.dead = true; continue; }
+      if (b.life <= 0 || this.inObstacle(b.x, b.y, 0)) { b.dead = true; continue; }
       const dx = b.x - p.x, dy = b.y - p.y, rr = b.r + p.r;
       if (dx * dx + dy * dy < rr * rr) { this.hurtPlayer(b.dmg); b.dead = true; }
     }
@@ -830,7 +833,7 @@ export class GameEngine {
       if (g.dead) continue;
       g.t += dt;
       const dx = p.x - g.x, dy = p.y - g.y, d = Math.hypot(dx, dy) || 1;
-      if (d < mag || (g.t > 10 && d < 650)) g.mag = true;
+      if (d < mag || g.t > 8) g.mag = true;
       if (g.mag) {
         const s = 380 + (300 - Math.min(300, d)) * 1.4;
         g.x += (dx / d) * s * dt; g.y += (dy / d) * s * dt;
@@ -1051,7 +1054,7 @@ export class GameEngine {
         const steps = 12;
         for (let i = 1; i <= steps; i++) {
           const tx = p.x + (p.lastDirX * dist * i) / steps, ty = p.y + (p.lastDirY * dist * i) / steps;
-          if (this.inObstacle(tx, ty, p.r) || tx < p.r || ty < p.r || tx > this.map.width - p.r || ty > this.map.height - p.r) break;
+          if (this.inObstacle(tx, ty, p.r)) break;
           nx = tx; ny = ty;
         }
         p.x = nx; p.y = ny;

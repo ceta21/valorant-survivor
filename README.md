@@ -48,3 +48,11 @@ src/data/        agents, weapons, enemies, upgrades, maps, meta, goals
 src/components/  menús, selección, HUD, mejoras, pausa y resultados
 src/utils/       audio (WebAudio sintetizado), storage (LocalStorage)
 ```
+
+## Mapas infinitos (pixel-art)
+
+Los tres mapas (Ascent, Bind, Haven) son **infinitos y procedurales**: el mundo se genera por chunks de 640×640 con semilla
+determinista (`src/game/World.ts`) y se dibuja en estilo pixel-art (`src/game/MapArt.ts`). Hay calles, edificios, cajas, pilares,
+barriles, plazas con fuente, sitios A/B/C y, en Bind, teletransportadores. Son diseños originales *inspirados* en VALORANT, sin assets oficiales.
+
+Pruebas automáticas (sin navegador): `npx tsx scripts/world-test.ts`, `scripts/stuck-test.ts`, `scripts/infinite-test.ts`, `npm run test:sim`.

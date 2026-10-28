@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test:sim": "tsx scripts/sim.ts",
-    "test:shot": "tsx scripts/shots.ts"
+    "test:shot": "tsx scripts/shots.ts",
+    "test:world": "tsx scripts/world-test.ts"
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,6 @@
 export interface Vec { x: number; y: number }
-export interface Rect { x: number; y: number; w: number; h: number }
+/** k: b=edificio, w=muro, c=caja, p=pilar, t=barril */
+export interface Rect { x: number; y: number; w: number; h: number; k?: 'b' | 'w' | 'c' | 'p' | 't' }
 export type Rarity = 0 | 1 | 2 | 3;
 export const RARITY_NAMES = ['Común', 'Poco común', 'Épica', 'Legendaria'];
 export const RARITY_COLORS = ['#b8c0cc', '#4ad66d', '#b05cff', '#ffb020'];
@@ -59,12 +60,7 @@ export interface MapDef {
   id: string;
   name: string;
   desc: string;
-  width: number;
-  height: number;
   colors: { ground: string; ground2: string; wall: string; wallTop: string; accent: string; light: string };
-  obstacles: Rect[];
-  zones?: { x: number; y: number; r: number; label: string }[];
-  portals?: [Vec, Vec][];
 }
 
 export type BossPattern = 'ring' | 'spiral' | 'slam' | 'charge' | 'summon';

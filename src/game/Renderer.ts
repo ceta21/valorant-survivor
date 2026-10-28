@@ -2,6 +2,8 @@ import { GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { WEAPONS } from '../data/weapons';
 import { SW, SH, spriteCanvas, agentSkin, IDLE, WALK, RUN, CAST, Pose } from './sprites';
+import { renderChunk, CPX } from './MapArt';
+import { CS } from './World';
 import { gunCanvas, gunSize } from './weaponSprites';
 
 type Ctx = CanvasRenderingContext2D;
@@ -16,8 +18,8 @@ function seeded(seed: number) {
 export class Renderer {
   private ctx: Ctx;
   private makeCanvas: MakeCanvas;
-  private mapCache: any = null;
-  private mapId = '';
+  private chunkCache = new Map<string, any>();
+  private chunkWorld: unknown = null;
   private vignette: any = null;
   private vw = 0;
   private vh = 0;
@@ -40,138 +42,25 @@ export class Renderer {
     return { w: w / this.zoom, h: h / this.zoom };
   }
 
-  private buildMap(map: MapDef) {
-    const c = this.makeCanvas(map.width, map.height);
-    const g = c.getContext('2d') as Ctx;
-    const col = map.colors;
-    const rnd = seeded(map.id.length * 7919 + map.id.charCodeAt(0));
-    g.fillStyle = col.ground; g.fillRect(0, 0, map.width, map.height);
-    // baldosas con variación
-    for (let ty = 0; ty < map.height; ty += 80) {
-      for (let tx = 0; tx < map.width; tx += 80) {
-        g.fillStyle = rnd() < 0.5 ? col.ground2 : col.ground;
-        g.globalAlpha = 0.35 + rnd() * 0.4;
-        g.fillRect(tx, ty, 80, 80);
-      }
-    }
-    g.globalAlpha = 1;
-    g.strokeStyle = 'rgba(255,255,255,0.045)'; g.lineWidth = 1;
-    g.beginPath();
-    for (let x = 0; x <= map.width; x += 80) { g.moveTo(x, 0); g.lineTo(x, map.height); }
-    for (let y = 0; y <= map.height; y += 80) { g.moveTo(0, y); g.lineTo(map.width, y); }
-    g.stroke();
-
-    const cx = map.width / 2, cy = map.height / 2;
-    if (map.id === 'ascent') {
-      // calles en cruz y plaza central
-      g.fillStyle = 'rgba(0,0,0,0.22)';
-      g.fillRect(0, cy - 70, map.width, 140); g.fillRect(cx - 70, 0, 140, map.height);
-      g.setLineDash([36, 28]); g.strokeStyle = 'rgba(255,255,255,0.22)'; g.lineWidth = 4;
-      g.beginPath(); g.moveTo(0, cy); g.lineTo(map.width, cy); g.moveTo(cx, 0); g.lineTo(cx, map.height); g.stroke(); g.setLineDash([]);
-      g.fillStyle = 'rgba(79,208,224,0.07)'; g.beginPath(); g.arc(cx, cy, 300, 0, 7); g.fill();
-      for (const r of [300, 240, 120]) { g.strokeStyle = 'rgba(79,208,224,0.25)'; g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke(); }
-      g.strokeStyle = 'rgba(79,208,224,0.35)'; g.lineWidth = 2;
-      g.beginPath(); for (let a = 0; a < 8; a++) { g.moveTo(cx + Math.cos(a * 0.785) * 120, cy + Math.sin(a * 0.785) * 120); g.lineTo(cx + Math.cos(a * 0.785) * 300, cy + Math.sin(a * 0.785) * 300); } g.stroke();
-    } else if (map.id === 'bind') {
-      // arena y tuberías
-      for (let i = 0; i < 60; i++) {
-        g.fillStyle = `rgba(255,190,120,${0.03 + rnd() * 0.05})`;
-        g.beginPath(); g.ellipse(rnd() * map.width, rnd() * map.height, 60 + rnd() * 120, 30 + rnd() * 60, rnd() * 3, 0, 7); g.fill();
-      }
-      g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 14; g.lineCap = 'round';
-      g.beginPath(); g.moveTo(0, 520); g.lineTo(1200, 520); g.lineTo(1200, 640); g.lineTo(map.width, 640); g.moveTo(0, 1060); g.lineTo(900, 1060); g.lineTo(900, 1200); g.stroke();
-      g.strokeStyle = 'rgba(255,154,61,0.35)'; g.lineWidth = 3;
-      g.beginPath(); g.moveTo(0, 520); g.lineTo(1200, 520); g.lineTo(1200, 640); g.lineTo(map.width, 640); g.moveTo(0, 1060); g.lineTo(900, 1060); g.lineTo(900, 1200); g.stroke();
-      // franjas de peligro
-      g.fillStyle = 'rgba(255,190,0,0.14)';
-      for (let i = 0; i < 20; i++) g.fillRect(cx - 200 + i * 20, cy + 400, 10, 24);
-    } else {
-      // jardines, estanque y caminos
-      g.fillStyle = 'rgba(70,140,90,0.14)';
-      for (let i = 0; i < 14; i++) { g.beginPath(); g.ellipse(rnd() * map.width, rnd() * map.height, 70 + rnd() * 90, 50 + rnd() * 60, rnd() * 3, 0, 7); g.fill(); }
-      g.fillStyle = 'rgba(70,140,200,0.18)'; g.beginPath(); g.ellipse(cx, cy, 190, 120, 0, 0, 7); g.fill();
-      g.strokeStyle = 'rgba(160,220,255,0.3)'; g.lineWidth = 3; g.beginPath(); g.ellipse(cx, cy, 190, 120, 0, 0, 7); g.stroke();
-      g.strokeStyle = 'rgba(255,255,255,0.1)'; g.lineWidth = 3;
-      g.beginPath(); g.ellipse(cx, cy, 190 + 24, 120 + 24, 0, 0, 7); g.stroke();
-      g.strokeStyle = 'rgba(210,180,140,0.12)'; g.lineWidth = 46;
-      g.beginPath(); g.moveTo(0, cy); g.bezierCurveTo(600, cy - 300, 1700, cy + 300, map.width, cy); g.stroke();
-    }
-
-    // zonas de sitio (A/B/C) con marcas de peligro
-    for (const z of map.zones ?? []) {
-      g.save(); g.beginPath(); g.arc(z.x, z.y, z.r, 0, 7); g.clip();
-      g.fillStyle = 'rgba(255,214,74,0.07)'; g.fillRect(z.x - z.r, z.y - z.r, z.r * 2, z.r * 2);
-      g.strokeStyle = 'rgba(255,214,74,0.16)'; g.lineWidth = 10;
-      g.beginPath(); for (let k = -z.r * 2; k < z.r * 2; k += 28) { g.moveTo(z.x + k, z.y - z.r); g.lineTo(z.x + k + z.r, z.y + z.r); } g.stroke();
-      g.restore();
-      g.strokeStyle = 'rgba(255,214,74,0.55)'; g.lineWidth = 4; g.setLineDash([22, 14]);
-      g.beginPath(); g.arc(z.x, z.y, z.r, 0, 7); g.stroke(); g.setLineDash([]);
-      g.fillStyle = 'rgba(255,214,74,0.55)'; g.font = `900 ${Math.round(z.r * 0.9)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(z.label, z.x, z.y + 4); g.textBaseline = 'alphabetic';
-    }
-
-    // decoración dispersa que no choca con obstáculos
-    const inObs = (x: number, y: number, m: number) => map.obstacles.some(o => x > o.x - m && x < o.x + o.w + m && y > o.y - m && y < o.y + o.h + m);
-    for (let i = 0; i < 160; i++) {
-      const x = rnd() * map.width, y = rnd() * map.height;
-      if (inObs(x, y, 24)) continue;
-      const k = rnd();
-      if (map.id === 'haven' && k < 0.5) {
-        g.fillStyle = 'rgba(40,120,70,0.55)'; g.beginPath(); g.arc(x, y, 8 + rnd() * 8, 0, 7); g.fill();
-        g.fillStyle = 'rgba(255,150,170,0.5)'; g.beginPath(); g.arc(x + 2, y - 2, 3, 0, 7); g.fill();
-      } else if (map.id === 'bind' && k < 0.5) {
-        g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(x - 11, y - 9, 26, 22);
-        g.fillStyle = '#6d4f33'; g.fillRect(x - 12, y - 12, 24, 22); g.strokeStyle = 'rgba(255,190,120,0.5)'; g.strokeRect(x - 12, y - 12, 24, 22);
-      } else if (map.id === 'ascent' && k < 0.5) {
-        g.fillStyle = 'rgba(255,255,255,0.1)'; g.beginPath(); g.arc(x, y, 3, 0, 7); g.fill();
-      } else {
-        g.fillStyle = 'rgba(255,255,255,0.05)'; g.fillRect(x, y, 10 + rnd() * 20, 2);
-      }
-    }
-
-    // obstáculos con volumen
-    for (const o of map.obstacles) {
-      g.fillStyle = 'rgba(0,0,0,0.38)'; g.fillRect(o.x + 10, o.y + 12, o.w, o.h);
-      g.fillStyle = col.wall; g.fillRect(o.x, o.y, o.w, o.h);
-      g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(o.x, o.y + o.h - 12, o.w, 12);
-      g.fillStyle = col.wallTop; g.fillRect(o.x, o.y - 8, o.w, o.h - 4);
-      g.strokeStyle = col.accent; g.globalAlpha = 0.75; g.lineWidth = 2; g.strokeRect(o.x + 0.5, o.y - 7.5, o.w - 1, o.h - 5);
-      g.globalAlpha = 1;
-      g.strokeStyle = 'rgba(0,0,0,0.22)'; g.lineWidth = 1;
-      g.beginPath();
-      for (let x = o.x + 40; x < o.x + o.w - 8; x += 40) { g.moveTo(x, o.y - 8); g.lineTo(x, o.y + o.h - 12); }
-      for (let y = o.y + 36; y < o.y + o.h - 12; y += 36) { g.moveTo(o.x, y); g.lineTo(o.x + o.w, y); }
-      g.stroke();
-    }
-
-    // luces ambientales
-    g.globalCompositeOperation = 'lighter';
-    for (const o of map.obstacles) {
-      for (const [lx, ly] of [[o.x, o.y + o.h], [o.x + o.w, o.y + o.h]]) {
-        const gr = g.createRadialGradient(lx, ly, 2, lx, ly, 110);
-        gr.addColorStop(0, hexA(col.light, 0.22)); gr.addColorStop(1, hexA(col.light, 0));
-        g.fillStyle = gr; g.fillRect(lx - 110, ly - 110, 220, 220);
-      }
-    }
-    g.globalCompositeOperation = 'source-over';
-    // borde del mapa
-    g.strokeStyle = col.accent; g.lineWidth = 10; g.globalAlpha = 0.6; g.strokeRect(5, 5, map.width - 10, map.height - 10); g.globalAlpha = 1;
-    g.fillStyle = 'rgba(0,0,0,0.5)';
-    g.fillRect(0, 0, map.width, 24); g.fillRect(0, map.height - 24, map.width, 24); g.fillRect(0, 0, 24, map.height); g.fillRect(map.width - 24, 0, 24, map.height);
-    this.mapCache = c;
-    this.mapId = map.id;
+  /** Chunk pixel-art ya dibujado (caché LRU: los que salen de pantalla se descartan). */
+  private chunkCanvas(e: GameEngine, cx: number, cy: number) {
+    if (this.chunkWorld !== e.world) { this.chunkCache.clear(); this.chunkWorld = e.world; }
+    const k = `${cx},${cy}`;
+    let c = this.chunkCache.get(k);
+    if (c) { this.chunkCache.delete(k); this.chunkCache.set(k, c); return c; }
+    c = renderChunk(e.world, e.world.chunk(cx, cy), this.makeCanvas);
+    this.chunkCache.set(k, c);
+    if (this.chunkCache.size > 36) this.chunkCache.delete(this.chunkCache.keys().next().value as string);
+    return c;
   }
 
   render(e: GameEngine) {
     const g = this.ctx;
     const z = this.zoom;
     const vw = this.vw / z, vh = this.vh / z;
-    if (this.mapId !== e.map.id || !this.mapCache) this.buildMap(e.map);
     const p = e.player;
-    this.camX = Math.max(0, Math.min(e.map.width - vw, p.x - vw / 2));
-    this.camY = Math.max(0, Math.min(e.map.height - vh, p.y - vh / 2));
-    if (vw >= e.map.width) this.camX = (e.map.width - vw) / 2;
-    if (vh >= e.map.height) this.camY = (e.map.height - vh) / 2;
+    this.camX = p.x - vw / 2;
+    this.camY = p.y - vh / 2;
     let sx = 0, sy = 0;
     if (this.shake && e.shakeT > 0) { const m = Math.min(1, e.shakeT * 5) * 6; sx = (Math.random() - 0.5) * m; sy = (Math.random() - 0.5) * m; }
     const cx = this.camX + sx, cy = this.camY + sy;
@@ -181,13 +70,18 @@ export class Renderer {
     g.save();
     g.scale(z, z);
     g.translate(-cx, -cy);
-    g.drawImage(this.mapCache, 0, 0);
+    // mundo infinito: se dibujan solo los chunks visibles (nearest-neighbor => look pixelado)
+    g.imageSmoothingEnabled = false;
+    const c0x = Math.floor(cx / CS), c1x = Math.floor((cx + vw) / CS), c0y = Math.floor(cy / CS), c1y = Math.floor((cy + vh) / CS);
+    for (let j = c0y; j <= c1y; j++) for (let i = c0x; i <= c1x; i++) {
+      g.drawImage(this.chunkCanvas(e, i, j), 0, 0, CPX, CPX, i * CS, j * CS, CS + 1, CS + 1);
+    }
 
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
 
-    // teletransportadores
-    for (const pair of e.map.portals ?? []) for (const pt of pair) {
+    // teletransportadores (Bind)
+    for (const pair of e.world.portalsNear(p.x, p.y, 1)) for (const pt of pair) {
       if (!vis(pt.x, pt.y, 60)) continue;
       const ph = e.time * 3;
       g.fillStyle = 'rgba(176,92,255,0.16)'; g.beginPath(); g.arc(pt.x, pt.y, 34, 0, 7); g.fill();

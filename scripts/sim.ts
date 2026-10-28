@@ -31,7 +31,6 @@ function runBot(agentId: string, mapId: string, skill: number, seed = 0) {
     }
     if (n === 0) { ax = Math.cos(ang); ay = Math.sin(ang); }
     // atraer hacia el centro del mapa si se acerca a bordes
-    ax += (eng.map.width / 2 - p.x) * 0.0006; ay += (eng.map.height / 2 - p.y) * 0.0006;
     const l = Math.hypot(ax, ay) || 1;
     eng.inputMove.x = ax / l; eng.inputMove.y = ay / l;
     if (frames % 10 === 0) { eng.cast('special'); eng.cast('secondary'); eng.cast('ultimate'); }
