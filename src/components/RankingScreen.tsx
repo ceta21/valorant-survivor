@@ -56,7 +56,7 @@ export function RankingScreen({ back }: { back: () => void }) {
                 return (
                   <tr key={`${r.name}-${i}`} className={i < 3 ? `top${i + 1}` : ''}>
                     <td className="pos">{i + 1}</td>
-                    <td><b>{r.name}</b></td>
+                    <td><b>{r.name}</b>{r.player_id ? <em className="pid"> #{r.player_id}</em> : <em className="pid guest"> invitado</em>}</td>
                     <td className="time">{fmt(r.time)}</td>
                     <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{AGENT_BY_ID[r.agent]?.name ?? r.agent}</td>
                     <td style={{ color: d?.color }}>{d?.name ?? r.difficulty}</td>

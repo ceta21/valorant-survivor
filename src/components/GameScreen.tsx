@@ -10,30 +10,37 @@ import { UpgradeSelection } from './UpgradeSelection';
 import { AudioControls } from './SettingsScreen';
 import { DifficultyDef } from '../data/difficulty';
 import { cleanName, isGlobal, submitScore } from '../utils/leaderboard';
+import type { Account } from '../utils/account';
 
 interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
-  playerName: string; setPlayerName: (n: string) => void;
+  account: Account | null; playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
 }
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-/** Formulario del final de partida para publicar la marca en el ranking. */
-function SubmitScore({ r, name, setName }: { r: RunResult; name: string; setName: (n: string) => void }) {
+/**
+ * Final de partida: con cuenta, la marca se publica sola con tu nombre e ID;
+ * como invitado, se pide un nombre.
+ */
+function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Account | null; name: string; setName: (n: string) => void }) {
   const [draft, setDraft] = useState(name);
   const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [msg, setMsg] = useState('');
+  const sent = useRef(false);
+  useEffect(() => { if (account && !sent.current) { sent.current = true; send(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const send = async () => {
-    const n = cleanName(draft);
+    const n = account ? account.username : cleanName(draft);
     if (!n) { setState('error'); setMsg('Escribe un nombre'); return; }
-    setState('sending'); setName(n);
+    setState('sending'); if (!account) setName(n);
     try {
       await submitScore({ name: n, agent: r.agentId, difficulty: r.difficulty, map: r.mapId, time: r.time, kills: r.kills, level: r.level, boss_kills: r.bossKills });
       setState('done'); setMsg(isGlobal ? '¡Marca publicada en el ranking global!' : 'Marca guardada en el ranking local.');
     } catch (e: any) { setState('error'); setMsg(String(e?.message ?? e)); }
   };
   if (state === 'done') return <p className="rank-sent">{msg}</p>;
+  if (account) return <p className={state === 'error' ? 'rank-err' : 'rank-sent'}>{state === 'error' ? msg : `Publicando como ${account.username} #${account.playerId}…`}</p>;
   return (
     <form className="rank-submit" onSubmit={e => { e.preventDefault(); send(); }}>
       <label htmlFor="rank-name">Tu nombre para el ranking</label>
@@ -46,7 +53,7 @@ function SubmitScore({ r, name, setName }: { r: RunResult; name: string; setName
   );
 }
 
-export function GameScreen({ agent, map, difficulty, meta, settings, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
+export function GameScreen({ agent, map, difficulty, meta, settings, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings }: Props) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine | null>(null);
@@ -164,7 +171,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, playerName,
             {result.r.win ? 'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.' : 'Has caído en combate.'}
             {' '}<span style={{ color: difficulty.color }}>{difficulty.name}</span>
           </p>
-          <SubmitScore r={result.r} name={playerName} setName={setPlayerName} />
+          <SubmitScore r={result.r} account={account} name={playerName} setName={setPlayerName} />
           <dl className="end-stats">
             <div><dt>Tiempo</dt><dd>{fmt(result.r.time)}</dd></div>
             <div><dt>Eliminaciones</dt><dd>{result.r.kills}</dd></div>

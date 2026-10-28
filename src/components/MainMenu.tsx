@@ -3,10 +3,16 @@ import { AGENT_BY_ID } from '../data/agents';
 import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
+import type { Account } from '../utils/account';
 
 type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking';
 
-export function MainMenu({ save, go }: { save: SaveData; go: (s: Screen) => void }) {
+interface Props {
+  save: SaveData; go: (s: Screen) => void;
+  account: Account | null; accountsEnabled: boolean; onLogin: () => void; onLogout: () => void;
+}
+
+export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout }: Props) {
   const agent = AGENT_BY_ID[save.lastAgent] ?? AGENT_BY_ID.jett;
   const click = (s: Screen) => () => { audio.play('click'); go(s); };
   const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -14,6 +20,21 @@ export function MainMenu({ save, go }: { save: SaveData; go: (s: Screen) => void
     <div className="screen menu">
       <div className="menu-left">
         <Logo />
+        {accountsEnabled && (
+          <div className="account-bar">
+            {account ? (
+              <>
+                <span>Jugador <b>{account.username}</b> <em>#{account.playerId}</em></span>
+                <button className="btn btn-sm" onClick={() => { audio.play('click'); onLogout(); }}><b>Cerrar sesión</b></button>
+              </>
+            ) : (
+              <>
+                <span><b>Invitado</b> · el progreso no se guarda</span>
+                <button className="btn btn-sm btn-red" onClick={() => { audio.play('click'); onLogin(); }}><b>Iniciar sesión / Registrarse</b></button>
+              </>
+            )}
+          </div>
+        )}
         <nav className="menu-nav" aria-label="Menú principal">
           <button className="btn btn-red btn-xl" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Jugar</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>Agentes</b></button>

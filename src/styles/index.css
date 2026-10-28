@@ -206,3 +206,23 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .rank-err { color: var(--red) !important; } .rank-sent { color: #5dff9a !important; }
 @media (max-width: 860px) { .rank-table .opt { display: none; } }
 .diff-pick { display: grid; grid-template-columns: repeat(2, 1fr); } .map-chip { min-width: 0; } .map-chip b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* cuentas */
+.auth { align-items: center; justify-content: center; }
+.auth-back { position: absolute; top: clamp(14px, 3vw, 40px); left: clamp(14px, 3vw, 40px); }
+.auth-box { width: min(460px, 100%); display: grid; gap: 18px; background: var(--ink2); box-shadow: inset 0 0 0 var(--p) var(--line), var(--bevel); padding: 24px; clip-path: var(--notch); }
+.auth-box .logo { justify-content: center; }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.auth-form { display: grid; gap: 12px; }
+.auth-form label { display: grid; gap: 6px; font-size: 14px; color: var(--mute); text-transform: uppercase; }
+.auth-form input { font-family: var(--font); font-size: 18px; color: var(--cream); background: var(--ink); border: 0; padding: 10px 12px; box-shadow: inset 0 0 0 var(--p) var(--line); border-radius: 0; user-select: text; }
+.auth-form input:focus { outline: none; box-shadow: inset 0 0 0 var(--p) var(--red); }
+.auth-form .btn { width: 100%; }
+.auth-note { margin: 0; font-size: 14px; color: var(--mute); }
+.auth-guest { display: grid; gap: 8px; padding-top: 14px; border-top: 2px dashed var(--line); }
+.auth-guest .btn { width: 100%; }
+.account-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; background: var(--panel); padding: 10px 12px; box-shadow: inset var(--p) 0 0 var(--red), var(--bevel); }
+.account-bar span { flex: 1; min-width: 160px; } .account-bar em { font-style: normal; font-family: var(--font-px); font-size: 11px; color: #ffd24a; }
+.rank-table .pid { font-style: normal; font-family: var(--font-px); font-size: 9px; color: #ffd24a; } .rank-table .pid.guest { font-family: var(--font); font-size: 13px; color: var(--mute); }
+.auth-box > *, .auth-form label, .auth-form input { min-width: 0; width: 100%; }
+.auth-box .logo-mark { width: 52px; } .auth-box .logo-bot { font-size: clamp(20px, 6vw, 30px); } .auth-box .logo-top { font-size: 11px; }

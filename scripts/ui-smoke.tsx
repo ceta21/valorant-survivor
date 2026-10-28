@@ -7,12 +7,14 @@ import { StatsScreen } from '../src/components/StatsScreen';
 import { SettingsScreen } from '../src/components/SettingsScreen';
 import { UpgradeSelection } from '../src/components/UpgradeSelection';
 import { RankingScreen } from '../src/components/RankingScreen';
+import { AuthScreen } from '../src/components/AuthScreen';
 import { defaultSave } from '../src/utils/storage';
 
 const s = defaultSave(); s.credits = 600;
 const noop = () => {};
 const out: [string, string][] = [
-  ['menu', renderToString(<MainMenu save={s} go={noop} />)],
+  ['menu', renderToString(<MainMenu save={s} go={noop} account={{ uid: 'x', username: 'Prueba', playerId: 10000 }} accountsEnabled onLogin={noop} onLogout={noop} />)],
+  ['auth', renderToString(<AuthScreen guestHasProgress onSignIn={async () => {}} onSignUp={async () => {}} onGuest={noop} />)],
   ['agents', renderToString(<AgentSelection save={s} back={noop} start={noop} unlock={noop} />)],
   ['meta', renderToString(<MetaScreen save={s} back={noop} buy={noop} />)],
   ['stats', renderToString(<StatsScreen save={s} back={noop} claim={noop} />)],

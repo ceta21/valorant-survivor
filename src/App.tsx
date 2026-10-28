@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MainMenu } from './components/MainMenu';
 import { AgentSelection } from './components/AgentSelection';
 import { MetaScreen } from './components/MetaScreen';
@@ -12,19 +12,42 @@ import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
-import { SaveData, Settings, clearSave, loadSave, writeSave } from './utils/storage';
+import { SaveData, Settings, clearLegacySave, defaultSave, loadLegacySave } from './utils/storage';
+import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
+import { AuthScreen } from './components/AuthScreen';
 import { audio } from './utils/audio';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'game';
 
 export default function App() {
-  const [save, setSave] = useState<SaveData>(loadSave);
-  const [screen, setScreen] = useState<Screen>('menu');
+  // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
+  const [save, setSave] = useState<SaveData>(loadLegacySave);
+  const [account, setAccount] = useState<Account | null>(null);
+  const [screen, setScreen] = useState<Screen>(accountsEnabled ? 'loading' : 'menu');
+  const [authFromMenu, setAuthFromMenu] = useState(false);
+  const accountRef = useRef<Account | null>(null); accountRef.current = account;
   const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
-    setSave(prev => { const n = fn(prev); writeSave(n); return n; });
+    setSave(prev => { const n = fn(prev); if (n !== prev && accountRef.current) saveProgress(n); return n; });
   }, []);
+
+  // sesión guardada en el navegador
+  useEffect(() => {
+    if (!accountsEnabled) return;
+    restoreSession().then(r => {
+      if (r) { setAccount(r.account); setSave(r.save); setScreen('menu'); } else setScreen('auth');
+    });
+    const flush = () => { if (document.visibilityState === 'hidden') flushProgress(); };
+    document.addEventListener('visibilitychange', flush);
+    return () => document.removeEventListener('visibilitychange', flush);
+  }, []);
+
+  const enter = (r: { account: Account; save: SaveData }) => { setAccount(r.account); setSave(r.save); setAuthFromMenu(false); setScreen('menu'); };
+  const doSignIn = async (u: string, p: string) => enter(await signIn(u, p));
+  const doSignUp = async (u: string, p: string) => { const r = await signUp(u, p, save); clearLegacySave(); enter(r); };
+  const doSignOut = async () => { await signOut(); setAccount(null); setSave(defaultSave()); setScreen('auth'); };
+  const openAuth = () => { setAuthFromMenu(true); setScreen('auth'); };
 
   useEffect(() => { audio.configure(save.settings); }, [save.settings]);
   useEffect(() => {
@@ -68,7 +91,12 @@ export default function App() {
   return (
     <div className="app">
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
-      {screen === 'menu' && <MainMenu save={save} go={go} />}
+      {screen === 'loading' && <div className="screen auth"><p className="rank-msg">Cargando…</p></div>}
+      {screen === 'auth' && (
+        <AuthScreen back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}
+          onSignIn={doSignIn} onSignUp={doSignUp} onGuest={() => go('menu')} />
+      )}
+      {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} />}
       {screen === 'agents' && (
         <AgentSelection save={save} back={() => go('menu')} start={start}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
@@ -84,12 +112,12 @@ export default function App() {
         <StatsScreen save={save} back={() => go('menu')} claim={(id, reward) => update(s => (s.claimed.includes(id) ? s : { ...s, credits: s.credits + reward, claimed: [...s.claimed, id] }))} />
       )}
       {screen === 'settings' && (
-        <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => { const d = clearSave(); setSave(d); }} />
+        <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} />
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'game' && agent && map && (
         <GameScreen key={run.key} agent={agent} map={map} difficulty={difficulty} meta={save.meta} settings={save.settings}
-          playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
+          account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={() => go('menu')} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}
     </div>

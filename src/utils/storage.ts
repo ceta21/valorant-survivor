@@ -41,32 +41,35 @@ export const defaultSave = (): SaveData => ({
   playerName: '',
 });
 
-export function loadSave(): SaveData {
+/** Completa un guardado (local o de la nube) con los valores por defecto que falten. */
+export function normalizeSave(p: any): SaveData {
   const d = defaultSave();
+  if (!p || typeof p !== 'object') return d;
+  return {
+    ...d, ...p,
+    meta: { ...d.meta, ...(p.meta || {}) },
+    stats: { ...d.stats, ...(p.stats || {}) },
+    settings: { ...d.settings, ...(p.settings || {}) },
+    records: p.records || {},
+    unlocked: Array.isArray(p.unlocked) && p.unlocked.length ? p.unlocked : d.unlocked,
+    claimed: p.claimed || [],
+    achievements: p.achievements || [],
+  };
+}
+
+/**
+ * Guardado antiguo de este navegador (de antes de las cuentas). Ya no se escribe:
+ * solo se usa como punto de partida para no perder ese progreso al crear una cuenta.
+ */
+export function loadLegacySave(): SaveData {
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return d;
-    const p = JSON.parse(raw);
-    return {
-      ...d, ...p,
-      meta: { ...d.meta, ...(p.meta || {}) },
-      stats: { ...d.stats, ...(p.stats || {}) },
-      settings: { ...d.settings, ...(p.settings || {}) },
-      records: p.records || {},
-      unlocked: Array.isArray(p.unlocked) && p.unlocked.length ? p.unlocked : d.unlocked,
-      claimed: p.claimed || [],
-      achievements: p.achievements || [],
-    };
+    return raw ? normalizeSave(JSON.parse(raw)) : defaultSave();
   } catch {
-    return d;
+    return defaultSave();
   }
 }
 
-export function writeSave(s: SaveData): void {
-  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch { /* almacenamiento no disponible */ }
-}
-
-export function clearSave(): SaveData {
+export function clearLegacySave(): void {
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
-  return defaultSave();
 }
