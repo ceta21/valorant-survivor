@@ -1,5 +1,15 @@
 import { GameEngine } from '../game/GameEngine';
 import { WEAPONS } from '../data/weapons';
+import { gunRuns, gunSize } from '../game/weaponSprites';
+
+function GunIcon({ id }: { id: string }) {
+  const s = gunSize(id);
+  return (
+    <svg className="gunicon" viewBox={`0 0 ${s.w} ${s.h}`} shapeRendering="crispEdges" aria-hidden="true">
+      {gunRuns(id, WEAPONS[id].color).map((r, i) => <rect key={i} x={r.x} y={r.y} width={r.w} height={1.02} fill={r.c} />)}
+    </svg>
+  );
+}
 
 export type Hud = ReturnType<GameEngine['hud']>;
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -48,7 +58,7 @@ export function GameHUD({ hud, engine, onPause }: Props) {
       <div className="weapons">
         {hud.weapons.map(w => (
           <div key={w.id} className={`wslot ${w.lvl >= 5 ? 'evo' : ''}`} style={{ ['--wc' as any]: WEAPONS[w.id].color }}>
-            <b>{w.lvl >= 5 ? WEAPONS[w.id].evolved.name : WEAPONS[w.id].name}</b><span>Nv {w.lvl}</span>
+            <GunIcon id={w.id} /><b>{w.lvl >= 5 ? WEAPONS[w.id].evolved.name : WEAPONS[w.id].name}</b><span>Nv {w.lvl}</span>
           </div>
         ))}
       </div>

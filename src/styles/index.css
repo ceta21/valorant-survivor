@@ -162,3 +162,6 @@ kbd { font-family: var(--font); font-size: 11px; font-weight: 800; background: v
   .stats-body { grid-template-columns: 1fr; } .meta-row { grid-template-columns: 36px 1fr auto; } .meta-val { display: none; }
   .hud-mid small { display: none; } .weapons { bottom: 84px; } .abilities-bar { bottom: 10px; } .ucard { min-height: 0; width: 92vw; }
 }
+
+.gunicon { width: 54px; height: 20px; flex: none; image-rendering: pixelated; }
+.wslot { align-items: center; justify-content: flex-start; } .wslot span { margin-left: auto; }

@@ -1,7 +1,8 @@
 import { GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { WEAPONS } from '../data/weapons';
-import { SW, SH, spriteCanvas } from './sprites';
+import { SW, SH, spriteCanvas, agentSkin, IDLE, WALK, RUN, CAST, Pose } from './sprites';
+import { gunCanvas, gunSize } from './weaponSprites';
 
 type Ctx = CanvasRenderingContext2D;
 type MakeCanvas = (w: number, h: number) => any;
@@ -96,6 +97,19 @@ export class Renderer {
       g.beginPath(); g.moveTo(0, cy); g.bezierCurveTo(600, cy - 300, 1700, cy + 300, map.width, cy); g.stroke();
     }
 
+    // zonas de sitio (A/B/C) con marcas de peligro
+    for (const z of map.zones ?? []) {
+      g.save(); g.beginPath(); g.arc(z.x, z.y, z.r, 0, 7); g.clip();
+      g.fillStyle = 'rgba(255,214,74,0.07)'; g.fillRect(z.x - z.r, z.y - z.r, z.r * 2, z.r * 2);
+      g.strokeStyle = 'rgba(255,214,74,0.16)'; g.lineWidth = 10;
+      g.beginPath(); for (let k = -z.r * 2; k < z.r * 2; k += 28) { g.moveTo(z.x + k, z.y - z.r); g.lineTo(z.x + k + z.r, z.y + z.r); } g.stroke();
+      g.restore();
+      g.strokeStyle = 'rgba(255,214,74,0.55)'; g.lineWidth = 4; g.setLineDash([22, 14]);
+      g.beginPath(); g.arc(z.x, z.y, z.r, 0, 7); g.stroke(); g.setLineDash([]);
+      g.fillStyle = 'rgba(255,214,74,0.55)'; g.font = `900 ${Math.round(z.r * 0.9)}px sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(z.label, z.x, z.y + 4); g.textBaseline = 'alphabetic';
+    }
+
     // decoración dispersa que no choca con obstáculos
     const inObs = (x: number, y: number, m: number) => map.obstacles.some(o => x > o.x - m && x < o.x + o.w + m && y > o.y - m && y < o.y + o.h + m);
     for (let i = 0; i < 160; i++) {
@@ -172,6 +186,15 @@ export class Renderer {
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
 
+    // teletransportadores
+    for (const pair of e.map.portals ?? []) for (const pt of pair) {
+      if (!vis(pt.x, pt.y, 60)) continue;
+      const ph = e.time * 3;
+      g.fillStyle = 'rgba(176,92,255,0.16)'; g.beginPath(); g.arc(pt.x, pt.y, 34, 0, 7); g.fill();
+      g.strokeStyle = '#b05cff'; g.lineWidth = 3; g.beginPath(); g.arc(pt.x, pt.y, 30, 0, 7); g.stroke();
+      g.strokeStyle = '#e2c4ff'; g.lineWidth = 2;
+      for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(pt.x, pt.y, 8 + i * 8, ph + i, ph + i + 3.2); g.stroke(); }
+    }
     // gemas
     for (const m of e.gems) {
       if (!vis(m.x, m.y)) continue;
@@ -316,34 +339,84 @@ export class Renderer {
   }
 
   private drawPlayer(g: Ctx, e: GameEngine) {
-    const p = e.player, a = e.agent;
-    const blink = p.iframes > 0 && Math.floor(e.time * 20) % 2 === 0;
-    g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 5, p.r, p.r * 0.7, 0, 0, 7); g.fill();
-    // aura de habilidades
+    const p = e.player, a = e.agent, t = e.time;
+    const blink = p.iframes > 0 && Math.floor(t * 20) % 2 === 0;
+    g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 14, 14, 6, 0, 0, 7); g.fill();
     if (e.buffs.sprintT > 0 || e.buffs.frenzyT > 0 || e.buffs.stormT > 0) {
-      g.strokeStyle = hexA(a.color, 0.6 + 0.3 * Math.sin(e.time * 14)); g.lineWidth = 2;
-      g.beginPath(); g.arc(p.x, p.y, p.r + 8, 0, 7); g.stroke();
+      g.strokeStyle = hexA(a.color, 0.6 + 0.3 * Math.sin(t * 14)); g.lineWidth = 2;
+      g.beginPath(); g.arc(p.x, p.y, p.r + 12, 0, 7); g.stroke();
     }
-    if (p.invuln > 0) { g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r + 6, 0, 7); g.stroke(); }
-    if (p.shield > 0) { g.strokeStyle = 'rgba(122,215,255,0.65)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 4, 0, 7); g.stroke(); }
-    g.globalAlpha = blink ? 0.4 : 1;
-    // personaje pixel-art del agente (mira hacia donde apunta; rebota al caminar)
-    const spr = spriteCanvas(a.id, this.makeCanvas, 3);
-    const moving = Math.hypot(e.inputMove.x, e.inputMove.y) > 0.1 || p.dashT > 0;
-    const bob = moving ? Math.abs(Math.sin(e.time * 14)) * 3 : Math.sin(e.time * 3) * 0.8;
+    if (p.invuln > 0) { g.strokeStyle = 'rgba(255,255,255,0.8)'; g.lineWidth = 3; g.beginPath(); g.arc(p.x, p.y, p.r + 10, 0, 7); g.stroke(); }
+    if (p.shield > 0) { g.strokeStyle = 'rgba(122,215,255,0.65)'; g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 7, 0, 7); g.stroke(); }
+
+    // --- animación: reposo / andar / correr / dash / lanzar habilidad
+    const sprint = e.buffs.sprintT > 0;
+    const moving = Math.hypot(e.inputMove.x, e.inputMove.y) > 0.1;
+    const castDur = e.castUlt ? 0.6 : 0.35;
+    const castK = (t - e.castT) / castDur;
+    const casting = castK >= 0 && castK < 1;
+    const dashing = p.dashT > 0;
+    let pose: Pose = IDLE, frame = 0;
+    if (casting) pose = CAST;
+    else if (dashing) pose = RUN[0];
+    else if (moving) { frame = Math.floor(t * (sprint ? 18 : 11)) % 4; pose = (sprint ? RUN : WALK)[frame]; }
     const k = 1.95, dw = SW * k, dh = SH * k;
     const flip = Math.cos(p.face) < 0;
-    // arma detrás del cuerpo, apuntando al objetivo
-    g.save(); g.translate(p.x, p.y - 4 - bob * 0.5); g.rotate(p.face);
-    g.fillStyle = '#d9dee6'; g.fillRect(8, -2.5, 15, 5);
-    g.fillStyle = WEAPONS[e.weapons[0].id].color; g.fillRect(19, -2.5, 4, 5);
-    g.restore();
-    g.save(); g.translate(p.x, p.y + 15 - bob);
-    if (flip) g.scale(-1, 1);
-    g.imageSmoothingEnabled = false;
-    g.drawImage(spr, -dw / 2, -dh, dw, dh);
-    g.restore();
-    g.globalAlpha = 1;
+    const bob = casting ? -3 : moving ? (frame % 2) * 2 : Math.sin(t * 3) * 0.8;
+    let lean = moving ? Math.max(-1, Math.min(1, e.inputMove.x)) * (sprint ? 0.16 : 0.07) : 0;
+    let sx = 1, sy = moving || casting ? 1 : 1 + Math.sin(t * 3) * 0.018;
+    if (dashing) { lean = Math.sign(p.dashVx) * 0.3; sx = 1.2; sy = 0.88; }
+    if (casting) { const s = 1 + Math.sin(castK * Math.PI) * 0.12; sx = s; sy = s; }
+    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose);
+    const baseY = p.y + 15 - bob;
+    const drawBody = (ox: number, oy: number, alpha: number) => {
+      g.save(); g.globalAlpha = alpha; g.translate(p.x + ox, baseY + oy); g.rotate(lean);
+      if (flip) g.scale(-1, 1);
+      g.scale(sx, sy); g.imageSmoothingEnabled = false;
+      g.drawImage(spr, -dw / 2, -dh, dw, dh);
+      g.restore();
+    };
+    // estelas de velocidad (dash / sprint)
+    if (dashing || sprint) {
+      const dx = dashing ? p.dashVx : e.inputMove.x, dy = dashing ? p.dashVy : e.inputMove.y, l = Math.hypot(dx, dy) || 1;
+      for (let i = 3; i >= 1; i--) drawBody(-(dx / l) * i * 13, -(dy / l) * i * 13, (blink ? 0.2 : 0.3) / i);
+    }
+    // aura al lanzar habilidad
+    if (casting) {
+      g.globalCompositeOperation = 'lighter';
+      const rad = 26 + castK * 40, gr = g.createRadialGradient(p.x, baseY - dh * 0.5, 4, p.x, baseY - dh * 0.5, rad);
+      gr.addColorStop(0, hexA(a.color, 0.55 * (1 - castK))); gr.addColorStop(1, hexA(a.color, 0));
+      g.fillStyle = gr; g.beginPath(); g.arc(p.x, baseY - dh * 0.5, rad, 0, 7); g.fill();
+      g.strokeStyle = hexA(a.accent, 0.8 * (1 - castK)); g.lineWidth = 3;
+      g.beginPath(); g.arc(p.x, baseY - dh * 0.5, 14 + castK * 46, 0, 7); g.stroke();
+      g.globalCompositeOperation = 'source-over';
+    }
+    const aimUp = Math.sin(p.face) < -0.4;
+    const drawGun = () => {
+      if (casting || dashing) return;
+      const gs = gunSize(e.held), gc = gunCanvas(e.held, WEAPONS[e.held].color, this.makeCanvas, 3);
+      const gw = gs.w * 1.5, gh = gs.h * 1.5;
+      const recoil = Math.max(0, 1 - (t - e.lastShotT) / 0.09) * 4;
+      g.save(); g.globalAlpha = blink ? 0.4 : 1;
+      g.translate(p.x, baseY - dh * 0.42 - (moving ? (frame % 2) * 1 : 0));
+      let ang = p.face;
+      if (flip) { g.scale(-1, 1); ang = Math.PI - ang; }
+      g.rotate(ang);
+      g.imageSmoothingEnabled = false;
+      g.drawImage(gc, 2 - recoil, -gh * 0.45, gw, gh);
+      g.fillStyle = agentSkin(a.id); g.fillRect(4 - recoil, -2, 4, 4); g.fillRect(gw * 0.5 - recoil, -2, 4, 4);
+      if (t - e.lastShotT < 0.06) {
+        g.globalCompositeOperation = 'lighter';
+        const tx = gw + 2 - recoil;
+        g.fillStyle = 'rgba(255,230,150,0.95)'; g.beginPath(); g.moveTo(tx, 0); g.lineTo(tx + 9, -3); g.lineTo(tx + 5, 0); g.lineTo(tx + 9, 3); g.closePath(); g.fill();
+        g.fillStyle = 'rgba(255,255,255,0.9)'; g.beginPath(); g.arc(tx + 1, 0, 3, 0, 7); g.fill();
+        g.globalCompositeOperation = 'source-over';
+      }
+      g.restore();
+    };
+    if (aimUp) drawGun();
+    drawBody(0, 0, blink ? 0.4 : 1);
+    if (!aimUp) drawGun();
   }
 
   private drawEnemy(g: Ctx, en: Enemy, e: GameEngine) {
@@ -355,6 +428,7 @@ export class Renderer {
     g.save(); g.translate(x, y);
     const pulse = en.fuse > 0 ? 1 + Math.sin(en.anim * 40) * 0.18 : 1;
     g.scale(pulse, pulse);
+    if (!en.isBoss && en.stunT <= 0) g.rotate(Math.sin(en.anim * (d.id === 'runner' ? 16 : 9)) * 0.09);
     g.lineWidth = 2;
     switch (d.shape) {
       case 'circle':

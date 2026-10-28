@@ -72,6 +72,12 @@ export class GameEngine {
   hurtFlash = 0;
   banner = { text: '', t: 0, color: '#ff4655' };
   inputMove = { x: 0, y: 0 };
+  held = 'classic';
+  heldSince = -9;
+  lastShotT = -9;
+  castT = -9;
+  castUlt = false;
+  portalCd = 0;
 
   player = {
     x: 0, y: 0, r: 12, hp: 100, shield: 0, face: 0, iframes: 0, invuln: 0, sinceHit: 99,
@@ -300,6 +306,23 @@ export class GameEngine {
       p.x += mx * sp * dt; p.y += my * sp * dt;
     }
     this.resolve(p, p.r);
+    // teletransportadores (Bind)
+    if (this.portalCd > 0) this.portalCd -= dt;
+    else if (this.map.portals) {
+      for (const [A, B] of this.map.portals) {
+        for (const [from, to] of [[A, B], [B, A]]) {
+          if (Math.hypot(p.x - from.x, p.y - from.y) < 30) {
+            this.addFx(0, from.x, from.y, 0, 0, 80, 0.4, '#b05cff');
+            p.x = to.x + p.lastDirX * 44; p.y = to.y + p.lastDirY * 44;
+            this.resolve(p, p.r);
+            this.addFx(0, to.x, to.y, 0, 0, 80, 0.4, '#b05cff');
+            this.sparks(to.x, to.y, '#b05cff', 14, 220, 0.5);
+            this.portalCd = 1.5; this.sfx('ability', 0);
+            return;
+          }
+        }
+      }
+    }
   }
 
   hurtPlayer(amount: number, kx = 0, ky = 0) {
@@ -356,6 +379,8 @@ export class GameEngine {
     if (!t) return false;
     const base = Math.atan2(t.y - p.y, t.x - p.x);
     p.face = base;
+    if (w.id !== this.held && this.time - this.heldSince > 0.8) { this.held = w.id; this.heldSince = this.time; }
+    if (w.id === this.held) this.lastShotT = this.time;
     const count = d.count + (ev?.count ?? 0) + s.extraProj;
     const dmg = d.damage * (1 + 0.22 * (w.lvl - 1)) * (ev?.dmgMul ?? 1) * s.dmg;
     const pierce = d.pierce + (ev?.pierce ?? 0) + s.pierce;
@@ -962,6 +987,7 @@ export class GameEngine {
       if (this.cds[slot] > 0) return false;
       this.cds[slot] = this.abCd(ab);
     }
+    this.castT = this.time; this.castUlt = slot === 'ultimate';
     this.perform(ab, slot === 'ultimate');
     this.sfx(slot === 'ultimate' ? 'ult' : 'ability', 0);
     return true;

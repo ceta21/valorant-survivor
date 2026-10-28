@@ -63,6 +63,8 @@ export interface MapDef {
   height: number;
   colors: { ground: string; ground2: string; wall: string; wallTop: string; accent: string; light: string };
   obstacles: Rect[];
+  zones?: { x: number; y: number; r: number; label: string }[];
+  portals?: [Vec, Vec][];
 }
 
 export type BossPattern = 'ring' | 'spiral' | 'slam' | 'charge' | 'summon';

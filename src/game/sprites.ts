@@ -9,6 +9,19 @@ interface Look {
 }
 const OUT = '#10151c';
 
+/** Pose de animación: elevación de cada pierna (lL,lR), desplazamiento de brazos (aL,aR) y brazos arriba. */
+export interface Pose { lL: number; lR: number; aL: number; aR: number; raise?: boolean }
+export const IDLE: Pose = { lL: 0, lR: 0, aL: 0, aR: 0 };
+export const WALK: Pose[] = [
+  { lL: 0, lR: 0, aL: 0, aR: 0 }, { lL: 1, lR: 0, aL: 1, aR: -1 }, { lL: 0, lR: 0, aL: 0, aR: 0 }, { lL: 0, lR: 1, aL: -1, aR: 1 },
+];
+export const RUN: Pose[] = [
+  { lL: 2, lR: 0, aL: 2, aR: -1 }, { lL: 1, lR: 1, aL: 1, aR: 0 }, { lL: 0, lR: 2, aL: -1, aR: 2 }, { lL: 1, lR: 1, aL: 0, aR: 1 },
+];
+export const CAST: Pose = { lL: 0, lR: 0, aL: 0, aR: 0, raise: true };
+export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.jett).skin;
+
+
 const LOOKS: Record<string, Look> = {
   jett: { skin: '#f3cfb3', hair: '#e8f1f8', style: 'pony', main: '#4f86c6', sleeve: '#e6eef7', accent: '#ffffff', pants: '#2c3e5c', boots: '#e6eef7', acc: ['scarf'] },
   phoenix: { skin: '#a9714a', hair: '#2b1b14', style: 'crest', extra: '#ff7a3d', main: '#ff7a3d', sleeve: '#2a2a33', accent: '#ffd0a8', pants: '#2a2a33', boots: '#17171c' },
@@ -22,18 +35,24 @@ const LOOKS: Record<string, Look> = {
   brimstone: { skin: '#d9a98a', hair: '#cfcfcf', style: 'cap', extra: '#8a6a3a', main: '#8a6a3a', sleeve: '#5a4a30', accent: '#d9a066', pants: '#4a4a3a', boots: '#2a2a22', acc: ['beard'] },
 };
 
-export function buildSprite(id: string): Grid {
+export function buildSprite(id: string, pose: Pose = IDLE): Grid {
   const L = LOOKS[id] ?? LOOKS.jett;
   const g: Grid = Array.from({ length: SH }, () => Array<string | null>(SW).fill(null));
   const px = (x: number, y: number, c: string | null) => { if (x >= 0 && x < SW && y >= 0 && y < SH) g[y][x] = c; };
   const rect = (x: number, y: number, w: number, h: number, c: string | null) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(x + i, y + j, c); };
 
   // piernas y botas
-  rect(8, 20, 2, 3, L.pants); rect(12, 20, 2, 3, L.pants);
-  rect(7, 23, 3, 2, L.boots); rect(12, 23, 3, 2, L.boots);
+  rect(8, 20, 2, Math.max(0, 3 - pose.lL), L.pants); rect(12, 20, 2, Math.max(0, 3 - pose.lR), L.pants);
+  rect(7, 23 - pose.lL, 3, 2, L.boots); rect(12, 23 - pose.lR, 3, 2, L.boots);
   // brazos, manos, torso, cinturón
-  rect(5, 14, 2, 5, L.sleeve); rect(15, 14, 2, 5, L.sleeve);
-  rect(5, 19, 2, 2, L.dark ? L.sleeve : L.skin); rect(15, 19, 2, 2, L.dark ? L.sleeve : L.skin);
+  const hand = L.dark ? L.sleeve : L.skin;
+  if (pose.raise) {
+    rect(4, 9, 2, 5, L.sleeve); rect(16, 9, 2, 5, L.sleeve); rect(4, 7, 2, 2, hand); rect(16, 7, 2, 2, hand);
+    rect(5, 14, 2, 3, L.sleeve); rect(15, 14, 2, 3, L.sleeve);
+  } else {
+    rect(5, 14 + pose.aL, 2, 5, L.sleeve); rect(15, 14 + pose.aR, 2, 5, L.sleeve);
+    rect(5, 19 + pose.aL, 2, 2, hand); rect(15, 19 + pose.aR, 2, 2, hand);
+  }
   rect(7, 13, 8, 7, L.main);
   rect(7, 18, 8, 1, L.accent);
   rect(9, 12, 4, 1, L.dark ? L.hair : L.skin);
@@ -96,13 +115,13 @@ export function spriteRuns(id: string): { x: number; y: number; w: number; c: st
 
 const cache = new Map<string, any>();
 /** Sprite ya pintado en un canvas (escala entera, sin suavizado). */
-export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3) {
-  const key = `${id}@${scale}`;
+export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE) {
+  const key = `${id}@${scale}|${pose.lL}${pose.lR}${pose.aL}${pose.aR}${pose.raise ? 1 : 0}`;
   let c = cache.get(key);
   if (c) return c;
   c = make(SW * scale, SH * scale);
   const g = c.getContext('2d');
-  const grid = buildSprite(id);
+  const grid = buildSprite(id, pose);
   for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) {
     const col = grid[y][x];
     if (col) { g.fillStyle = col; g.fillRect(x * scale, y * scale, scale, scale); }
