@@ -4,7 +4,7 @@
 import { supabase } from './supabase';
 import { SaveData, normalizeSave } from './storage';
 
-export interface Account { uid: string; username: string; playerId: number }
+export interface Account { uid: string; username: string; playerId: number; isAdmin?: boolean }
 export const accountsEnabled = Boolean(supabase);
 
 const EMAIL_DOMAIN = 'players.valorant-survivor.vercel.app';
@@ -24,9 +24,12 @@ function friendly(err: unknown): Error {
 }
 
 async function loadProfile(uid: string): Promise<{ account: Account; save: SaveData }> {
-  const { data, error } = await supabase!.from('profiles').select('username, player_id, save').eq('id', uid).single();
-  if (error) throw friendly(error);
-  return { account: { uid, username: data.username, playerId: data.player_id }, save: normalizeSave(data.save) };
+  // is_admin solo existe si se ejecutó supabase/admin.sql: si falla, se vuelve a pedir sin ella
+  let res: any = await supabase!.from('profiles').select('username, player_id, save, is_admin').eq('id', uid).single();
+  if (res.error) res = await supabase!.from('profiles').select('username, player_id, save').eq('id', uid).single();
+  if (res.error) throw friendly(res.error);
+  const data = res.data;
+  return { account: { uid, username: data.username, playerId: data.player_id, isAdmin: Boolean(data.is_admin) }, save: normalizeSave(data.save) };
 }
 
 /** Sesión guardada en este navegador (si el jugador no cerró sesión). */

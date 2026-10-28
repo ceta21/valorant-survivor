@@ -25,7 +25,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <div className="account-bar">
             {account ? (
               <>
-                <span>Jugador <b>{account.username}</b> <em>#{account.playerId}</em></span>
+                <span>Jugador <b>{account.username}</b> <em>#{account.playerId}</em>{account.isAdmin && <i className="admin-badge">Admin</i>}</span>
                 <button className="btn btn-sm" onClick={() => { audio.play('click'); onLogout(); }}><b>Cerrar sesión</b></button>
               </>
             ) : (

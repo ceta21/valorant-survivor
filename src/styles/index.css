@@ -273,3 +273,4 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .news-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
 .news-card li { position: relative; padding-left: 18px; color: #d6d2cb; line-height: 1.3; }
 .news-card li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 6px; height: 6px; background: var(--nc); }
+.admin-badge { margin-left: 8px; padding: 3px 6px 2px; background: var(--red); color: #fff; font-style: normal; font-family: var(--font-px); font-size: 9px; text-transform: uppercase; box-shadow: 2px 2px 0 #000; }
