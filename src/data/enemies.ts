@@ -23,8 +23,9 @@ export const ENEMIES: Record<string, EnemyDef> = {
     id: 'final', name: 'Cabecilla del Protocolo', hp: 13000, speed: 60, dmg: 36, r: 52, xp: 1000, color: '#ffffff', shape: 'boss',
     behavior: 'boss', minTime: 540, weight: 0, patterns: ['ring', 'spiral', 'slam', 'charge', 'summon'],
   },
+  mortar: { id: 'mortar', name: 'Artillero', hp: 26, speed: 48, dmg: 16, r: 12, xp: 2.8, color: '#ffd24a', shape: 'diamond', behavior: 'mortar', minTime: 120, weight: 2.4 },
 };
-export const SPAWNABLE = ['grunt', 'runner', 'tank', 'shooter', 'exploder'];
+export const SPAWNABLE = ['grunt', 'runner', 'tank', 'shooter', 'exploder', 'mortar'];
 export const BOSS_SCHEDULE: { time: number; id: string }[] = [
   { time: 150, id: 'boss1' }, { time: 300, id: 'boss2' }, { time: 450, id: 'boss3' }, { time: 540, id: 'final' },
 ];

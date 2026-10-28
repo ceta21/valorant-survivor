@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.9', date: '2026-10-28', title: 'Nuevo enemigo: Artillero', tag: 'Nuevo', color: '#ffd24a',
+    items: [
+      'El Artillero es un robot de orugas que lanza obuses de mortero en parábola.',
+      'Un círculo rojo marca dónde caerá el obús: muévete antes de que explote.',
+      'Apunta hacia donde te diriges, así que cambiar de dirección te salvará.',
+      'Aparece a partir del minuto 2.',
+    ],
+  },
+  {
     id: '1.8', date: '2026-10-28', title: 'Nuevos robots enemigos', tag: 'Mejora', color: '#c9d1d9',
     items: [
       'Los enemigos ahora son robots de entrenamiento en pixel art: bots con visor, drones de ruedas con un gran ojo, bots-cápsula con pantalla y dron-bombas.',

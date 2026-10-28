@@ -17,13 +17,14 @@ const PALS: Record<string, Pal> = {
   tank: { L: '#b9a7a4', M: '#8a6d6a', D: '#523c3b', X: '#2a1e1e', glow: '#ff4655', acc: '#ff4655' },
   shooter: { L: '#efe9df', M: '#c9c2b6', D: '#5d5a55', X: '#33302c', glow: '#bfeaff', acc: '#ff7a3d' },
   exploder: { L: '#6e6e7a', M: '#4a4a55', D: '#2e2e36', X: '#1a1a1f', glow: '#ffd24a', acc: '#ff5a36' },
+  mortar: { L: '#e9d9a6', M: '#b8a060', D: '#5e5130', X: '#2c2618', glow: '#2fe6ff', acc: '#ffd24a' },
   elite: { L: '#c99cf0', M: '#8a4fc4', D: '#4a2470', X: '#24103a', glow: '#ff4655', acc: '#d946ef' },
   boss: { L: '#b8c0cc', M: '#6f7d92', D: '#3b4452', X: '#1e252e', glow: '#ff4655', acc: '#ff4655' },
 };
 
 /** Tamaño de la rejilla de cada robot (incluye 1 píxel de margen para el contorno). */
 const SIZE: Record<string, [number, number]> = {
-  grunt: [14, 22], runner: [18, 13], tank: [20, 28], shooter: [16, 22], exploder: [13, 11], elite: [16, 26], boss: [26, 31],
+  grunt: [14, 22], runner: [18, 13], mortar: [18, 18], tank: [20, 28], shooter: [16, 22], exploder: [13, 11], elite: [16, 26], boss: [26, 31],
 };
 const BOSSES = ['boss1', 'boss2', 'boss3', 'final'];
 /** Tipo de dibujo: cada jefe es su propio tipo (comparten cuerpo y cambian los detalles). */
@@ -84,6 +85,14 @@ function draw(kind: string, frame: number, P: Pal, core: string): Grid {
       px(5, 0, core); rect(4, 2, 3, 1, P.X); px(5, 2, P.glow);
       rect(0, 5, 3, 3, P.X); px(1, 6 - f, P.D); rect(8, 5, 3, 3, P.X); px(9, 5 + f, P.D);
       rect(3, 6, 5, 2, P.D);
+      break;
+    }
+    case 'mortar': { // bot artillero: orugas, cuerpo bajo y tubo de mortero
+      rect(9, 0, 4, 1, P.X); rect(9, 1, 4, 5, P.D); rect(10, 1, 2, 4, P.M); px(10, 0, P.acc); px(11, 0, P.acc);
+      rect(2, 5, 12, 5, P.M); rect(3, 5, 6, 3, P.L); rect(4, 6, 3, 1, P.X); px(5, 6, P.glow);
+      rect(2, 9, 12, 1, P.acc); rect(12, 6, 2, 3, P.D);
+      rect(0, 10, 16, 5, P.X); rect(1, 11, 14, 3, P.D);
+      for (let i = 0; i < 4; i++) px(2 + i * 4 + f * 2, 12, P.M);
       break;
     }
     case 'elite': { // bot de élite morado, más alto y con hombreras

@@ -38,6 +38,8 @@ export interface Proj {
   explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean; owner: number;
 }
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
+/** Obús de mortero enemigo: vuela desde (ox,oy) y estalla en (x,y) al acabar dur. */
+export interface Shell { x: number; y: number; ox: number; oy: number; t: number; dur: number; r: number; dmg: number; dead: boolean }
 export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number; tx?: number; ty?: number }
 export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number }
 export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number; owner: number }
@@ -122,6 +124,7 @@ export class GameEngine {
   enemies: Enemy[] = [];
   projs: Proj[] = [];
   eprojs: EProj[] = [];
+  shells: Shell[] = [];
   gems: Gem[] = [];
   turrets: Turret[] = [];
   strikes: Strike[] = [];
@@ -286,6 +289,7 @@ export class GameEngine {
     this.updateProjs(dt);
     this.updateEnemies(dt);
     this.updateEProjs(dt);
+    this.updateShells(dt);
     this.updateStrikes(dt);
     this.updateGems(dt);
     this.updateSpawner(dt);
@@ -759,6 +763,14 @@ export class GameEngine {
       else {
         switch (e.def.behavior) {
           case 'chase': mx = nx * sp; my = ny * sp; break;
+          case 'mortar': {
+            // se queda a media distancia y lanza obuses a donde está el jugador
+            if (d > 380) { mx = nx * sp; my = ny * sp; }
+            else if (d < 240) { mx = -nx * sp; my = -ny * sp; }
+            else { mx = -ny * sp * 0.35; my = nx * sp * 0.35; }
+            this.mortarLogic(e, dt, d);
+            break;
+          }
           case 'shooter': {
             if (d > 280) { mx = nx * sp; my = ny * sp; }
             else if (d < 200) { mx = -nx * sp * 0.8; my = -ny * sp * 0.8; }
@@ -940,6 +952,39 @@ export class GameEngine {
     this.sfx('warn', 0.2);
   }
 
+  private mortarLogic(e: Enemy, dt: number, d: number) {
+    if (e.windup > 0) {
+      e.windup -= dt;
+      if (e.windup <= 0) {
+        const p = this.player;
+        // apunta un poco por delante de hacia donde se mueve el jugador
+        const lead = 0.5, sp = this.stats.speed;
+        const tx = p.x + this.inputMove.x * sp * lead + rnd(-20, 20), ty = p.y + this.inputMove.y * sp * lead + rnd(-20, 20);
+        this.shells.push({ x: tx, y: ty, ox: e.x, oy: e.y - e.r, t: 0, dur: 1.15, r: 62, dmg: e.dmg * this.dmgScale, dead: false });
+        this.sparks(e.x, e.y - e.r, '#ffd24a', 5, 120, 0.3);
+        this.sfx('shoot', 0.1);
+        e.atkT = 3.2 + rnd(1.2);
+      }
+    } else {
+      e.atkT -= dt;
+      if (e.atkT <= 0 && d < 520) e.windup = 0.45;
+    }
+  }
+  private updateShells(dt: number) {
+    for (const s of this.shells) {
+      if (s.dead) continue;
+      s.t += dt;
+      if (s.t < s.dur) continue;
+      s.dead = true;
+      this.addVfx('blast', 'boom', s.x, s.y, s.r, 0.5);
+      this.sparks(s.x, s.y, '#ffb02e', 10, 240, 0.5);
+      this.sfx('explosion', 0.08);
+      for (const pl of this.players) {
+        if (pl.dead) continue;
+        if (Math.hypot(pl.body.x - s.x, pl.body.y - s.y) < s.r + pl.body.r) { this.use(pl); this.hurtPlayer(s.dmg); }
+      }
+    }
+  }
   private updateEProjs(dt: number) {
     for (const b of this.eprojs) {
       if (b.dead) continue;
@@ -1413,6 +1458,7 @@ export class GameEngine {
     }
     this.projs.length = w;
     this.eprojs = this.eprojs.filter(b => !b.dead);
+    if (this.shells.length) this.shells = this.shells.filter(s => !s.dead);
     this.gems = this.gems.filter(g => !g.dead);
     this.turrets = this.turrets.filter(t => !t.dead);
     this.strikes = this.strikes.filter(s => !s.dead);

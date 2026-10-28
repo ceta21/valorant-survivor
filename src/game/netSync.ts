@@ -28,6 +28,7 @@ export interface Snap {
   ep: number[];   // por proyectil enemigo: x, y, vx, vy, r, color
   gm: number[];   // por gema: x, y, v*10, kind
   sk: unknown[][]; vf: unknown[][]; cl: string[]; ev: unknown[][];
+  sh?: number[];  // por obús: x, y, ox, oy, t*100, dur*100, r
 }
 const EN = 14, PJ = 8, EP = 6, GM = 4;
 
@@ -72,6 +73,7 @@ export function makeSnapshot(e: GameEngine): Snap {
     sk: e.strikes.filter(s => !s.dead).map(s => [Math.round(s.x), Math.round(s.y), Math.round(s.r), r2(s.t), r2(s.dur), s.fx ?? '', Math.round(s.ox), Math.round(s.oy), s.color]),
     vf: e.vfx.map(v => [v.kind, v.pal, Math.round(v.x), Math.round(v.y), Math.round(v.r), r2(v.t), r2(v.dur), r2(v.ang), v.seed, v.follow ? 1 : 0, v.sprite ?? '', v.owner ?? 0]),
     cl: colors, ev: ev.length > 400 ? ev.slice(-400) : ev,
+    sh: e.shells.filter(s => !s.dead).flatMap(s => [Math.round(s.x), Math.round(s.y), Math.round(s.ox), Math.round(s.oy), Math.round(s.t * 100), Math.round(s.dur * 100), s.r]),
   };
 }
 
@@ -141,6 +143,9 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     const prev = oldGems[e.gems.length];
     e.gems.push({ x: prev ? prev.x : x, y: prev ? prev.y : y, tx: x, ty: y, v: s.gm[i + 2] / 10, kind: s.gm[i + 3] as 0 | 1, mag: false, dead: false, t: prev?.t ?? 0 });
   }
+  e.shells = [];
+  const sh = s.sh ?? [];
+  for (let i = 0; i < sh.length; i += 7) e.shells.push({ x: sh[i], y: sh[i + 1], ox: sh[i + 2], oy: sh[i + 3], t: sh[i + 4] / 100, dur: sh[i + 5] / 100, r: sh[i + 6], dmg: 0, dead: false });
   e.strikes = s.sk.map(a => ({ x: a[0] as number, y: a[1] as number, r: a[2] as number, t: a[3] as number, dur: a[4] as number, fx: (a[5] || undefined) as any,
     ox: a[6] as number, oy: a[7] as number, color: a[8] as string, dmg: 0, stun: 0, burn: 0, slow: 0, mark: 0, dead: false, owner: 0 }));
   e.vfx = s.vf.map(a => ({ kind: a[0] as any, pal: a[1] as string, x: a[2] as number, y: a[3] as number, r: a[4] as number, t: a[5] as number, dur: a[6] as number,
@@ -169,6 +174,7 @@ export function mirrorTick(e: GameEngine, dt: number) {
   for (const b of e.projs) { b.x += b.vx * dt; b.y += b.vy * dt; }
   for (const b of e.eprojs) { b.x += b.vx * dt; b.y += b.vy * dt; }
   for (const s of e.strikes) s.t = Math.min(s.dur, s.t + dt);
+  for (const s of e.shells) s.t = Math.min(s.dur, s.t + dt);
   for (const v of e.vfx) v.t += dt;
   e.vfx = e.vfx.filter(v => v.t < v.dur);
   for (const pl of e.players) {

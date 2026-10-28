@@ -153,6 +153,20 @@ export class Renderer {
         g.beginPath(); g.arc(s.x, s.y, s.r * k, 0, 7); g.stroke();
       }
     }
+    // obuses de los Artilleros: zona de impacto que parpadea más rápido y el proyectil volando
+    for (const s of e.shells) {
+      if (s.dead || !vis(s.x, s.y, s.r + 140)) continue;
+      const k = Math.min(1, s.t / s.dur);
+      g.globalAlpha = 0.35 + 0.65 * k;
+      pixelCircle(g, s.x, s.y, s.r * (1.15 - 0.15 * k), Math.floor(e.time * (5 + k * 16)) % 2 ? '#ff4655' : '#ffb02e', PX, 2, e.time);
+      g.globalAlpha = 0.18 + 0.2 * k; g.fillStyle = '#ff4655';
+      g.beginPath(); g.arc(s.x, s.y, s.r * k, 0, 7); g.fill();
+      g.globalAlpha = 1;
+      const h = Math.sin(k * Math.PI) * 140;
+      const fx = s.ox + (s.x - s.ox) * k, fy = s.oy + (s.y - s.oy) * k - h;
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((s.ox + (s.x - s.ox) * k) / PX) * PX - 4, Math.round((s.oy + (s.y - s.oy) * k) / PX) * PX, 8, 4);
+      drawSprite(g, sprite('grenade', 'fire', this.makeCanvas), fx, fy, PX, Math.floor(k * 10) * (Math.PI / 2));
+    }
     // efectos de habilidad a ras de suelo (campos)
     for (const v of e.vfx) if (v.kind === 'field' && vis(v.x, v.y, v.r)) pixelField(g, v.x, v.y, v.r, v.dur - v.t, v.seed, v.pal, this.makeCanvas, PX, e.time);
     // telegráficos de jefes

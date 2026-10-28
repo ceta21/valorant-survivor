@@ -82,7 +82,7 @@ export interface EnemyDef {
   xp: number;
   color: string;
   shape: 'circle' | 'tri' | 'square' | 'diamond' | 'spike' | 'hex' | 'boss';
-  behavior: 'chase' | 'shooter' | 'exploder' | 'elite' | 'boss';
+  behavior: 'chase' | 'shooter' | 'mortar' | 'exploder' | 'elite' | 'boss';
   minTime: number;
   weight: number;
   patterns?: BossPattern[];
