@@ -5,6 +5,7 @@ import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 import type { Account } from '../utils/account';
 import { LATEST_NEWS } from '../data/news';
+import { MenuHub } from './MenuHub';
 
 type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop';
 
@@ -49,6 +50,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
         </nav>
         <p className="hint">WASD / flechas: moverse · Espacio / E / Q: habilidades · Esc: pausa</p>
       </div>
+      <MenuHub save={save} go={go} />
       <aside className="menu-right">
         <div className="menu-hero" style={{ ['--ac' as any]: agent.color }}>
           <AgentPortrait agent={agent} />
