@@ -325,3 +325,13 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .hub-mission em { font-style: normal; color: #ffd24a; font-weight: 700; } .hub-mission small { color: var(--mute); font-size: 13px; }
 .hub-mission .bar i { background: repeating-linear-gradient(90deg, var(--hc) 0 6px, transparent 6px 8px); }
 @media (max-width: 1180px) { .menu-mid { display: none; } }
+
+/* apoyo (creador del juego) */
+.btn-support { background: #0f2a22; box-shadow: inset 0 0 0 var(--p) #2fb88a, var(--bevel); } .btn-support b { color: #b8ffe8; }
+.btn-support:hover:not(:disabled), .btn-support:focus-visible { background: #164234; }
+.support-box { --hc: #2fb88a; display: grid; gap: 14px; justify-items: start; max-width: 620px; width: 100%; margin: 4vh auto 0; padding: 26px;
+  background: #0f2a22; box-shadow: inset var(--p) 0 0 #2fb88a, inset 0 0 0 2px #1f6f4a, var(--bevel); }
+.support-box h3 { margin: 0; color: var(--cream); font-size: clamp(24px, 4vw, 34px); letter-spacing: .04em; text-shadow: 3px 3px 0 #000; }
+.support-box p { margin: 0; color: #d6ffe6; line-height: 1.4; }
+.btn-linkedin { text-decoration: none; background: #0a66c2; box-shadow: inset 0 0 0 var(--p) #004182, var(--bevel); }
+.btn-linkedin b { color: #fff; } .btn-linkedin:hover { background: #1f7ad6; }

@@ -7,7 +7,7 @@ import type { Account } from '../utils/account';
 import { LATEST_NEWS } from '../data/news';
 import { MenuHub } from './MenuHub';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -47,6 +47,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn" onClick={click('news')} onMouseEnter={() => audio.play('hover')}><b>Novedades{save.newsSeen !== LATEST_NEWS && <i className="news-badge">Nuevo</i>}</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={() => audio.play('hover')}><b>Estadísticas</b></button>
           <button className="btn" onClick={click('settings')} onMouseEnter={() => audio.play('hover')}><b>Configuración</b></button>
+          <button className="btn btn-support" onClick={click('support')} onMouseEnter={() => audio.play('hover')}><b>Apoyo</b></button>
         </nav>
         <p className="hint">WASD / flechas: moverse · Espacio / E / Q: habilidades · Esc: pausa</p>
       </div>
