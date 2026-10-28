@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.8', date: '2026-10-28', title: 'Nuevos robots enemigos', tag: 'Mejora', color: '#c9d1d9',
+    items: [
+      'Los enemigos ahora son robots de entrenamiento en pixel art: bots con visor, drones de ruedas con un gran ojo, bots-cápsula con pantalla y dron-bombas.',
+      'Los tanques son bots blindados y los élites, robots morados más altos.',
+      'Cada jefe es un gran mecha con su propio detalle: antena, cañones, pinchos o corona.',
+      'Los robots se iluminan al recibir daño y se vuelven grises cuando están aturdidos.',
+    ],
+  },
+  {
     id: '1.7', date: '2026-10-28', title: 'Jugar en pareja', tag: 'Nuevo', color: '#2fe6ff',
     items: [
       'Nuevo modo cooperativo: crea una sala, pásale el código a un amigo y sobrevivid juntos.',

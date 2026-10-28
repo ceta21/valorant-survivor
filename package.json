@@ -13,7 +13,8 @@
     "test:shot": "tsx scripts/shots.ts",
     "test:world": "tsx scripts/world-test.ts",
     "test:abilities": "tsx scripts/abilities-sheet.ts",
-    "test:coop": "tsx scripts/coop-test.ts"
+    "test:coop": "tsx scripts/coop-test.ts",
+    "test:enemies": "tsx scripts/enemies-sheet.ts"
   },
   "keywords": [],
   "author": "",

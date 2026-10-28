@@ -5,6 +5,7 @@ import { SW, SH, spriteCanvas, agentSkin, IDLE, WALK, RUN, CAST, Pose } from './
 import { renderChunk, CPX } from './MapArt';
 import { CS } from './World';
 import { gunCanvas, gunSize } from './weaponSprites';
+import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
 import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelField, pixelLine, snapAng, sprite } from './vfx';
 
 type Ctx = CanvasRenderingContext2D;
@@ -504,59 +505,26 @@ export class Renderer {
   private drawEnemy(g: Ctx, en: Enemy, e: GameEngine) {
     const d = en.def, r = en.r, x = en.x, y = en.y;
     const flash = en.flash > 0;
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(x + 2, y + r * 0.6, r, r * 0.6, 0, 0, 7); g.fill();
-    const base = flash ? '#ffffff' : en.stunT > 0 ? '#8a94a6' : d.color;
-    const dark = flash ? '#ffffff' : '#10151c';
-    g.save(); g.translate(x, y);
-    const pulse = en.fuse > 0 ? 1 + Math.sin(en.anim * 40) * 0.18 : 1;
-    g.scale(pulse, pulse);
-    if (!en.isBoss && en.stunT <= 0) g.rotate(Math.sin(en.anim * (d.id === 'runner' ? 16 : 9)) * 0.09);
-    g.lineWidth = 2;
-    switch (d.shape) {
-      case 'circle':
-        g.fillStyle = dark; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
-        g.fillStyle = base; g.beginPath(); g.arc(0, 0, r - 3, 0, 7); g.fill(); break;
-      case 'tri': {
-        g.rotate(en.face);
-        g.fillStyle = base; g.strokeStyle = dark;
-        g.beginPath(); g.moveTo(r + 3, 0); g.lineTo(-r, -r); g.lineTo(-r * 0.4, 0); g.lineTo(-r, r); g.closePath(); g.fill(); g.stroke(); break;
-      }
-      case 'square':
-        g.fillStyle = dark; g.fillRect(-r, -r, r * 2, r * 2);
-        g.fillStyle = base; g.fillRect(-r + 3, -r + 3, r * 2 - 6, r * 2 - 6);
-        g.fillStyle = dark; g.fillRect(-r + 7, -3, r * 2 - 14, 6); break;
-      case 'diamond':
-        g.fillStyle = base; g.strokeStyle = dark;
-        g.beginPath(); g.moveTo(0, -r - 2); g.lineTo(r + 2, 0); g.lineTo(0, r + 2); g.lineTo(-r - 2, 0); g.closePath(); g.fill(); g.stroke();
-        if (en.windup > 0) { g.strokeStyle = '#fff'; g.beginPath(); g.arc(0, 0, r + 6, 0, 7); g.stroke(); }
-        g.fillStyle = dark; g.beginPath(); g.arc(Math.cos(en.face) * 3, Math.sin(en.face) * 3, 3, 0, 7); g.fill(); break;
-      case 'spike': {
-        g.fillStyle = base; g.strokeStyle = dark;
-        g.beginPath();
-        for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 + en.anim * 2, rr = i % 2 ? r - 2 : r + 5; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
-        g.closePath(); g.fill(); g.stroke();
-        g.fillStyle = en.fuse > 0 && Math.floor(en.anim * 14) % 2 ? '#fff' : dark; g.beginPath(); g.arc(0, 0, 4, 0, 7); g.fill(); break;
-      }
-      case 'hex':
-        g.fillStyle = base; g.strokeStyle = dark; g.lineWidth = 3;
-        g.beginPath(); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2 + Math.PI / 6; g.lineTo(Math.cos(a) * (r + 3), Math.sin(a) * (r + 3)); } g.closePath(); g.fill(); g.stroke();
-        g.fillStyle = dark; g.beginPath(); g.arc(0, 0, 6, 0, 7); g.fill();
-        if (en.windup > 0) { g.strokeStyle = '#fff'; g.beginPath(); g.arc(0, 0, r + 9, 0, 7); g.stroke(); }
-        break;
-      case 'boss': {
-        g.fillStyle = dark; g.beginPath(); g.arc(0, 0, r, 0, 7); g.fill();
-        g.lineWidth = 5; g.strokeStyle = base; g.beginPath(); g.arc(0, 0, r - 3, 0, 7); g.stroke();
-        g.fillStyle = hexA(d.color, flash ? 1 : 0.35); g.beginPath(); g.arc(0, 0, r - 8, 0, 7); g.fill();
-        g.save(); g.rotate(en.anim * (en.phase ? 1.4 : 0.6));
-        g.fillStyle = base;
-        for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(r - 2, -5); g.lineTo(r + 12, 0); g.lineTo(r - 2, 5); g.closePath(); g.fill(); }
-        g.restore();
-        g.fillStyle = base; g.beginPath(); g.arc(Math.cos(en.face) * 8, Math.sin(en.face) * 8, 9, 0, 7); g.fill();
-        g.fillStyle = dark; g.beginPath(); g.arc(Math.cos(en.face) * 10, Math.sin(en.face) * 10, 4, 0, 7); g.fill();
-        break;
-      }
-    }
+    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((x - r) / PX) * PX, Math.round((y + r * 0.6) / PX) * PX, Math.round(r * 2 / PX) * PX, PX * 2);
+    // robot pixel-art: anda (2 fotogramas), mira hacia su objetivo, blanco al recibir golpe, gris aturdido
+    const kind = enemyKind(d.id);
+    const stunned = en.stunT > 0;
+    const blinkFuse = en.fuse > 0 && Math.floor(en.anim * 14) % 2 === 0;
+    const variant = flash || blinkFuse ? 'hit' : stunned ? 'stun' : 'n';
+    const frame = stunned ? 0 : Math.floor(en.anim * (kind === 'runner' ? 14 : isBossKind(kind) ? 4 : 7));
+    let core = enemyCore(kind, d.color);
+    if (en.isBoss && en.phase && Math.floor(en.anim * 6) % 2) core = '#ffffff';    // 2.ª fase: el núcleo parpadea
+    const img = enemySprite(kind, frame, variant, core, this.makeCanvas);
+    const sc = isBossKind(kind) ? PX * Math.max(2, Math.round(r / 22)) : PX;
+    const w = img.width * sc, h = img.height * sc;
+    const bob = kind === 'runner' || stunned ? 0 : (frame % 2) * PX;
+    const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h - bob) / PX) * PX;
+    g.save();
+    g.imageSmoothingEnabled = false;
+    if (Math.cos(en.face) < 0) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); }
+    else g.drawImage(img, left, top, w, h);
     g.restore();
+    if (en.windup > 0) pixelCircle(g, x, y, r + 6, '#ffffff', PX, 1, e.time * 6);   // aviso de disparo
     if (en.markT > 0) {
       // retícula de marcado: cuatro esquinas en píxeles
       const q = Math.round((r + 6) / PX) * PX, cx = Math.round(x / PX) * PX, cy = Math.round(y / PX) * PX, L = 3 * PX;
@@ -566,8 +534,8 @@ export class Renderer {
         g.fillRect(cx + sx * q - (sx > 0 ? PX : 0), cy + sy * q - (sy > 0 ? L : 0), PX, L);
       }
     }
-    if (en.burnT > 0) { g.fillStyle = 'rgba(255,122,61,0.45)'; g.beginPath(); g.arc(x, y - r * 0.4, r * 0.55, 0, 7); g.fill(); }
-    if (en.slowT > 0) { g.strokeStyle = 'rgba(122,184,255,0.7)'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, r + 3, 0, 7); g.stroke(); }
+    if (en.burnT > 0 && Math.floor(e.time * 10 + en.id) % 3 === 0) g.drawImage(sprite('flame', 'fire', this.makeCanvas), Math.round((x - 8) / PX) * PX, Math.round((y - r * 1.6) / PX) * PX, 16, 22);
+    if (en.slowT > 0) pixelCircle(g, x, y + r * 0.6, r + 2, '#7ab8ff', PX, 1);
     if (d.behavior === 'elite' || (en.hp < en.maxHp && !en.isBoss && d.id === 'tank')) {
       const w = r * 2;
       g.fillStyle = 'rgba(0,0,0,0.6)'; g.fillRect(x - w / 2, y - r - 10, w, 4);
