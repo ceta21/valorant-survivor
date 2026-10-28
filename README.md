@@ -59,15 +59,14 @@ Pruebas automáticas (sin navegador): `npx tsx scripts/world-test.ts`, `scripts/
 
 ## Ranking global (Supabase)
 
-Sin configurar, el ranking funciona en modo local (solo este navegador). Para hacerlo global:
+El proyecto de Supabase está configurado en [`.env.production`](.env.production) (URL y clave
+*publishable*, que son públicas por diseño). La seguridad la dan las reglas de
+[`supabase/schema.sql`](supabase/schema.sql): cualquiera puede leer y añadir marcas válidas,
+nadie puede editarlas ni borrarlas desde la web.
 
-1. Crea un proyecto gratuito en [supabase.com](https://supabase.com).
-2. En **SQL Editor**, pega el contenido de [`supabase/schema.sql`](supabase/schema.sql) y pulsa **Run**.
-3. En **Project Settings → API** copia la *Project URL* y la clave *anon public*.
-4. En local, crea un archivo `.env.local` (no se sube a git):
-   ```
-   VITE_SUPABASE_URL=https://xxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJ...
-   ```
-5. Para GitHub Pages, añade esos dos valores como *secrets* del repositorio
-   (**Settings → Secrets and variables → Actions**) con los mismos nombres.
+Sin esas variables (por ejemplo en `npm run dev` sin `.env.local`), el ranking funciona en modo
+local (solo este navegador). Para usar el global también en desarrollo, copia `.env.production`
+como `.env.local`.
+
+Para usar otro proyecto de Supabase: créalo en [supabase.com](https://supabase.com), ejecuta
+`supabase/schema.sql` en su **SQL Editor** y cambia los dos valores de `.env.production`.
