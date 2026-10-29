@@ -27,6 +27,7 @@ export class Renderer {
   private ctx: Ctx;
   private makeCanvas: MakeCanvas;
   private chunkCache = new Map<string, any>();
+  private gemCache = new Map<string, any>();
   private chunkWorld: unknown = null;
   private vignette: any = null;
   private vw = 0;
@@ -41,6 +42,43 @@ export class Renderer {
     this.ctx = ctx;
     this.makeCanvas = makeCanvas;
     preloadAgentSheets();
+  }
+
+  /** Cristal de experiencia (o cruz de curación) en pixel art, con contorno y brillo. */
+  private gemSprite(tier: string) {
+    let c = this.gemCache.get(tier);
+    if (c) return c;
+    const PALS: Record<string, string[]> = {        // contorno, oscuro, medio, claro, brillo
+      blue: ['#0b1a2a', '#1f6f9f', '#4fd0ff', '#bfeaff', '#ffffff'],
+      green: ['#0b2018', '#1a8a5a', '#3fe0a0', '#c8ffe8', '#ffffff'],
+      gold: ['#2a1a06', '#b07a14', '#ffd24a', '#fff2b0', '#ffffff'],
+      epic: ['#1a0a2a', '#6a2aa8', '#c070ff', '#f0d0ff', '#ffffff'],
+      heal: ['#0b2018', '#1f8a3a', '#5dff9a', '#d8ffe0', '#ffffff'],
+    };
+    const crystal = ['....O....', '...OWO...', '..OLWMO..', '.OLLWMMO.', 'OLLLWMMDO', 'OLLLMMMDO', '.OLLMMDO.', '..OLMDO..', '..OMMDO..', '...ODO...', '....O....'];
+    const big = ['.....O.....', '....OWO....', '...OLWMO...', '..OLLWMMO..', '.OLLLWMMDO.', 'OLLLLWMMMDO', 'OLLLLMMMMDO', '.OLLLMMMDO.',
+      '..OLLMMDO..', '..OLMMMDO..', '...OMMDO...', '...OMDDO...', '....ODO....', '.....O.....'];
+    const cross = ['...OOO...', '...OWO...', 'OOOOLOOOO', 'OWLLLMMMO', 'OOOOMOOOO', '...OMO...', '...OMO...', '...ODO...', '...OOO...'];
+    const rows = tier === 'heal' ? cross : tier === 'epic' || tier === 'gold' ? big : crystal;
+    const [o, d, m, l, w] = PALS[tier], pal: Record<string, string> = { O: o, D: d, M: m, L: l, W: w };
+    c = this.makeCanvas(rows[0].length * PX, rows.length * PX);
+    const cg = c.getContext('2d');
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { cg.fillStyle = pal[ch]; cg.fillRect(x * PX, y * PX, PX, PX); } }));
+    this.gemCache.set(tier, c);
+    return c;
+  }
+  /** Halo del color del cristal (degradado radial ya pintado, para no recalcularlo por gema). */
+  private gemGlow(tier: string) {
+    const key = 'glow-' + tier;
+    let c = this.gemCache.get(key);
+    if (c) return c;
+    const col = { blue: '79,208,255', green: '63,224,160', gold: '255,210,74', epic: '192,112,255', heal: '93,255,154' }[tier] ?? '255,255,255';
+    c = this.makeCanvas(64, 64);
+    const cg = c.getContext('2d'), gr = cg.createRadialGradient(32, 32, 2, 32, 32, 32);
+    gr.addColorStop(0, `rgba(${col},1)`); gr.addColorStop(0.25, `rgba(${col},0.6)`); gr.addColorStop(0.6, `rgba(${col},0.18)`); gr.addColorStop(1, `rgba(${col},0)`);
+    cg.fillStyle = gr; cg.fillRect(0, 0, 64, 64);
+    this.gemCache.set(key, c);
+    return c;
   }
 
   /** w,h = tamaño CSS del lienzo. Devuelve el tamaño de vista en unidades del mundo. */
@@ -109,15 +147,26 @@ export class Renderer {
       g.strokeStyle = '#e2c4ff'; g.lineWidth = 2;
       for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(pt.x, pt.y, 8 + i * 8, ph + i, ph + i + 3.2); g.stroke(); }
     }
-    // gemas
+    // gemas: cristales pixel art con halo que late y un destello de vez en cuando
+    g.imageSmoothingEnabled = false;
     for (const m of e.gems) {
       if (!vis(m.x, m.y)) continue;
-      const bob = Math.sin(m.t * 5) * 1.5;
-      if (m.kind === 0) {
-        g.fillStyle = m.v > 4 ? '#ffd24a' : m.v > 1.5 ? '#7dffcf' : '#4fd0ff';
-        g.beginPath(); g.moveTo(m.x, m.y - 5 + bob); g.lineTo(m.x + 4, m.y + bob); g.lineTo(m.x, m.y + 5 + bob); g.lineTo(m.x - 4, m.y + bob); g.fill();
-      } else {
-        g.fillStyle = '#5dff9a'; g.fillRect(m.x - 2, m.y - 6 + bob, 4, 12); g.fillRect(m.x - 6, m.y - 2 + bob, 12, 4);
+      const tier = m.kind === 1 ? 'heal' : m.v > 10 ? 'epic' : m.v > 4 ? 'gold' : m.v > 1.5 ? 'green' : 'blue';
+      const bob = Math.round(Math.sin(m.t * 5) * 1.5), ph = m.x * 0.13 + m.y * 0.07;
+      const gx = Math.round(m.x / PX) * PX, gy = Math.round(m.y / PX) * PX + bob;
+      // halo luminoso (suma luz)
+      const glow = this.gemGlow(tier), pulse = 0.75 + 0.25 * Math.sin(e.time * 4 + ph), gs = (tier === 'epic' || tier === 'gold' ? 30 : 22) * (0.9 + 0.1 * pulse);
+      const spr = this.gemSprite(tier);
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(gx - 4, gy - bob + spr.height / 2 + 2, 8, 2);   // sombra en el suelo
+      g.globalCompositeOperation = 'lighter'; g.globalAlpha = pulse;
+      g.drawImage(glow, gx - gs, gy - gs, gs * 2, gs * 2);
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      g.drawImage(spr, gx - spr.width / 2, gy - spr.height / 2);
+      // destello: una cruz blanca que aparece un instante
+      if (((e.time * 0.7 + ph) % 1) < 0.12) {
+        const sx = gx + 4, sy = gy - spr.height / 2 + 2;
+        g.fillStyle = '#ffffff';
+        g.fillRect(sx - 1, sy - 5, 2, 10); g.fillRect(sx - 5, sy - 1, 10, 2);
       }
     }
     // marcas de impacto de ataques de área

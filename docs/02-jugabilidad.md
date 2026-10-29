@@ -90,7 +90,8 @@ se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su po
 
 - XP necesaria para el siguiente nivel: `round(5 + 5·nivel + 0,55·nivel²)`.
 - La XP de cada gema se multiplica por la estadística de experiencia del jugador.
-- Gemas: azul (<1,5), verde (1,5–4) o dorada (>4) según su valor. Se atraen al acercarse (radio 120 × imán)
+- Gemas: cristales pixel art con halo de luz que late y destellos; azul (<1,5), verde (1,5–4), dorada (4–10) o morada
+  (>10, más grande) según su valor; la de curación es una cruz verde. Se atraen al acercarse (radio 120 × imán)
   o solas tras 8 s. Si hay más de 320 gemas, las nuevas se suman a una existente.
 - Orbes de curación (cruz verde): los sueltan los élites, los jefes (3) y el 0,8 % de los enemigos normales.
 - Rareza de las mejoras: pesos `[máx(20, 60 − 0,8·N), 28 + 0,6·N, 10 + 0,5·N, 2 + 0,15·N]` (N = nivel), así
