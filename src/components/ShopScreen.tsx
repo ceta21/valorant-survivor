@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SaveData } from '../utils/storage';
 import { AGENT_SKINS, PETS, WEAPON_SKINS } from '../data/shop';
-import { playableAgent } from '../data/agents';
+import { ALL_AGENTS, isAvailable, playableAgent } from '../data/agents';
 import { AgentArt, ELEMENT, GunArt, PetArt } from './ShopArt';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
@@ -18,7 +18,9 @@ export function ShopScreen({ save, back, buy }: Props) {
   const [tab, setTab] = useState<Tab>('weapons');
   const [sure, setSure] = useState('');   // compra pendiente de confirmar
   const owned = save.shop.owned;
-  const agentId = playableAgent(save.lastAgent);   // los estilos de agente se ven sobre el último agente elegido
+  // agente sobre el que se ven los estilos (cualquiera que se pueda jugar; empieza en el último elegido)
+  const lookable = ALL_AGENTS.filter(a => isAvailable(a.id) && (!a.exclusive || save.exclusives.includes(a.id)));
+  const [agentId, setAgentId] = useState(playableAgent(save.lastAgent));
   const click = (fn: () => void) => () => { audio.play('click'); fn(); };
 
   /** Botón de comprar (con confirmación); si ya es tuyo, dice dónde ponértelo. */
@@ -62,6 +64,12 @@ export function ShopScreen({ save, back, buy }: Props) {
       {tab === 'agents' && (
         <>
           <p className="lead">{t('Ropa y armadura nuevas para tus agentes. Solo estético: no da poderes ni mejoras. Póntelos en la ficha de cada agente, en Agentes.')}</p>
+          <label className="shop-agent-pick">
+            <span>{t('Ver los estilos en')}</span>
+            <select value={agentId} onChange={e => { audio.play('click'); setAgentId(e.target.value); }}>
+              {lookable.map(a => <option key={a.id} value={a.id}>{t(a.name)}</option>)}
+            </select>
+          </label>
           <div className="shop-grid">
             {AGENT_SKINS.map(k => (
               <article key={k.id} className={`shop-card ${owned.includes(k.id) ? 'owned' : ''}`} style={{ ['--sc' as any]: k.ramp[3] }}>

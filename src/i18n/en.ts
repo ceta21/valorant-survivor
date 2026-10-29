@@ -301,6 +301,7 @@ export const EN: Record<string, string> = {
   'en Mascotas': 'in Pets',
   'La Tienda solo vende; los estilos se ponen en la ficha de cada agente (Agentes) y las mascotas en el nuevo apartado Mascotas.': "The Shop only sells; styles are equipped on each agent's profile (Agents) and pets in the new Pets section.",
   'En Mascotas eliges cuál te acompaña (o ninguna) y desbloqueas o mejoras su poder.': 'In Pets you choose which one joins you (or none) and unlock or upgrade its power.',
+  'Ver los estilos en': 'Preview styles on',
   // agentes nuevos
   'Química letal. Llena el campo de veneno que quema y ralentiza a los robots.': 'Lethal chemist. Fills the field with poison that burns and slows the robots.',
   'Toxina': 'Toxin',

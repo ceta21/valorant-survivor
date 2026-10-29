@@ -9,7 +9,7 @@
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar, Jugar en pareja y Apoyo a todo el ancho; el resto en dos columnas), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
-| Tienda | `ShopScreen` | Pestañas de estilos de armas, estilos de agentes y mascotas; solo comprar (con confirmación) |
+| Tienda | `ShopScreen` | Pestañas de estilos de armas, estilos de agentes (con selector del agente en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
 | Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Agentes | `AgentSelection` | Elegir agente, kit (exclusivos), mapa, arma inicial, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente"); estilo del agente y de arma comprados en la Tienda |
