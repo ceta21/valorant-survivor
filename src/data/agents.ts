@@ -75,8 +75,8 @@ export const AGENTS: AgentDef[] = [
     id: 'killjoy', name: 'Killjoy', role: 'Centinela', color: '#ffe14a', accent: '#fff4b0', hp: 100, speed: 180, damage: 9, cost: 900,
     desc: 'La ingeniera. Torretas automáticas y un dron de apoyo desde el inicio.',
     trait: { label: 'Ingeniera', desc: 'Comienza con 1 dron auxiliar', mods: { drones: 1 } },
-    special: { id: 'turret', name: 'Torreta', desc: 'Despliega 2 torretas durante 14 s.', kind: 'turret', cd: 9, power: 1.4, count: 2, duration: 14, color: '#ffe14a', fx: 'turret' },
-    ultimate: { id: 'lockdown', name: 'Bloqueo', desc: 'Despliega 5 torretas de gran cadencia durante 14 s.', kind: 'turret', cd: 0, power: 2.4, count: 5, duration: 14, color: '#ffffff', fx: 'turret' },
+    special: { id: 'turret', name: 'Torreta', desc: 'Despliega 1 torreta durante 14 s. Los robots pueden destruirla.', kind: 'turret', cd: 9, power: 1.6, count: 1, duration: 14, color: '#ffe14a', fx: 'turret' },
+    ultimate: { id: 'lockdown', name: 'Bloqueo', desc: 'Despliega 3 torretas de gran cadencia y más resistentes durante 14 s.', kind: 'turret', cd: 0, power: 2.6, count: 3, duration: 14, color: '#ffffff', fx: 'turret' },
     emblem: 'M12 2 L21 7 V17 L12 22 L3 17 V7 Z M12 9 V15',
   },
   {

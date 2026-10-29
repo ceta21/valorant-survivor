@@ -31,6 +31,8 @@ export interface Enemy {
   lx: number; ly: number; stuckT: number; sideT: number; side: number; esc: number; escReset: number;
   /** Solo en el invitado: posición recibida hacia la que se suaviza el movimiento. */
   tx?: number; ty?: number;
+  /** Espera entre golpes a una torreta. */
+  turretHitT?: number;
 }
 export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
@@ -41,7 +43,8 @@ export interface EProj { x: number; y: number; vx: number; vy: number; dmg: numb
 /** Obús de mortero enemigo: vuela desde (ox,oy) y estalla en (x,y) al acabar dur. */
 export interface Shell { x: number; y: number; ox: number; oy: number; t: number; dur: number; r: number; dmg: number; dead: boolean }
 export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number; tx?: number; ty?: number }
-export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number }
+/** Torreta de Killjoy. Tiene vida: los robots cuerpo a cuerpo van a por ella si les pilla más cerca que el jugador. */
+export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number; hp: number; maxHp: number; flash: number }
 export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number; owner: number }
 /** Efecto visual de habilidad (solo decorativo). follow: x,y son relativos al jugador. */
 export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number }
@@ -738,11 +741,24 @@ export class GameEngine {
 
   private updateEnemies(dt: number) {
     const dmgScale = this.dmgScale;
+    const turrets = this.allTurrets();
     for (let i = 0; i < this.enemies.length; i++) {
       const e = this.enemies[i];
       if (e.dead) continue;
       this.use(this.nearestPlayer(e.x, e.y));
       const p = this.player;
+      if (e.turretHitT && e.turretHitT > 0) e.turretHitT -= dt;
+      // los robots cuerpo a cuerpo atacan la torreta si la tienen más cerca que al jugador
+      let tur: Turret | null = null;
+      if (!e.isBoss && turrets.length && (e.def.behavior === 'chase' || e.def.behavior === 'exploder' || e.def.behavior === 'elite')) {
+        let best = Math.hypot(p.x - e.x, p.y - e.y);
+        for (const t of turrets) {
+          if (t.dead) continue;
+          const dt2 = Math.hypot(t.x - e.x, t.y - e.y);
+          if (dt2 < best) { best = dt2; tur = t; }
+        }
+      }
+      const pd = Math.hypot(p.x - e.x, p.y - e.y);
       e.anim += dt;
       if (e.flash > 0) e.flash -= dt;
       if (e.markT > 0) e.markT -= dt;
@@ -753,7 +769,7 @@ export class GameEngine {
         if (Math.random() < 0.15) this.sparks(e.x, e.y, '#ff7a3d', 1, 50, 0.4);
         if (e.hp <= 0) { this.killEnemy(e, false); continue; }
       }
-      const dx = p.x - e.x, dy = p.y - e.y;
+      const dx = (tur ? tur.x : p.x) - e.x, dy = (tur ? tur.y : p.y) - e.y;
       const d = Math.hypot(dx, dy) || 1;
       const nx = dx / d, ny = dy / d;
       e.face = Math.atan2(dy, dx);
@@ -845,9 +861,13 @@ export class GameEngine {
       if (d > (e.isBoss ? 1500 : 1100)) { const s = this.edgeSpawn(); e.x = s.x; e.y = s.y; e.kx = 0; e.ky = 0; if (e.atk) e.atk = null; }
       // contacto
       const cd = e.r + p.r;
-      if (d < cd + 1 && e.def.behavior !== 'exploder') {
+      if (pd < cd + 1 && e.def.behavior !== 'exploder') {
         const charging = e.atk && e.atk.kind === 'charge' && e.atk.t > 0.9;
-        this.hurtPlayer(e.dmg * dmgScale * (charging ? 1.4 : 1), nx, ny);
+        this.hurtPlayer(e.dmg * dmgScale * (charging ? 1.4 : 1), (p.x - e.x) / (pd || 1), (p.y - e.y) / (pd || 1));
+      }
+      if (tur && d < e.r + 13 && e.def.behavior !== 'exploder' && !(e.turretHitT && e.turretHitT > 0)) {
+        this.damageTurret(tur, e.dmg * dmgScale);
+        e.turretHitT = 0.6;
       }
     }
   }
@@ -876,6 +896,7 @@ export class GameEngine {
     this.sfx('explosion', 0.08);
     this.shakeT = Math.max(this.shakeT, 0.12);
     if (Math.hypot(p.x - e.x, p.y - e.y) < R + p.r) this.hurtPlayer(e.dmg * this.dmgScale);
+    this.damageTurretsIn(e.x, e.y, R, e.dmg * this.dmgScale);
     e.suicide = true;
     this.killEnemy(e, true);
   }
@@ -923,6 +944,7 @@ export class GameEngine {
           this.shakeT = 0.35;
           this.sfx('explosion', 0.1);
           if (Math.hypot(p.x - a.x, p.y - a.y) < R + p.r) this.hurtPlayer(dm * 0.9);
+          this.damageTurretsIn(a.x, a.y, R, dm * 0.9);
           this.endAtk(e);
         }
         return [0, 0];
@@ -984,7 +1006,27 @@ export class GameEngine {
         if (pl.dead) continue;
         if (Math.hypot(pl.body.x - s.x, pl.body.y - s.y) < s.r + pl.body.r) { this.use(pl); this.hurtPlayer(s.dmg); }
       }
+      this.damageTurretsIn(s.x, s.y, s.r, s.dmg);
     }
+  }
+  /** Torretas vivas de todos los jugadores. */
+  allTurrets(): Turret[] {
+    this.sync();
+    const out: Turret[] = [];
+    for (const pl of this.players) for (const t of pl.turrets) if (!t.dead) out.push(t);
+    return out;
+  }
+  damageTurret(t: Turret, dmg: number) {
+    if (t.dead || dmg <= 0) return;
+    t.hp -= dmg; t.flash = 0.1;
+    if (t.hp > 0) { this.sparks(t.x, t.y, '#ffe14a', 2, 90, 0.25); return; }
+    t.dead = true;
+    this.addVfx('blast', 'turret', t.x, t.y, 46, 0.45);
+    this.sparks(t.x, t.y, '#ffe14a', 14, 220, 0.5);
+    this.sfx('explosion', 0.08);
+  }
+  private damageTurretsIn(x: number, y: number, r: number, dmg: number) {
+    for (const t of this.allTurrets()) if (Math.hypot(t.x - x, t.y - y) < r + 10) this.damageTurret(t, dmg);
   }
   private updateEProjs(dt: number) {
     for (const b of this.eprojs) {
@@ -995,6 +1037,12 @@ export class GameEngine {
         if (pl.dead) continue;
         const p = pl.body, dx = b.x - p.x, dy = b.y - p.y, rr = b.r + p.r;
         if (dx * dx + dy * dy < rr * rr) { this.use(pl); this.hurtPlayer(b.dmg); b.dead = true; break; }
+      }
+      if (b.dead) continue;
+      for (const t of this.allTurrets()) {
+        if (t.dead) continue;
+        const dx = b.x - t.x, dy = b.y - t.y, rr = b.r + 11;
+        if (dx * dx + dy * dy < rr * rr) { this.damageTurret(t, b.dmg); b.dead = true; break; }
       }
     }
   }
@@ -1189,6 +1237,7 @@ export class GameEngine {
     for (const t of this.turrets) {
       if (t.dead) continue;
       t.t -= dt; t.cd -= dt;
+      if (t.flash > 0) t.flash -= dt;
       if (t.t <= 0) { t.dead = true; this.sparks(t.x, t.y, t.color, 8, 120, 0.4); continue; }
       if (t.cd <= 0) {
         const tg = this.nearestEnemy(t.x, t.y, 340);
@@ -1261,11 +1310,13 @@ export class GameEngine {
       }
       case 'turret': {
         const n = ab.count ?? 1;
+        // la vida crece con el daño de los enemigos para que aguante igual durante toda la partida
+        const hp = (ult ? 150 : 110) * this.dmgScale;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2 + rnd(0.5);
           const o = { x: p.x + Math.cos(a) * 44, y: p.y + Math.sin(a) * 44 };
           this.resolve(o, 10);
-          this.turrets.push({ x: o.x, y: o.y, t: ab.duration ?? 12, max: ab.duration ?? 12, cd: 0.2, power: ab.power, dead: false, color: ab.color, ang: a });
+          this.turrets.push({ x: o.x, y: o.y, t: ab.duration ?? 12, max: ab.duration ?? 12, cd: 0.2, power: ab.power, dead: false, color: ab.color, ang: a, hp, maxHp: hp, flash: 0 });
           this.sparks(o.x, o.y, ab.color, 6, 100, 0.4);
         }
         break;
@@ -1462,6 +1513,7 @@ export class GameEngine {
     if (this.shells.length) this.shells = this.shells.filter(s => !s.dead);
     this.gems = this.gems.filter(g => !g.dead);
     this.turrets = this.turrets.filter(t => !t.dead);
+    for (const pl of this.players) if (pl !== this.cur && pl.turrets.some(t => t.dead)) pl.turrets = pl.turrets.filter(t => !t.dead);
     this.strikes = this.strikes.filter(s => !s.dead);
   }
 

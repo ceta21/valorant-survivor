@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.11', date: '2026-10-29', title: 'Torretas de Killjoy', tag: 'Mejora', color: '#ffe14a',
+    items: [
+      'Torreta ahora despliega 1 torreta y Bloqueo despliega 3, más resistentes.',
+      'Los robots cuerpo a cuerpo atacan la torreta si la tienen más cerca que a ti y pueden destruirla.',
+      'Los disparos, obuses y explosiones enemigas también dañan las torretas.',
+      'Una barra amarilla muestra la vida que le queda a cada torreta.',
+    ],
+  },
+  {
     id: '1.10', date: '2026-10-28', title: 'Idiomas y controles', tag: 'Nuevo', color: '#4fd0ff',
     items: [
       'El juego ya está disponible en español e inglés: cámbialo en Configuración > Idioma.',

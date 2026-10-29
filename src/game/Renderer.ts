@@ -197,7 +197,12 @@ export class Renderer {
       const pop = Math.min(1, (t.max - t.t) * 6);               // aparece "cayendo" un instante
       const tx = Math.round(t.x / PX) * PX, ty = Math.round((t.y - (1 - pop) * 20) / PX) * PX;
       g.fillStyle = 'rgba(0,0,0,0.4)'; g.fillRect(tx - 10, Math.round(t.y / PX) * PX + 8, 20, 4);
-      drawSprite(g, sprite('turret', 'turret', this.makeCanvas), tx, ty, PX);
+      drawSprite(g, sprite('turret', t.flash > 0 ? 'holy' : 'turret', this.makeCanvas), tx, ty, PX);
+      if (t.hp < t.maxHp) {
+        const w = 24, k = Math.max(0, t.hp / t.maxHp);
+        g.fillStyle = '#000'; g.fillRect(tx - w / 2 - 2, ty - 20, w + 4, 6);
+        g.fillStyle = k > 0.5 ? '#ffe14a' : k > 0.25 ? '#ffb020' : '#ff4655'; g.fillRect(tx - w / 2, ty - 18, Math.round((w * k) / PX) * PX, 2);
+      }
       const bc = Math.cos(snapAng(t.ang)), bs = Math.sin(snapAng(t.ang));
       drawSprite(g, sprite('barrel', 'turret', this.makeCanvas), tx + bc * 8, ty - 2 + bs * 8, PX, t.ang);
       if (t.cd > 0.25) { g.fillStyle = '#fff4b0'; g.fillRect(Math.round((tx + bc * 18) / PX) * PX - 2, Math.round((ty - 2 + bs * 18) / PX) * PX - 2, 4, 4); }

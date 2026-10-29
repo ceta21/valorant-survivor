@@ -16,7 +16,7 @@ export interface PlayerSnap {
   ifr: number; inv: number; dT: number; dvx: number; dvy: number; cT: number; cU: 0 | 1; held: string; shot: number;
   b: [number, number, number, string, number, number]; // sprintT, sprintRad, frenzyT, frenzyFx, stormT, stormPow
   mx: number; my: number; ult: number; cds: [number, number]; spd: number; cdr: number; area: number;
-  dr: number; da: number; w: [string, number][]; tu: [number, number, number, number, number, number, string][];
+  dr: number; da: number; w: [string, number][]; tu: [number, number, number, number, number, number, string, number?, number?, number?][];
   hf: number; pend: number; rr: number; ch: UpgradeChoice[];
 }
 export interface Snap {
@@ -60,7 +60,7 @@ export function makeSnapshot(e: GameEngine): Snap {
       held: pl.held, shot: r2(pl.lastShotT), b: [r2(b.sprintT), b.sprintRad, r2(b.frenzyT), b.frenzyFx, r2(b.stormT), b.stormPow],
       mx: r2(pl.inputMove.x), my: r2(pl.inputMove.y), ult: r1(pl.ult), cds: [r1(pl.cds.special), r1(pl.cds.secondary)],
       spd: pl.stats.speed, cdr: pl.stats.cdr, area: pl.stats.area, dr: pl.stats.drones, da: r2(pl.droneAngle),
-      w: pl.weapons.map(w => [w.id, w.lvl]), tu: pl.turrets.filter(t => !t.dead).map(t => [Math.round(t.x), Math.round(t.y), r2(t.ang), r1(t.t), t.max, r2(t.cd), t.color]),
+      w: pl.weapons.map(w => [w.id, w.lvl]), tu: pl.turrets.filter(t => !t.dead).map(t => [Math.round(t.x), Math.round(t.y), r2(t.ang), r1(t.t), t.max, r2(t.cd), t.color, Math.round(t.hp), Math.round(t.maxHp), t.flash > 0 ? 1 : 0]),
       hf: r2(pl.hurtFlash), pend: pl.pending, rr: pl.rerolls, ch: pl.choices,
     };
   });
@@ -109,7 +109,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     if (!mine) { pl.inputMove.x = ps.mx; pl.inputMove.y = ps.my; }
     pl.ult = ps.ult; pl.cds.special = ps.cds[0]; pl.cds.secondary = ps.cds[1]; pl.droneAngle = ps.da;
     pl.weapons.length = 0; for (const [id, lvl] of ps.w) if (WEAPONS[id]) pl.weapons.push({ id, lvl, cd: 0 });
-    pl.turrets = ps.tu.map(([x, y, ang, t, max, cd, color]) => ({ x, y, ang, t, max, cd, color, power: 0, dead: false }));
+    pl.turrets = ps.tu.map(([x, y, ang, t, max, cd, color, hp, maxHp, fl]) => ({ x, y, ang, t, max, cd, color, power: 0, dead: false, hp: hp ?? 1, maxHp: maxHp ?? 1, flash: fl ? 0.1 : 0 }));
     pl.hurtFlash = Math.max(pl.hurtFlash, ps.hf); pl.pending = ps.pend; pl.rerolls = ps.rr; pl.choices = ps.ch ?? [];
   });
   // enemigos: se conservan los objetos por id para suavizar el movimiento

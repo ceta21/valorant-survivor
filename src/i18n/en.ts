@@ -70,8 +70,8 @@ export const EN: Record<string, string> = {
   'Desde las sombras': 'From the Shadows', 'Gran salto con explosión de sombra que aturde 2 s.': 'Long jump with a shadow blast that stuns for 2 s.',
   'La ingeniera. Torretas automáticas y un dron de apoyo desde el inicio.': 'The engineer. Automatic turrets and a support drone from the start.',
   'Ingeniera': 'Engineer', 'Comienza con 1 dron auxiliar': 'Starts with 1 support drone',
-  'Torreta': 'Turret', 'Despliega 2 torretas durante 14 s.': 'Deploy 2 turrets for 14 s.',
-  'Bloqueo': 'Lockdown', 'Despliega 5 torretas de gran cadencia durante 14 s.': 'Deploy 5 rapid-fire turrets for 14 s.',
+  'Torreta': 'Turret', 'Despliega 1 torreta durante 14 s. Los robots pueden destruirla.': 'Deploy 1 turret for 14 s. Robots can destroy it.',
+  'Bloqueo': 'Lockdown', 'Despliega 3 torretas de gran cadencia y más resistentes durante 14 s.': 'Deploy 3 tougher rapid-fire turrets for 14 s.',
   'El comandante. Bombardeos orbitales y estimulantes de combate.': 'The commander. Orbital strikes and combat stims.',
   'Comandante': 'Commander', '+15% radio de explosión y +10% daño': '+15% explosion radius and +10% damage',
   'Ataque orbital': 'Orbital Strike', '3 bombardeos orbitales con retardo y gran radio.': '3 delayed orbital strikes with a large radius.',
@@ -158,6 +158,11 @@ export const EN: Record<string, string> = {
 
   /* ------------------------------------------------------------------ novedades */
   'Nuevo': 'New', 'Mejora': 'Improvement', 'Evento': 'Event',
+  'Torretas de Killjoy': "Killjoy's turrets",
+  'Torreta ahora despliega 1 torreta y Bloqueo despliega 3, más resistentes.': 'Turret now deploys 1 turret and Lockdown deploys 3 tougher ones.',
+  'Los robots cuerpo a cuerpo atacan la torreta si la tienen más cerca que a ti y pueden destruirla.': "Melee robots attack the turret if it's closer than you, and they can destroy it.",
+  'Los disparos, obuses y explosiones enemigas también dañan las torretas.': 'Enemy shots, shells and explosions also damage turrets.',
+  'Una barra amarilla muestra la vida que le queda a cada torreta.': 'A yellow bar shows how much health each turret has left.',
   'Idiomas y controles': 'Languages and controls',
   'El juego ya está disponible en español e inglés: cámbialo en Configuración > Idioma.': 'The game is now available in Spanish and English: change it in Settings > Language.',
   'Nuevo apartado de Controles: cambia la tecla de moverte, de cada habilidad, de la pausa y de relanzar mejoras.': 'New Controls section: change the keys for moving, each ability, pause and rerolling upgrades.',
