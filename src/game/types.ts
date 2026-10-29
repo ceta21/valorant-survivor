@@ -11,7 +11,8 @@ export type AbilityKind =
 
 export type AbilityFx =
   | 'wind' | 'blades' | 'fire' | 'hothands' | 'heal' | 'ice' | 'holy' | 'soul' | 'grenade' | 'boom' | 'rocket'
-  | 'arrow' | 'scan' | 'electric' | 'shadow' | 'paranoia' | 'turret' | 'orbital' | 'stim';
+  | 'arrow' | 'scan' | 'electric' | 'shadow' | 'paranoia' | 'turret' | 'orbital' | 'stim'
+  | 'poison' | 'water' | 'gravity' | 'wire';
 
 export interface AbilityDef {
   id: string;

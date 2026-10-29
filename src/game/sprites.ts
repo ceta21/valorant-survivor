@@ -1,11 +1,22 @@
-// Sprites pixel-art "chibi" ORIGINALES, dibujados por código (sin imágenes externas).
+// Sprites pixel-art de los agentes, dibujados por código (sin imágenes externas).
+// Cada agente tiene 3 vistas: de frente, de espaldas y de lado (mirando a la derecha; la izquierda es el
+// espejo), con fotogramas de andar/correr y una pose de lanzar habilidad.
+import { AGENT_IMAGES } from '../data/agentImages';
 export const SW = 22;
-export const SH = 26;
+export const SH = 30;
 export type Grid = (string | null)[][];
-type Hair = 'short' | 'pony' | 'long' | 'hood' | 'cap' | 'buns' | 'crest';
+export type Dir = 'front' | 'back' | 'side';
+
+type Hair =
+  | 'short' | 'fade' | 'crest' | 'jett' | 'long' | 'longpony' | 'tied' | 'beanie' | 'fedora' | 'hood' | 'helmet'
+  | 'afro' | 'slick' | 'pigtails' | 'bun' | 'braid' | 'spiky' | 'topknot' | 'cap' | 'beret' | 'bald';
 interface Look {
-  skin: string; hair: string; style: Hair; main: string; sleeve: string; accent: string;
-  pants: string; boots: string; extra?: string; eyes?: string; dark?: boolean; acc?: string[];
+  skin: string; hair: string; style: Hair;
+  top: string; top2?: string; sleeve?: string; trim: string; pants: string; boots: string;
+  gloves?: string; hat?: string; beard?: string; eyes?: string; visor?: string;
+  /** Sin piel visible (robot, capucha oscura): manos del color de la manga. */
+  dark?: boolean;
+  acc?: string[];
 }
 const OUT = '#10151c';
 
@@ -19,77 +30,201 @@ export const RUN: Pose[] = [
   { lL: 2, lR: 0, aL: 2, aR: -1 }, { lL: 1, lR: 1, aL: 1, aR: 0 }, { lL: 0, lR: 2, aL: -1, aR: 2 }, { lL: 1, lR: 1, aL: 0, aR: 1 },
 ];
 export const CAST: Pose = { lL: 0, lR: 0, aL: 0, aR: 0, raise: true };
+
+/** Aclara (k>0) u oscurece (k<0) un color #rrggbb. */
+function shade(hex: string, k: number) {
+  const n = parseInt(hex.slice(1), 16);
+  const f = (c: number) => Math.max(0, Math.min(255, Math.round(k > 0 ? c + (255 - c) * k : c * (1 + k))));
+  return `#${[n >> 16, (n >> 8) & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join('')}`;
+}
+
+/* ------------------------------------------------------------------ aspecto de cada agente */
+const LOOKS: Record<string, Look> = {
+  brimstone: { skin: '#c98a64', hair: '#6b4a32', style: 'beret', hat: '#e0592a', beard: '#7a4a2e', top: '#3a4048', top2: '#5a6470', trim: '#e0592a', pants: '#454c56', boots: '#22262c', gloves: '#22262c', acc: ['beard'] },
+  phoenix: { skin: '#7a4a30', hair: '#1e1410', style: 'crest', hat: '#ff7a3d', top: '#efe9dc', top2: '#ff7a3d', sleeve: '#efe9dc', trim: '#ff7a3d', pants: '#2a2a33', boots: '#17171c', gloves: '#2a2a33' },
+  jett: { skin: '#f3d2b8', hair: '#eef4fa', style: 'jett', top: '#2a3a5a', top2: '#e6eef7', sleeve: '#e6eef7', trim: '#8fd9ff', pants: '#2c3e5c', boots: '#e6eef7', acc: ['scarf'] },
+  sova: { skin: '#efcfb0', hair: '#e6d29a', style: 'tied', top: '#2e4a7a', top2: '#c9d8ff', trim: '#4fd0ff', pants: '#2e3a4c', boots: '#1b2230', gloves: '#3a2a20', acc: ['cybereye'] },
+  viper: { skin: '#e8c8a8', hair: '#1e1e22', style: 'long', top: '#1f3a24', top2: '#2f5a34', trim: '#5dff9a', pants: '#18291b', boots: '#0e1a10', gloves: '#0e1a10', acc: ['respirator'] },
+  sage: { skin: '#e8c4a0', hair: '#14161c', style: 'longpony', top: '#e9f6f2', top2: '#2fb8a0', sleeve: '#e9f6f2', trim: '#4de0c0', pants: '#1f6f66', boots: '#1a3f3b' },
+  reyna: { skin: '#b97a58', hair: '#2a1036', style: 'long', top: '#3a1450', top2: '#7a2a9a', trim: '#d946ef', pants: '#1d0f26', boots: '#120a18', eyes: '#ff5cff' },
+  killjoy: { skin: '#f3d3b6', hair: '#2a2016', style: 'beanie', hat: '#2fa84a', top: '#ffd23a', top2: '#2f3440', trim: '#2fa84a', pants: '#2f3440', boots: '#1a1d24', acc: ['glasses'] },
+  cypher: { skin: '#b8845e', hair: '#2a2016', style: 'fedora', hat: '#ece6d6', top: '#d8cfb8', top2: '#3a3a40', trim: '#4fd0ff', pants: '#3a3a40', boots: '#22222a', gloves: '#22222a', acc: ['mask'] },
+  omen: { skin: '#0c0e1e', hair: '#2b2f6a', style: 'hood', hat: '#2b2f6a', top: '#1f2250', top2: '#2b2f6a', trim: '#6b7cff', pants: '#141733', boots: '#0c0e22', eyes: '#9ab0ff', dark: true },
+  fade: { skin: '#8a5a40', hair: '#141018', style: 'long', top: '#1e2438', top2: '#3a2a4a', trim: '#e8445a', pants: '#1a1e2e', boots: '#101420', gloves: '#101420' },
+  breach: { skin: '#d9a07a', hair: '#c8642a', style: 'short', beard: '#c8642a', top: '#4a4a36', top2: '#6b5a3a', sleeve: '#e07a2a', trim: '#ffb02e', pants: '#3a3a30', boots: '#22221c', gloves: '#e07a2a', acc: ['beard'] },
+  skye: { skin: '#efc6a0', hair: '#c89a5a', style: 'braid', top: '#3a6a2e', top2: '#c8a86a', trim: '#9aff6a', pants: '#2e4a26', boots: '#4a3a22' },
+  yoru: { skin: '#efd2b8', hair: '#1c2a6a', style: 'spiky', top: '#203a8a', top2: '#101828', trim: '#4fa8ff', pants: '#141c30', boots: '#0c1220', gloves: '#101828' },
+  astra: { skin: '#6a4028', hair: '#2a1a14', style: 'afro', top: '#3a1a5a', top2: '#ffd24a', trim: '#ffd24a', pants: '#2a1240', boots: '#1a0a28', acc: ['goldface'] },
+  kayo: { skin: '#5a6a80', hair: '#7a8aa0', style: 'helmet', hat: '#7a8aa0', visor: '#2fe6ff', top: '#3a4a62', top2: '#2fe6ff', trim: '#2fe6ff', pants: '#2a3448', boots: '#1a2232', gloves: '#5a6a80', eyes: '#2fe6ff', dark: true },
+  chamber: { skin: '#e8c6a6', hair: '#2a1e16', style: 'slick', top: '#16161c', top2: '#f2efe6', trim: '#d8b04a', pants: '#16161c', boots: '#0c0c10' },
+  neon: { skin: '#c88a62', hair: '#2f5aff', style: 'pigtails', top: '#1c2a6a', top2: '#2fe6ff', trim: '#fff04a', pants: '#1c2a46', boots: '#2fe6ff', acc: ['bolt'] },
+  raze: { skin: '#b8825a', hair: '#5a3418', style: 'bun', top: '#ff8a2e', top2: '#ffd24a', trim: '#2f9aff', pants: '#3a3a44', boots: '#222228', acc: ['goggles'] },
+  harbor: { skin: '#9a6a48', hair: '#141010', style: 'short', beard: '#141010', top: '#1f5a5a', top2: '#c8a86a', trim: '#4ff0e0', pants: '#22303a', boots: '#141c22', acc: ['beard'] },
+  iso: { skin: '#e2b48e', hair: '#181018', style: 'topknot', top: '#2a1a3a', top2: '#7a4ad8', trim: '#b98cff', pants: '#1a1226', boots: '#0e0a16', gloves: '#1a1226' },
+  deadlock: { skin: '#f0d8c4', hair: '#f2f2f2', style: 'short', top: '#e6e9ee', top2: '#3a4048', trim: '#9ab0c8', pants: '#3a4048', boots: '#22262c', gloves: '#3a4048' },
+  gekko: { skin: '#c8906a', hair: '#c8ff3a', style: 'spiky', top: '#5a2a8a', top2: '#ffd24a', trim: '#5dff9a', pants: '#2a2a3a', boots: '#1a1a26' },
+  tejo: { skin: '#c8906a', hair: '#8a8a8a', style: 'cap', hat: '#5a4a32', beard: '#8a8a8a', top: '#7a5a32', top2: '#c8b48a', trim: '#ffb02e', pants: '#3a3a30', boots: '#22221c', gloves: '#3a2a20', acc: ['mustache'] },
+  // exclusivos del mercado nocturno
+  eclipse: { skin: '#d8b49a', hair: '#1b1530', style: 'long', top: '#2a1f4a', top2: '#9b7bff', trim: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['goldface'] },
+  vortice: { skin: '#c98d6a', hair: '#ff3d81', style: 'pigtails', top: '#1f1f2a', top2: '#ff3d81', trim: '#ffffff', pants: '#2a2a36', boots: '#ff3d81', acc: ['goggles'] },
+  quimera: { skin: '#8a5a3a', hair: '#e8f1f8', style: 'crest', hat: '#5dff9a', beard: '#e8f1f8', top: '#24413a', top2: '#5dff9a', trim: '#ffe14a', pants: '#1a2a26', boots: '#0f1a18', acc: ['beard'] },
+};
 export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.jett).skin;
 
-
-const LOOKS: Record<string, Look> = {
-  jett: { skin: '#f3cfb3', hair: '#e8f1f8', style: 'pony', main: '#4f86c6', sleeve: '#e6eef7', accent: '#ffffff', pants: '#2c3e5c', boots: '#e6eef7', acc: ['scarf'] },
-  phoenix: { skin: '#a9714a', hair: '#2b1b14', style: 'crest', extra: '#ff7a3d', main: '#ff7a3d', sleeve: '#2a2a33', accent: '#ffd0a8', pants: '#2a2a33', boots: '#17171c' },
-  sage: { skin: '#e8c4a0', hair: '#2a2f3a', style: 'long', main: '#2fb8a0', sleeve: '#cfeee7', accent: '#ffffff', pants: '#1f6f66', boots: '#1a3f3b', acc: ['halo'] },
-  reyna: { skin: '#c98d6a', hair: '#3a1747', style: 'long', main: '#7a2a9a', sleeve: '#2a1236', accent: '#d946ef', pants: '#1d0f26', boots: '#120a18', eyes: '#ff5cff' },
-  raze: { skin: '#b8825a', hair: '#3b2418', style: 'buns', main: '#ffb02e', sleeve: '#4a3a1c', accent: '#ffffff', pants: '#3a3a44', boots: '#222228', acc: ['goggles'] },
-  sova: { skin: '#f0cfb0', hair: '#6b4a2a', style: 'cap', extra: '#3a5fbf', main: '#5c7aa8', sleeve: '#40536e', accent: '#c9d8ff', pants: '#2e3a4c', boots: '#1b2230', acc: ['beard'] },
-  neon: { skin: '#c88a62', hair: '#2fe6ff', style: 'pony', main: '#2a3f66', sleeve: '#2fe6ff', accent: '#fff04a', pants: '#1c2a46', boots: '#2fe6ff', acc: ['bolt'] },
-  omen: { skin: '#1b1f2e', hair: '#2b2f6a', style: 'hood', main: '#2b2f6a', sleeve: '#1a1d44', accent: '#6b7cff', pants: '#141733', boots: '#0c0e22', dark: true, eyes: '#ffffff' },
-  killjoy: { skin: '#f3d3b6', hair: '#f0d26a', style: 'short', main: '#ffe14a', sleeve: '#2f3440', accent: '#ffffff', pants: '#2f3440', boots: '#1a1d24', acc: ['headphones', 'glasses'] },
-  eclipse: { skin: '#d8b49a', hair: '#1b1530', style: 'long', main: '#2a1f4a', sleeve: '#9b7bff', accent: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['halo'] },
-  vortice: { skin: '#c98d6a', hair: '#ff3d81', style: 'pony', main: '#1f1f2a', sleeve: '#ff3d81', accent: '#ffffff', pants: '#2a2a36', boots: '#ff3d81', acc: ['goggles'] },
-  quimera: { skin: '#8a5a3a', hair: '#e8f1f8', style: 'crest', extra: '#5dff9a', main: '#24413a', sleeve: '#5dff9a', accent: '#ffe14a', pants: '#1a2a26', boots: '#0f1a18', acc: ['beard'] },
-  brimstone: { skin: '#d9a98a', hair: '#cfcfcf', style: 'cap', extra: '#8a6a3a', main: '#8a6a3a', sleeve: '#5a4a30', accent: '#d9a066', pants: '#4a4a3a', boots: '#2a2a22', acc: ['beard'] },
-};
-
-export function buildSprite(id: string, pose: Pose = IDLE): Grid {
+/* ------------------------------------------------------------------ dibujo */
+export function buildSprite(id: string, pose: Pose = IDLE, dir: Dir = 'front'): Grid {
   const L = LOOKS[id] ?? LOOKS.jett;
   const g: Grid = Array.from({ length: SH }, () => Array<string | null>(SW).fill(null));
   const px = (x: number, y: number, c: string | null) => { if (x >= 0 && x < SW && y >= 0 && y < SH) g[y][x] = c; };
   const rect = (x: number, y: number, w: number, h: number, c: string | null) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(x + i, y + j, c); };
 
-  // piernas y botas
-  rect(8, 20, 2, Math.max(0, 3 - pose.lL), L.pants); rect(12, 20, 2, Math.max(0, 3 - pose.lR), L.pants);
-  rect(7, 23 - pose.lL, 3, 2, L.boots); rect(12, 23 - pose.lR, 3, 2, L.boots);
-  // brazos, manos, torso, cinturón
-  const hand = L.dark ? L.sleeve : L.skin;
-  if (pose.raise) {
-    rect(4, 9, 2, 5, L.sleeve); rect(16, 9, 2, 5, L.sleeve); rect(4, 7, 2, 2, hand); rect(16, 7, 2, 2, hand);
-    rect(5, 14, 2, 3, L.sleeve); rect(15, 14, 2, 3, L.sleeve);
-  } else {
-    rect(5, 14 + pose.aL, 2, 5, L.sleeve); rect(15, 14 + pose.aR, 2, 5, L.sleeve);
-    rect(5, 19 + pose.aL, 2, 2, hand); rect(15, 19 + pose.aR, 2, 2, hand);
-  }
-  rect(7, 13, 8, 7, L.main);
-  rect(7, 18, 8, 1, L.accent);
-  rect(9, 12, 4, 1, L.dark ? L.hair : L.skin);
-  // capucha (detrás de la cara) o cabeza
-  if (L.style === 'hood') {
-    rect(5, 2, 12, 11, L.hair);
-    rect(7, 5, 8, 7, L.skin);
-  } else {
-    rect(6, 3, 10, 9, L.skin);
-  }
-  // pelo
-  switch (L.style) {
-    case 'short': rect(6, 2, 10, 3, L.hair); rect(6, 5, 1, 2, L.hair); rect(15, 5, 1, 2, L.hair); break;
-    case 'pony': rect(6, 2, 10, 3, L.hair); rect(6, 5, 1, 2, L.hair); rect(15, 5, 1, 2, L.hair); rect(16, 3, 2, 6, L.hair); rect(17, 9, 1, 3, L.hair); break;
-    case 'long': rect(6, 2, 10, 3, L.hair); rect(5, 4, 2, 9, L.hair); rect(15, 4, 2, 9, L.hair); break;
-    case 'buns': rect(6, 2, 10, 3, L.hair); rect(6, 5, 1, 2, L.hair); rect(15, 5, 1, 2, L.hair); rect(5, 1, 2, 2, L.hair); rect(15, 1, 2, 2, L.hair); break;
-    case 'crest': rect(6, 2, 10, 3, L.hair); rect(6, 5, 1, 2, L.hair); rect(15, 5, 1, 2, L.hair); rect(8, 0, 6, 3, L.extra ?? L.hair); break;
-    case 'cap': rect(6, 2, 10, 3, L.extra ?? L.hair); rect(5, 5, 12, 1, L.extra ?? L.hair); rect(6, 6, 1, 2, L.hair); rect(15, 6, 1, 2, L.hair); break;
-    default: break;
-  }
-  // cara
+  const sleeve = L.sleeve ?? L.top, hand = L.gloves ?? (L.dark ? sleeve : L.skin);
+  const top2 = L.top2 ?? shade(L.top, -0.2), hat = L.hat ?? L.hair, beard = L.beard ?? L.hair;
+  const skinD = shade(L.skin, -0.18), topD = shade(L.top, -0.22), pantsD = shade(L.pants, -0.25), sleeveD = shade(sleeve, -0.22);
   const eye = L.eyes ?? '#1a1f2b';
-  rect(8, 7, 1, 2, eye); rect(13, 7, 1, 2, eye);
-  if (!L.dark) { px(7, 9, '#ff9a9a'); px(14, 9, '#ff9a9a'); px(10, 10, '#7a3b3b'); px(11, 10, '#7a3b3b'); }
-  // accesorios
-  for (const a of L.acc ?? []) {
-    if (a === 'goggles') { rect(6, 4, 10, 1, '#2a2a2a'); rect(7, 3, 3, 2, '#ffd37a'); rect(12, 3, 3, 2, '#ffd37a'); }
-    if (a === 'headphones') { rect(5, 5, 1, 5, '#222a33'); rect(16, 5, 1, 5, '#222a33'); rect(6, 2, 10, 1, '#333d4a'); rect(4, 6, 1, 3, '#ffe14a'); rect(17, 6, 1, 3, '#ffe14a'); }
-    if (a === 'glasses') { rect(7, 6, 3, 1, '#222'); rect(12, 6, 3, 1, '#222'); rect(10, 7, 2, 1, '#222'); }
-    if (a === 'beard') { rect(6, 10, 10, 2, L.hair); px(10, 10, '#d9a98f'); px(11, 10, '#d9a98f'); }
-    if (a === 'scarf') rect(7, 12, 8, 2, '#f2f6fa');
-    if (a === 'bolt') for (const [x, y] of [[12, 14], [11, 15], [12, 15], [10, 16], [11, 16], [11, 17]]) px(x, y, L.accent);
-    if (a === 'halo') rect(8, 0, 6, 1, '#ffe9a0');
+  const has = (a: string) => (L.acc ?? []).includes(a);
+
+  if (dir === 'side') drawSide(); else drawFrontBack(dir === 'back');
+
+  /* ---------------- de frente / de espaldas */
+  function drawFrontBack(back: boolean) {
+    // piernas y botas (las rodillas suben al andar)
+    const legL = 8 - pose.lL, legR = 8 - pose.lR;
+    rect(7, 17, 3, legL, L.pants); rect(12, 17, 3, legR, L.pants);
+    rect(9, 17, 1, legL, pantsD); rect(14, 17, 1, legR, pantsD);
+    rect(6, 17 + legL, 4, 2, L.boots); rect(12, 17 + legR, 4, 2, L.boots);
+    // brazos
+    if (pose.raise) {
+      rect(4, 5, 2, 6, sleeve); rect(16, 5, 2, 6, sleeve); rect(4, 3, 2, 2, hand); rect(16, 3, 2, 2, hand);
+    } else {
+      rect(4, 11 + pose.aL, 2, 6, sleeve); rect(16, 11 + pose.aR, 2, 6, sleeve);
+      rect(4, 11 + pose.aL, 1, 6, sleeveD); rect(17, 11 + pose.aR, 1, 6, sleeveD);
+      rect(4, 17 + pose.aL, 2, 2, hand); rect(16, 17 + pose.aR, 2, 2, hand);
+    }
+    // torso
+    rect(6, 10, 10, 2, L.top); rect(7, 12, 8, 5, L.top);
+    rect(7, 12, 1, 5, topD); rect(14, 12, 1, 5, topD);
+    if (back) rect(8, 11, 6, 5, shade(L.top, -0.12));     // espalda: panel liso
+    else { rect(9, 11, 4, 5, top2); px(9, 11, L.top); px(12, 11, L.top); }  // frente: prenda interior
+    rect(7, 16, 8, 1, L.trim);                              // cinturón
+    rect(10, 9, 2, 1, L.dark ? sleeve : skinD);             // cuello
+    head(back);
   }
+
+  function head(back: boolean) {
+    const st = L.style;
+    const covered = ['hood', 'helmet', 'beanie', 'fedora', 'cap', 'beret', 'bald'].includes(st);
+    // base de la cabeza: cara de frente, pelo de espaldas
+    if (st === 'hood') { rect(6, 0, 10, 10, hat); rect(5, 4, 1, 6, hat); rect(16, 4, 1, 6, hat); if (!back) rect(8, 3, 6, 6, L.skin); }
+    else if (st === 'helmet') { rect(7, 0, 8, 9, hat); rect(7, 0, 1, 9, shade(hat, -0.2)); if (!back) { rect(8, 3, 6, 2, L.visor ?? '#2fe6ff'); rect(9, 6, 4, 2, shade(hat, -0.3)); } }
+    else {
+      // de espaldas se ve el pelo (también bajo gorras y sombreros), salvo si es calvo
+      rect(7, 2, 8, 7, back && st !== 'bald' ? L.hair : L.skin);
+      if (back && covered) rect(7, 8, 8, 1, skinD);
+      if (!back) { px(7, 5, skinD); px(14, 5, skinD); }
+    }
+    // peinados y sombreros
+    switch (st) {
+      case 'short': case 'fade': case 'crest': case 'jett': case 'tied': case 'slick': case 'bun': case 'braid': case 'spiky': case 'topknot': case 'pigtails': case 'longpony':
+        rect(7, 1, 8, 2, L.hair); if (!back) { px(7, 3, L.hair); px(14, 3, L.hair); }
+        break;
+      case 'long': rect(7, 1, 8, 2, L.hair); rect(6, 2, 2, 9, L.hair); rect(14, 2, 2, 9, L.hair); if (back) rect(7, 2, 8, 9, L.hair); break;
+      case 'afro': rect(5, 0, 12, 5, L.hair); rect(4, 2, 1, 3, L.hair); rect(17, 2, 1, 3, L.hair); px(6, 1, '#ffd24a'); px(15, 2, '#ffd24a'); px(10, 0, '#ffd24a'); if (back) rect(6, 5, 10, 3, L.hair); break;
+      case 'beanie': rect(6, 0, 10, 3, hat); rect(6, 2, 10, 1, shade(hat, -0.25)); px(10, 0, shade(hat, 0.3)); break;
+      case 'fedora': rect(7, 0, 8, 2, hat); rect(7, 1, 8, 1, '#3a3a40'); rect(5, 2, 12, 1, shade(hat, -0.15)); break;
+      case 'cap': rect(7, 0, 8, 2, hat); if (!back) rect(6, 2, 10, 1, shade(hat, -0.3)); else rect(7, 2, 8, 1, shade(hat, -0.3)); break;
+      case 'beret': rect(6, 0, 9, 2, hat); px(15, 1, hat); px(5, 1, shade(hat, -0.2)); rect(7, 2, 8, 1, shade(hat, -0.35)); break;
+    }
+    if (st === 'fade') rect(8, 0, 6, 1, L.hair);
+    if (st === 'crest') { rect(9, 0, 4, 1, hat); px(10, 0, shade(hat, 0.3)); }
+    if (st === 'spiky') { for (const x of [7, 9, 11, 13]) px(x, 0, L.hair); }
+    if (st === 'topknot') rect(10, 0, 2, 1, L.hair);
+    if (st === 'bun') rect(9, 0, 4, 1, L.hair);
+    if (st === 'slick') px(9, 1, shade(L.hair, 0.35));
+    if (st === 'jett') { if (back) rect(10, 8, 2, 2, L.hair); else { rect(15, 3, 1, 3, L.hair); px(16, 4, L.hair); } }
+    if (st === 'tied') { if (back) rect(10, 0, 2, 2, L.hair); else rect(14, 1, 2, 2, L.hair); }
+    if (st === 'longpony') { if (back) rect(10, 8, 2, 6, L.hair); else { rect(7, 2, 2, 1, L.hair); rect(15, 3, 1, 5, L.hair); } }
+    if (st === 'braid') { if (back) rect(10, 8, 2, 6, L.hair); else rect(15, 3, 1, 7, L.hair); }
+    if (st === 'pigtails') { rect(4, 2, 2, 7, L.hair); rect(16, 2, 2, 7, L.hair); }
+    if (back) { if (has('goggles')) rect(7, 3, 8, 1, '#2a2a2a'); if (has('scarf')) rect(7, 9, 8, 2, '#f2f6fa'); return; }
+    // cara (de frente)
+    if (st !== 'helmet') {
+      px(9, 5, eye); px(12, 5, eye);
+      if (!L.dark) { px(10, 7, skinD); px(11, 7, skinD); }
+    }
+    if (has('beard')) { rect(7, 7, 8, 2, beard); px(7, 6, beard); px(14, 6, beard); px(10, 7, shade(L.skin, -0.35)); px(11, 7, shade(L.skin, -0.35)); }
+    if (has('mustache')) rect(9, 7, 4, 1, beard);
+    if (has('respirator')) { rect(8, 6, 6, 3, '#2f5a34'); px(9, 7, '#5dff9a'); px(12, 7, '#5dff9a'); }
+    if (has('mask')) { rect(7, 5, 8, 4, '#efe9da'); px(9, 5, '#4fd0ff'); px(12, 5, '#4fd0ff'); rect(9, 7, 4, 1, '#c8c0aa'); }
+    if (has('goggles')) { rect(7, 3, 8, 1, '#2a2a2a'); rect(8, 3, 2, 1, '#ffd37a'); rect(12, 3, 2, 1, '#ffd37a'); }
+    if (has('glasses')) { px(8, 5, '#111'); px(10, 5, '#111'); px(11, 5, '#111'); px(13, 5, '#111'); px(9, 5, '#9adfff'); px(12, 5, '#9adfff'); }
+    if (has('cybereye')) px(12, 5, '#4fd0ff');
+    if (has('goldface')) { px(8, 6, '#ffd24a'); px(13, 6, '#ffd24a'); }
+    if (has('scarf')) rect(7, 9, 8, 2, '#f2f6fa');
+    if (has('bolt')) for (const [x, y] of [[11, 12], [10, 13], [11, 13], [10, 14]]) px(x, y, L.trim);
+  }
+
+  /* ---------------- de lado (mirando a la derecha) */
+  function drawSide() {
+    // zancada: la pierna que avanza va adelante y la otra atrás
+    const stride = pose.lL - pose.lR;
+    const nearX = 10 + Math.sign(stride), farX = 10 - Math.sign(stride);
+    rect(farX, 17, 3, 8 - pose.lR, pantsD); rect(farX - 1 + (stride < 0 ? 1 : 0), 25 - pose.lR, 4, 2, shade(L.boots, -0.2));
+    // brazo de atrás
+    if (!pose.raise) { rect(9 - pose.aR, 11, 2, 6, sleeveD); rect(9 - pose.aR, 17, 2, 2, shade(hand, -0.2)); }
+    // torso
+    rect(8, 10, 6, 7, L.top); rect(8, 10, 1, 7, topD); rect(12, 11, 2, 5, top2); rect(8, 16, 6, 1, L.trim);
+    rect(10, 9, 2, 1, L.dark ? sleeve : skinD);
+    // pierna de delante
+    rect(nearX, 17, 3, 8 - pose.lL, L.pants); rect(nearX + (stride > 0 ? 0 : -1), 25 - pose.lL, 4, 2, L.boots); px(nearX + 3 + (stride > 0 ? 0 : -1), 26 - pose.lL, L.boots);
+    // brazo de delante
+    if (pose.raise) { rect(11, 4, 2, 7, sleeve); rect(11, 2, 2, 2, hand); }
+    else { rect(10 + pose.aL, 11, 2, 6, sleeve); rect(10 + pose.aL, 17, 2, 2, hand); }
+    sideHead();
+  }
+
+  function sideHead() {
+    const st = L.style;
+    if (st === 'hood') { rect(7, 0, 8, 10, hat); rect(11, 3, 4, 6, L.skin); px(13, 5, eye); return; }
+    if (st === 'helmet') { rect(8, 0, 7, 9, hat); rect(8, 0, 1, 9, shade(hat, -0.2)); rect(12, 3, 3, 2, L.visor ?? '#2fe6ff'); rect(12, 6, 3, 2, shade(hat, -0.3)); return; }
+    rect(9, 2, 6, 7, L.skin); px(15, 5, L.skin); px(10, 5, skinD);   // cara, nariz y oreja
+    // pelo detrás y arriba
+    const back = () => { rect(8, 1, 6, 2, L.hair); rect(8, 3, 2, 4, L.hair); };
+    switch (st) {
+      case 'short': case 'fade': case 'crest': case 'jett': case 'tied': case 'slick': case 'bun': case 'braid': case 'spiky': case 'topknot': case 'pigtails': case 'longpony': back(); break;
+      case 'long': back(); rect(7, 2, 3, 9, L.hair); break;
+      case 'afro': rect(6, 0, 9, 6, L.hair); px(7, 1, '#ffd24a'); px(12, 0, '#ffd24a'); break;
+      case 'beanie': rect(8, 0, 7, 3, hat); rect(8, 2, 7, 1, shade(hat, -0.25)); rect(8, 3, 2, 3, L.hair); break;
+      case 'fedora': rect(8, 0, 7, 2, hat); rect(8, 1, 7, 1, '#3a3a40'); rect(6, 2, 11, 1, shade(hat, -0.15)); rect(8, 3, 2, 3, L.hair); break;
+      case 'cap': rect(8, 0, 7, 2, hat); rect(14, 2, 3, 1, shade(hat, -0.3)); rect(8, 2, 2, 3, L.hair); break;
+      case 'beret': rect(8, 0, 7, 2, hat); px(7, 1, hat); rect(8, 2, 6, 1, shade(hat, -0.35)); rect(8, 3, 2, 3, L.hair); break;
+      default: break;
+    }
+    if (st === 'fade') rect(9, 0, 4, 1, L.hair);
+    if (st === 'crest') { rect(10, 0, 4, 1, hat); px(13, 0, shade(hat, 0.3)); }
+    if (st === 'spiky') { px(8, 0, L.hair); px(10, 0, L.hair); px(12, 0, L.hair); px(7, 1, L.hair); }
+    if (st === 'topknot') rect(9, 0, 2, 1, L.hair);
+    if (st === 'bun') rect(7, 0, 3, 2, L.hair);
+    if (st === 'jett') rect(7, 3, 1, 3, L.hair);
+    if (st === 'tied') rect(6, 2, 2, 2, L.hair);
+    if (st === 'longpony') { rect(7, 3, 1, 3, L.hair); rect(6, 5, 1, 5, L.hair); }
+    if (st === 'braid') rect(7, 3, 1, 8, L.hair);
+    if (st === 'pigtails') rect(7, 3, 1, 7, L.hair);
+    // cara de perfil
+    px(13, 5, eye);
+    if (!L.dark) px(14, 7, skinD);
+    if (has('beard')) { rect(11, 6, 4, 3, beard); px(14, 7, shade(L.skin, -0.35)); }
+    if (has('mustache')) rect(13, 7, 2, 1, beard);
+    if (has('respirator')) { rect(12, 6, 3, 3, '#2f5a34'); px(14, 7, '#5dff9a'); }
+    if (has('mask')) { rect(11, 5, 4, 4, '#efe9da'); px(13, 5, '#4fd0ff'); }
+    if (has('goggles')) { rect(8, 3, 6, 1, '#2a2a2a'); rect(13, 3, 2, 1, '#ffd37a'); }
+    if (has('glasses')) { rect(12, 5, 3, 1, '#111'); px(13, 5, '#9adfff'); }
+    if (has('cybereye')) px(13, 5, '#4fd0ff');
+    if (has('goldface')) px(13, 6, '#ffd24a');
+    if (has('scarf')) rect(9, 9, 5, 2, '#f2f6fa');
+    if (has('bolt')) px(12, 12, L.trim);
+  }
+
   // contorno automático
   const out: Grid = g.map(r => r.slice());
   for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) {
@@ -99,7 +234,43 @@ export function buildSprite(id: string, pose: Pose = IDLE): Grid {
   return out;
 }
 
-/** Runs horizontales del mismo color (para dibujar SVG con pocos nodos). */
+/* ------------------------------------------------------------------ agentes sacados de su hoja de sprites */
+// Fotogramas recortados de la imagen del agente (scripts/cut-agent.ts) y guardados con sus colores exactos en
+// public/agents/<id>.png: una fila por vista (frente, espalda, lado) y una columna por paso. Ya traen su
+// contorno y su arma. "side" mira a la derecha; la izquierda es el espejo.
+const ROW: Record<Dir, number> = { front: 0, back: 1, side: 2 };
+const sheets = new Map<string, any>();   // id → imagen cargada (null mientras carga)
+/** Dirección de la hoja de un agente. */
+export const agentSheetUrl = (id: string) => `${(import.meta as any).env?.BASE_URL ?? './'}agents/${id}.png`;
+/** Columnas de la hoja (el máximo de pasos entre las tres vistas). */
+export const sheetCols = (id: string) => { const A = AGENT_IMAGES[id]; return Math.max(A.front, A.back, A.side); };
+/** Da la hoja ya cargada (las herramientas de Node la pasan a mano). */
+export function setAgentSheet(id: string, img: any) {
+  sheets.set(id, img);
+  for (const k of [...cache.keys()]) if (k.startsWith(id + '@')) cache.delete(k);
+}
+function sheetOf(id: string) {
+  if (!sheets.has(id) && typeof Image !== 'undefined') {
+    sheets.set(id, null);
+    const im = new Image();
+    im.onload = () => setAgentSheet(id, im);
+    im.src = agentSheetUrl(id);
+  }
+  return sheets.get(id) ?? null;
+}
+/** Empieza a cargar todas las hojas (al arrancar el juego, para que estén listas al jugar). */
+export function preloadAgentSheets() { for (const id of Object.keys(AGENT_IMAGES)) sheetOf(id); }
+/** El agente usa los fotogramas de su imagen (y no el muñeco dibujado por código). */
+export const hasImage = (id: string) => id in AGENT_IMAGES;
+/** Tamaño del sprite en píxeles y unidades de mundo por píxel. */
+export function spriteSize(id: string) {
+  const A = AGENT_IMAGES[id];
+  return A ? { w: A.w, h: A.h, px: A.px } : { w: SW, h: SH, px: 2 };
+}
+/** Número de fotogramas de andar de una vista (1 = se anima con la pose). */
+export const walkFrames = (id: string, dir: Dir) => AGENT_IMAGES[id]?.[dir] ?? 1;
+
+/** Runs horizontales del mismo color (para dibujar SVG con pocos nodos). Vista de frente del muñeco dibujado. */
 export function spriteRuns(id: string): { x: number; y: number; w: number; c: string }[] {
   const g = buildSprite(id), runs: { x: number; y: number; w: number; c: string }[] = [];
   for (let y = 0; y < SH; y++) {
@@ -118,14 +289,27 @@ export function spriteRuns(id: string): { x: number; y: number; w: number; c: st
 
 const cache = new Map<string, any>();
 /** Sprite ya pintado en un canvas (escala entera, sin suavizado). */
-export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE) {
-  const key = `${id}@${scale}|${pose.lL}${pose.lR}${pose.aL}${pose.aR}${pose.raise ? 1 : 0}`;
+export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE, dir: Dir = 'front', frame = 0) {
+  const { w: GW, h: GH } = spriteSize(id);
+  if (hasImage(id)) {
+    const col = frame % walkFrames(id, dir), key = `${id}@${scale}|${dir}|f${col}`, sheet = sheetOf(id);
+    let c = cache.get(key);
+    if (c) return c;
+    c = make(GW * scale, GH * scale);
+    if (!sheet) return c;   // aún cargando: transparente (sin guardar)
+    const g = c.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.drawImage(sheet, col * GW, ROW[dir] * GH, GW, GH, 0, 0, GW * scale, GH * scale);
+    cache.set(key, c);
+    return c;
+  }
+  const key = `${id}@${scale}|${dir}|${pose.lL}${pose.lR}${pose.aL}${pose.aR}${pose.raise ? 1 : 0}`;
   let c = cache.get(key);
   if (c) return c;
-  c = make(SW * scale, SH * scale);
+  c = make(GW * scale, GH * scale);
   const g = c.getContext('2d');
-  const grid = buildSprite(id, pose);
-  for (let y = 0; y < SH; y++) for (let x = 0; x < SW; x++) {
+  const grid = buildSprite(id, pose, dir);
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
     const col = grid[y][x];
     if (col) { g.fillStyle = col; g.fillRect(x * scale, y * scale, scale, scale); }
   }

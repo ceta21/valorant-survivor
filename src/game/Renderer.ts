@@ -1,7 +1,7 @@
 import { GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { WEAPONS } from '../data/weapons';
-import { SW, SH, spriteCanvas, agentSkin, IDLE, WALK, RUN, CAST, Pose } from './sprites';
+import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
 import { renderChunk, CPX } from './MapArt';
 import { CS } from './World';
 import { gunCanvas, gunSize } from './weaponSprites';
@@ -39,6 +39,7 @@ export class Renderer {
   constructor(ctx: Ctx, makeCanvas: MakeCanvas) {
     this.ctx = ctx;
     this.makeCanvas = makeCanvas;
+    preloadAgentSheets();
   }
 
   /** w,h = tamaño CSS del lienzo. Devuelve el tamaño de vista en unidades del mundo. */
@@ -148,9 +149,10 @@ export class Renderer {
           drawSprite(g, sprite('rocket', 'fire', this.makeCanvas), fx, fy, PX, ang);
         }
       } else {
-        g.fillStyle = hexA(s.color, 0.12 + k * 0.22); g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.fill();
-        g.strokeStyle = hexA(s.color, 0.9); g.lineWidth = 2; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 7); g.stroke();
-        g.beginPath(); g.arc(s.x, s.y, s.r * k, 0, 7); g.stroke();
+        g.globalAlpha = 0.5 + k * 0.5;
+        pixelCircle(g, s.x, s.y, s.r, Math.floor(e.time * (6 + k * 14)) % 2 ? s.color : '#ffffff', PX, 2, e.time);
+        pixelCircle(g, s.x, s.y, Math.max(6, s.r * k), s.color, PX, 1, -e.time * 2);
+        g.globalAlpha = 1;
       }
     }
     // obuses de los Artilleros: zona de impacto que parpadea más rápido y el proyectil volando
@@ -168,7 +170,7 @@ export class Renderer {
       drawSprite(g, sprite('grenade', 'fire', this.makeCanvas), fx, fy, PX, Math.floor(k * 10) * (Math.PI / 2));
     }
     // efectos de habilidad a ras de suelo (campos)
-    for (const v of e.vfx) if (v.kind === 'field' && vis(v.x, v.y, v.r)) pixelField(g, v.x, v.y, v.r, v.dur - v.t, v.seed, v.pal, this.makeCanvas, PX, e.time);
+    for (const v of e.vfx) if (v.kind === 'field' && vis(v.x, v.y, v.r)) pixelField(g, v.x, v.y, v.r, v.dur - v.t, v.seed, v.pal, this.makeCanvas, PX, e.time, v.sprite);
     // telegráficos de jefes
     for (const en of e.enemies) {
       const a = en.atk;
@@ -406,14 +408,20 @@ export class Renderer {
     if (casting) pose = CAST;
     else if (dashing) pose = RUN[0];
     else if (moving) { frame = Math.floor(t * (sprint ? 18 : 11)) % 4; pose = (sprint ? RUN : WALK)[frame]; }
-    const k = PX, dw = SW * k, dh = SH * k;
-    const flip = Math.cos(p.face) < 0;
+    const sz = spriteSize(a.id), dw = sz.w * sz.px, dh = sz.h * sz.px;
+    // agentes con hoja de sprites: fotogramas propios de andar (el arma equipada se pinta igual encima)
+    const imgFrame = moving || dashing ? Math.floor(t * (sprint || dashing ? 12 : 8)) : 0;
+    // orientación según hacia dónde se mueve: de espaldas, de frente o de lado (izquierda = espejo)
+    const mvx = dashing ? p.dashVx : e.inputMove.x, mvy = dashing ? p.dashVy : e.inputMove.y;
+    const dir: Dir = !(moving || dashing) ? 'front' : Math.abs(mvy) > Math.abs(mvx) * 1.1 ? (mvy < 0 ? 'back' : 'front') : 'side';
+    const flip = dir === 'side' && mvx < 0;
+    const gunFlip = Math.cos(p.face) < 0;   // el arma apunta al enemigo, aunque el cuerpo mire a otro lado
     const bob = casting ? -3 : moving ? (frame % 2) * 2 : Math.sin(t * 3) * 0.8;
     let lean = moving ? Math.max(-1, Math.min(1, e.inputMove.x)) * (sprint ? 0.16 : 0.07) : 0;
     let sx = 1, sy = moving || casting ? 1 : 1 + Math.sin(t * 3) * 0.018;
     if (dashing) { lean = Math.sign(p.dashVx) * 0.3; sx = 1.2; sy = 0.88; }
     if (casting) { const s = 1 + Math.sin(castK * Math.PI) * 0.12; sx = s; sy = s; }
-    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose);
+    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame);
     const baseY = p.y + 15 - bob;
     const drawBody = (ox: number, oy: number, alpha: number) => {
       g.save(); g.globalAlpha = alpha; g.translate(p.x + ox, baseY + oy); g.rotate(lean);
@@ -437,7 +445,8 @@ export class Renderer {
       g.beginPath(); g.arc(p.x, baseY - dh * 0.5, 14 + castK * 46, 0, 7); g.stroke();
       g.globalCompositeOperation = 'source-over';
     }
-    const aimUp = Math.sin(p.face) < -0.4;
+    // de espaldas o apuntando hacia arriba, el arma queda detrás del cuerpo
+    const aimUp = Math.sin(p.face) < -0.4 || dir === 'back';
     const drawGun = () => {
       if (casting || dashing) return;
       const gs = gunSize(e.held), gc = gunCanvas(e.held, WEAPONS[e.held].color, this.makeCanvas, 3);
@@ -446,7 +455,7 @@ export class Renderer {
       g.save(); g.globalAlpha = blink ? 0.4 : 1;
       g.translate(p.x, baseY - dh * 0.42 - (moving ? (frame % 2) * 1 : 0));
       let ang = p.face;
-      if (flip) { g.scale(-1, 1); ang = Math.PI - ang; }
+      if (gunFlip) { g.scale(-1, 1); ang = Math.PI - ang; }
       g.rotate(ang);
       g.imageSmoothingEnabled = false;
       g.drawImage(gc, 2 - recoil, -gh * 0.45, gw, gh);
@@ -468,7 +477,7 @@ export class Renderer {
 
   /** Jugador caído: silueta translúcida y quieta hasta la siguiente oleada. */
   private drawGhost(g: Ctx, e: GameEngine, pl: { agent: { id: string }; body: { x: number; y: number } }) {
-    const spr = spriteCanvas(pl.agent.id, this.makeCanvas, 3, IDLE), dw = SW * PX, dh = SH * PX;
+    const sz = spriteSize(pl.agent.id), spr = spriteCanvas(pl.agent.id, this.makeCanvas, 3, IDLE), dw = sz.w * sz.px, dh = sz.h * sz.px;
     g.save(); g.globalAlpha = 0.3 + 0.1 * Math.sin(e.time * 4);
     g.imageSmoothingEnabled = false;
     g.drawImage(spr, Math.round(pl.body.x / PX) * PX - dw / 2, Math.round((pl.body.y + 15) / PX) * PX - dh, dw, dh);

@@ -19,6 +19,10 @@ export const PAL: Record<string, string[]> = {
   stim: ['#4a3a20', '#a08050', '#d9a066', '#f4dcbc', '#ffffff'],
   turret: ['#3a3418', '#a08a20', '#ffe14a', '#fff4b0', '#ffffff'],
   smoke: ['#1a1a1f', '#2e2e36', '#4a4a55', '#6e6e7a', '#9a9aa6'],
+  poison: ['#0f2a14', '#1f6a2a', '#3fbf5a', '#9aff9a', '#e2ffe2'],
+  water: ['#0a2a3a', '#1f6a8a', '#4ff0e0', '#c4fff8', '#ffffff'],
+  gravity: ['#14081f', '#3a1a5a', '#9b5cff', '#e2c4ff', '#ffffff'],
+  wire: ['#1a2a3a', '#4a6a8a', '#9ab0c8', '#e6e9ee', '#ffffff'],
 };
 
 /* ------------------------------------------------------------------ sprites */
@@ -253,11 +257,11 @@ export function pixelBeam(g: Ctx, x: number, y: number, w: number, k: number, pa
 }
 
 /** Campo persistente con cristales (Orbe ralentizador). */
-export function pixelField(g: Ctx, x: number, y: number, R: number, life: number, seed: number, pal: string, make: Make, px: number, time: number) {
+export function pixelField(g: Ctx, x: number, y: number, R: number, life: number, seed: number, pal: string, make: Make, px: number, time: number, spriteName = 'crystal') {
   const a = Math.min(1, life * 3);
   g.globalAlpha = a * 0.9;
   pixelCircle(g, x, y, R, PAL[pal][2], px, 2, time * 0.4);
-  const img = sprite('crystal', pal, make), n = Math.round(R / 16);
+  const img = sprite(spriteName, pal, make), n = Math.round(R / (spriteName === 'crystal' ? 16 : 22));
   for (let i = 0; i < n; i++) {
     const ang = hash(i, seed, 1) * Math.PI * 2, d = Math.sqrt(hash(i, seed, 2)) * R * 0.9;
     const bob = Math.round(Math.sin(time * 3 + i) * 1.5) * px;

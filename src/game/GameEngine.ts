@@ -1312,7 +1312,7 @@ export class GameEngine {
       case 'turret': {
         const n = ab.count ?? 1;
         // la vida crece con el daño de los enemigos para que aguante igual durante toda la partida
-        const hp = (ult ? 150 : 110) * this.dmgScale;
+        const hp = (ult ? 110 : 75) * this.dmgScale;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2 + rnd(0.5);
           const o = { x: p.x + Math.cos(a) * 44, y: p.y + Math.sin(a) * 44 };
@@ -1414,6 +1414,7 @@ export class GameEngine {
         this.addVfx('blast', 'soul', p.x, p.y, 70 * big, 0.5);
         break;
       case 'boom':
+        if (ab.kind !== 'nova') break;   // los golpes de área estallan en su objetivo (updateStrikes)
         this.addVfx('blast', 'boom', p.x, p.y, R, 0.55);
         this.addVfx('blast', 'smoke', p.x, p.y, R * 1.15, 1.1);
         break;
@@ -1433,6 +1434,23 @@ export class GameEngine {
         this.addVfx('blast', 'stim', p.x, p.y, 60, 0.4, { kind: 'ring' });
         rise('chevron', 'stim', 8, 30, 0.9);
         break;
+      case 'poison':
+        if (ab.kind === 'nova') {
+          this.addVfx('blast', 'poison', p.x, p.y, R, 0.6);
+          this.addVfx('field', 'poison', p.x, p.y, R, ab.duration ?? 3, { sprite: 'flame' });
+        }
+        break;
+      case 'water':
+        if (ab.kind === 'heal') { this.addVfx('blast', 'water', p.x, p.y, 70, 0.5, { kind: 'ring' }); rise('cross', 'water', 8, 30, 0.9); }
+        else if (ab.kind === 'nova') { this.addVfx('blast', 'water', p.x, p.y, R, 0.6); this.addVfx('ring', 'water', p.x, p.y, R * 0.7, 0.8); }
+        break;
+      case 'gravity':
+        if (ab.kind === 'nova') { this.addVfx('ring', 'gravity', p.x, p.y, R, 0.7); this.addVfx('blast', 'gravity', p.x, p.y, R * 0.6, 0.6); }
+        break;
+      case 'wire':
+        if (ab.kind === 'heal') this.addVfx('ring', 'wire', p.x, p.y, 60, 0.6);
+        else { this.addVfx('ring', 'wire', p.x, p.y, R, 0.8); this.addVfx('ring', 'wire', p.x, p.y, R * 0.55, 0.6); if (ab.slow) this.addVfx('field', 'wire', p.x, p.y, R, ab.duration ?? 3); }
+        break;
       // grenade / rocket / orbital: se dibujan en vuelo (strikes) y estallan en updateStrikes
     }
   }
@@ -1448,6 +1466,10 @@ export class GameEngine {
         if (s.fx === 'orbital') {
           this.addVfx('beam', 'orbital', s.x, s.y, s.r * 0.8, 0.45);
           this.addVfx('blast', 'orbital', s.x, s.y, s.r, 0.6);
+        } else if (s.fx === 'poison' || s.fx === 'water' || s.fx === 'gravity' || s.fx === 'boom') {
+          this.addVfx('blast', s.fx, s.x, s.y, s.r, 0.55);
+          if (s.fx === 'poison') this.addVfx('field', 'poison', s.x, s.y, s.r * 0.8, 1.6, { sprite: 'flame' });
+          if (s.fx === 'boom') this.addVfx('blast', 'smoke', s.x, s.y, s.r * 1.1, 0.9);
         } else if (s.fx === 'grenade' || s.fx === 'rocket') {
           this.addVfx('blast', 'boom', s.x, s.y, s.r, 0.55);
           if (s.fx === 'rocket') this.addVfx('blast', 'smoke', s.x, s.y, s.r * 1.1, 1);

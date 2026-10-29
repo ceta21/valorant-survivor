@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-29 · versión de Novedades: v1.12
+> Última generación: 2026-10-29 · versión de Novedades: v1.13
 
 ## Agentes base
 
@@ -19,6 +19,20 @@
 | `omen` | Omen | Controlador | 100 | 188 | 10 | 900 | Sombra | cdr +0.15 |
 | `killjoy` | Killjoy | Centinela | 100 | 180 | 9 | 900 | Ingeniera | drones +1 |
 | `brimstone` | Brimstone | Controlador | 120 | 178 | 11 | 1000 | Comandante | area +0.15, dmg +0.1 |
+| `viper` | Viper | Controladora | 105 | 186 | 10 | 1000 | Toxina | burn +3, area +0.1 |
+| `cypher` | Cypher | Centinela | 100 | 184 | 10 | 900 | Vigilancia | range +0.2, crit +0.05 |
+| `fade` | Fade | Iniciadora | 100 | 188 | 10 | 1000 | Terror | ult +0.2, xp +0.1 |
+| `breach` | Breach | Iniciador | 125 | 178 | 11 | 1000 | Brazos biónicos | area +0.2, dmg +0.05 |
+| `skye` | Skye | Iniciadora | 105 | 190 | 9 | 900 | Naturaleza | regen +1, heal +0.2 |
+| `yoru` | Yoru | Duelista | 95 | 200 | 11 | 1100 | Dimensional | cdr +0.1, speed +10 |
+| `astra` | Astra | Controladora | 100 | 182 | 10 | 1100 | Astral | area +0.2, ult +0.1 |
+| `kayo` | KAY/O | Iniciador | 120 | 184 | 10 | 1100 | Supresión | crit +0.05, maxShield +20 |
+| `chamber` | Chamber | Centinela | 100 | 186 | 12 | 1200 | Precisión | crit +0.15, critMul +0.3 |
+| `harbor` | Harbor | Controlador | 110 | 184 | 10 | 1100 | Marea | maxShield +20, regen +0.6 |
+| `iso` | Iso | Duelista | 105 | 192 | 11 | 1200 | Concentración | lifeOnKill +0.8, crit +0.05 |
+| `deadlock` | Deadlock | Centinela | 120 | 180 | 10 | 1200 | Nanohilo | area +0.15, maxShield +15 |
+| `gekko` | Gekko | Iniciador | 105 | 190 | 10 | 1000 | Compañeros | xp +0.15, magnet +0.3 |
+| `tejo` | Tejo | Iniciador | 115 | 182 | 11 | 1300 | Veterano | area +0.15, dmg +0.08 |
 
 Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el principio.
 
@@ -36,6 +50,20 @@ Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | Omen | Paso en la sombra (`shadowstep`, blink, 7 s) | Paranoia (`paranoia`, nova, 13 s) | Desde las sombras (`fromshadows`, blink) |
 | Killjoy | Torreta (`turret`, turret, 9 s) | — | Bloqueo (`lockdown`, turret) |
 | Brimstone | Ataque orbital (`orbital`, strike, 10 s) | Estimulante (`stim`, frenzy, 22 s) | Tormenta orbital (`orbitalstorm`, strike) |
+| Viper | Mordedura de serpiente (`snakebite`, strike, 8 s) | Pantalla tóxica (`toxicscreen`, nova, 12 s) | Foso de la víbora (`viperspit`, nova) |
+| Cypher | Cable trampa (`trapwire`, nova, 9 s) | Jaula cibernética (`cybercage`, nova, 12 s) | Robo neural (`neuraltheft`, nova) |
+| Fade | Acechador (`prowler`, seekers, 8 s) | Captura (`seize`, nova, 12 s) | Anochecer (`nightfall`, nova) |
+| Breach | Réplica (`aftershock`, strike, 7 s) | Línea de falla (`faultline`, nova, 12 s) | Trueno ensordecedor (`rollingthunder`, strike) |
+| Skye | Explorador (`trailblazer`, dash, 6 s) | Rebrote (`regrowth`, heal, 16 s) | Buscadores (`seekers`, seekers) |
+| Yoru | Irrupción (`gatecrash`, blink, 7 s) | Engaño (`fakeout`, nova, 11 s) | Deriva dimensional (`dimensionaldrift`, frenzy) |
+| Astra | Pozo gravitatorio (`gravitywell`, nova, 9 s) | Pulso de nova (`novapulse`, nova, 12 s) | División cósmica (`cosmicdivide`, strike) |
+| KAY/O | FRAG/mento (`fragment`, strike, 8 s) | CERO/punto (`zeropoint`, nova, 12 s) | NULO/orden (`nullcmd`, frenzy) |
+| Chamber | Cazacabezas (`headhunter`, storm, 9 s) | Encuentro (`rendezvous`, blink, 9 s) | Golpe de gracia (`tourdeforce`, seekers) |
+| Harbor | Cascada (`cascade`, nova, 9 s) | Cala (`cove`, heal, 18 s) | Ajuste de cuentas (`reckoning`, strike) |
+| Iso | Doble golpe (`doubletap`, frenzy, 14 s) | Socavar (`undercut`, nova, 10 s) | Contrato de muerte (`killcontract`, frenzy) |
+| Deadlock | Red gravitatoria (`gravnet`, nova, 10 s) | Malla barrera (`barriermesh`, heal, 18 s) | Aniquilación (`annihilation`, nova) |
+| Gekko | Wingman (`wingman`, turret, 9 s) | Mosh Pit (`moshpit`, strike, 10 s) | Thrash (`thrash`, strike) |
+| Tejo | Entrega especial (`specialdelivery`, strike, 8 s) | Salva guiada (`guidedsalvo`, strike, 12 s) | Armagedón (`armageddon`, strike) |
 
 ### Parámetros de cada habilidad
 
@@ -58,6 +86,34 @@ Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `turret` | Torreta | turret | 9 s | turret | power=1.6, count=1, duration=14 | Despliega 1 torreta durante 14 s. Los robots pueden destruirla. |
 | `orbital` | Ataque orbital | strike | 10 s | orbital | power=6, count=3, radius=125, delay=1 | 3 bombardeos orbitales con retardo y gran radio. |
 | `stim` | Estimulante | frenzy | 22 s | stim | power=1.35, duration=6 | 6 s de +35% de cadencia de disparo. |
+| `snakebite` | Mordedura de serpiente | strike | 8 s | poison | power=4, count=3, radius=90, delay=0.6 | Lanza 3 frascos de ácido que estallan y dejan veneno. |
+| `toxicscreen` | Pantalla tóxica | nova | 12 s | poison | power=1.8, radius=230, slow=0.5, duration=3.5 | Nube venenosa a tu alrededor que daña y ralentiza un 50%. |
+| `trapwire` | Cable trampa | nova | 9 s | wire | power=1.5, radius=180, stun=1.5 | Cables que aturden 1.5 s a los enemigos cercanos. |
+| `cybercage` | Jaula cibernética | nova | 12 s | wire | power=1.5, radius=200, slow=0.5, duration=4 | Jaula de humo que daña y ralentiza un 50%. |
+| `prowler` | Acechador | seekers | 8 s | arrow | power=4, count=3, mark=4 | 3 criaturas de sombra persiguen y marcan a los enemigos. |
+| `seize` | Captura | nova | 12 s | paranoia | power=2, radius=200, stun=1.2, slow=0.5, duration=2 | Nudo de pesadilla que aturde 1.2 s y ralentiza. |
+| `aftershock` | Réplica | strike | 7 s | boom | power=6, count=1, radius=110, delay=0.7 | Carga explosiva que estalla tras un instante con gran daño. |
+| `faultline` | Línea de falla | nova | 12 s | boom | power=2.5, radius=260, stun=1.5 | Terremoto que aturde 1.5 s en área. |
+| `trailblazer` | Explorador | dash | 6 s | wind | power=3.2, radius=220, invuln=0.25 | Tu tigre espiritual embiste a los enemigos que atraviesa. |
+| `regrowth` | Rebrote | heal | 16 s | heal | power=0, heal=0.3, shield=15 | Recuperas 30% de vida y ganas escudo. |
+| `gatecrash` | Irrupción | blink | 7 s | shadow | power=3, radius=260, count=120 | Te teletransportas y dañas al aparecer. |
+| `fakeout` | Engaño | nova | 11 s | paranoia | power=1.5, radius=180, stun=1 | Señuelo que estalla y aturde 1 s a los enemigos cercanos. |
+| `gravitywell` | Pozo gravitatorio | nova | 9 s | gravity | power=2, radius=210, slow=0.35, duration=3, mark=3 | Atrae y ralentiza a los enemigos, que quedan marcados. |
+| `novapulse` | Pulso de nova | nova | 12 s | gravity | power=2, radius=190, stun=1.5 | Pulso cósmico que aturde 1.5 s. |
+| `fragment` | FRAG/mento | strike | 8 s | grenade | power=5, count=2, radius=120, delay=0.6 | Granadas que explotan en área sobre los enemigos. |
+| `zeropoint` | CERO/punto | nova | 12 s | electric | power=2, radius=300, stun=1, mark=5 | Cuchillo supresor: aturde 1 s y marca a los enemigos cercanos. |
+| `headhunter` | Cazacabezas | storm | 9 s | blades | power=2.2, duration=1.5 | Ráfaga de disparos de precisión al enemigo más cercano. |
+| `rendezvous` | Encuentro | blink | 9 s | holy | power=2.5, radius=260, count=100 | Te teletransportas a tu ancla y dañas al llegar. |
+| `cascade` | Cascada | nova | 9 s | water | power=2, radius=220, slow=0.5, duration=3 | Ola de agua que daña y ralentiza un 50%. |
+| `cove` | Cala | heal | 18 s | water | power=0, heal=0.12, shield=40 | Burbuja protectora: gran escudo y algo de vida. |
+| `doubletap` | Doble golpe | frenzy | 14 s | soul | power=1.35, duration=5, shield=25 | Escudo de energía y +35% cadencia durante 5 s. |
+| `undercut` | Socavar | nova | 10 s | gravity | power=1.5, radius=300, mark=6 | Rayo que hace vulnerables a los enemigos (+30% daño) 6 s. |
+| `gravnet` | Red gravitatoria | nova | 10 s | wire | power=1.5, radius=220, slow=0.4, duration=3.5 | Red que ralentiza un 60% y daña a los enemigos. |
+| `barriermesh` | Malla barrera | heal | 18 s | wire | power=0, shield=50 | Barrera de nanohilo: gran escudo. |
+| `wingman` | Wingman | turret | 9 s | turret | power=1.6, count=1, duration=10 | Wingman dispara a los enemigos durante 10 s (los robots pueden destruirlo). |
+| `moshpit` | Mosh Pit | strike | 10 s | poison | power=6, count=1, radius=150, delay=1 | Charco que estalla con gran daño en área. |
+| `specialdelivery` | Entrega especial | strike | 8 s | grenade | power=5, count=2, radius=100, delay=0.6 | Granadas adhesivas que estallan sobre los enemigos. |
+| `guidedsalvo` | Salva guiada | strike | 12 s | rocket | power=5, count=4, radius=105, delay=0.5 | 4 misiles guiados que estallan en área. |
 | `bladestorm` | Tormenta de cuchillas | storm | carga de definitiva | blades | power=2.4, duration=7 | 7 s de lluvia de cuchillas perforantes de alto daño. |
 | `rematch` | Rematch | nova | carga de definitiva | fire | power=9, radius=360, burn=14, heal=0.6, invuln=1.5 | Explosión masiva, curación y 1.5 s de invulnerabilidad. |
 | `resurrection` | Resurrección | nova | carga de definitiva | holy | power=3, radius=380, stun=2, heal=1, shield=60, invuln=2 | Cura el 100%, gran escudo, invulnerable 2 s y aturde en área. |
@@ -68,6 +124,20 @@ Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `fromshadows` | Desde las sombras | blink | carga de definitiva | shadow | power=8, radius=440, count=300, stun=2 | Gran salto con explosión de sombra que aturde 2 s. |
 | `lockdown` | Bloqueo | turret | carga de definitiva | turret | power=2.6, count=3, duration=14 | Despliega 3 torretas de gran cadencia y más resistentes durante 14 s. |
 | `orbitalstorm` | Tormenta orbital | strike | carga de definitiva | orbital | power=8, count=20, radius=140, delay=0.9 | 20 ataques orbitales devastadores. |
+| `viperspit` | Foso de la víbora | nova | carga de definitiva | poison | power=6, radius=380, burn=10, slow=0.5, duration=6 | Gran nube tóxica: daño, quemadura y ralentización durante 6 s. |
+| `neuraltheft` | Robo neural | nova | carga de definitiva | scan | power=3, radius=560, mark=8 | Revela y marca a todos los enemigos en un gran radio durante 8 s. |
+| `nightfall` | Anochecer | nova | carga de definitiva | shadow | power=5, radius=460, mark=8, slow=0.5, duration=3 | Ola de pesadilla que daña, marca y ralentiza en un gran radio. |
+| `rollingthunder` | Trueno ensordecedor | strike | carga de definitiva | boom | power=7, count=10, radius=120, delay=0.4 | Cadena de 10 terremotos devastadores. |
+| `seekers` | Buscadores | seekers | carga de definitiva | arrow | power=8, count=5, mark=6 | 5 buscadores que persiguen y marcan a los enemigos. |
+| `dimensionaldrift` | Deriva dimensional | frenzy | carga de definitiva | soul | power=1.7, duration=8, invuln=3, heal=0.1 | 8 s fuera de esta dimensión: invulnerable 3 s y +70% cadencia. |
+| `cosmicdivide` | División cósmica | strike | carga de definitiva | gravity | power=7, count=12, radius=120, delay=0.6 | 12 impactos astrales devastadores. |
+| `nullcmd` | NULO/orden | frenzy | carga de definitiva | stim | power=1.8, duration=10, heal=0.3, shield=40, invuln=1 | Sobrecarga 10 s: +80% cadencia, escudo y curación. |
+| `tourdeforce` | Golpe de gracia | seekers | carga de definitiva | arrow | power=10, count=6, mark=4 | 6 disparos de francotirador teledirigidos y perforantes. |
+| `reckoning` | Ajuste de cuentas | strike | carga de definitiva | water | power=7, count=10, radius=115, delay=0.5 | Géiseres que golpean en cadena con gran daño. |
+| `killcontract` | Contrato de muerte | frenzy | carga de definitiva | soul | power=2, duration=10, invuln=1.5, heal=0.2 | Arena de duelo: 10 s de frenesí con invulnerabilidad inicial. |
+| `annihilation` | Aniquilación | nova | carga de definitiva | wire | power=5, radius=420, stun=3 | Nanohilos que atrapan y aturden 3 s en un gran radio. |
+| `thrash` | Thrash | strike | carga de definitiva | poison | power=6, count=6, radius=110, delay=0.5 | Thrash embiste y estalla 6 veces sobre los enemigos. |
+| `armageddon` | Armagedón | strike | carga de definitiva | orbital | power=8, count=16, radius=120, delay=0.5 | Ola de 16 explosiones devastadoras. |
 
 ## Agentes exclusivos (mercado nocturno)
 
@@ -235,6 +305,7 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
+| v1.13 | 2026-10-29 | 14 agentes nuevos y nuevo aspecto | Nuevo |
 | v1.12 | 2026-10-29 | Corrección del modo en pareja | Mejora |
 | v1.11 | 2026-10-29 | Torretas de Killjoy | Mejora |
 | v1.10 | 2026-10-28 | Idiomas y controles | Nuevo |

@@ -62,7 +62,7 @@ aturden) y **marca** (+30 % de daño recibido).
 ### Torretas (Killjoy)
 
 - Torreta: 1 torreta; Bloqueo: 3 torretas más resistentes. Duran 14 s, disparan cada 0,3 s al enemigo más cercano (alcance 340).
-- Vida: `110 × escala de daño enemigo` (Torreta) o `150 × escala` (Bloqueo), para que aguanten igual en toda la partida.
+- Vida: `75 × escala de daño enemigo` (Torreta) o `110 × escala` (Bloqueo), para que aguanten igual en toda la partida.
 - Los robots cuerpo a cuerpo (comportamiento `chase`, `exploder`, `elite`) **van a por la torreta si está más
   cerca que el jugador** y la golpean cada 0,6 s. Los disparos enemigos, obuses del Artillero, explosiones y
   golpes de jefe también las dañan. Al llegar a 0 explotan.

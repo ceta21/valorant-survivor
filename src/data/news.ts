@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.13', date: '2026-10-29', title: '14 agentes nuevos y nuevo aspecto', tag: 'Nuevo', color: '#ff4655',
+    items: [
+      'Llegan Viper, Cypher, Fade, Breach, Skye, Yoru, Astra, KAY/O, Chamber, Harbor, Iso, Deadlock, Gekko y Tejo, con habilidades inspiradas en las suyas.',
+      'Nuevo aspecto para Jett, Phoenix, Sage, Reyna, Raze, Omen, Killjoy y Neon.',
+      'Los personajes se giran según hacia dónde caminan: de frente, de espaldas o de lado.',
+      'Las torretas de Killjoy tienen menos vida: los robots las destruyen antes.',
+    ],
+  },
+  {
     id: '1.12', date: '2026-10-29', title: 'Corrección del modo en pareja', tag: 'Mejora', color: '#2fe6ff',
     items: [
       'En las partidas en pareja los dos jugadores ven ahora exactamente el mismo mapa.',

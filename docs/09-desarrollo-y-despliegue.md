@@ -48,6 +48,16 @@ Notas:
 `LOOKS` de `src/game/sprites.ts`, añadir su id al `check` de `scores.agent` (SQL nuevo) y traducir sus textos en
 `en.ts`.
 
+**Aspecto de un agente a partir de su hoja de sprites**:
+1. Guardar la imagen en `art/<id>.png` (fondo liso).
+2. `npx tsx scripts/cut-agent.ts <id> --find` lista dónde está cada fotograma.
+3. Apuntar en `art/frames.json` el centro de los fotogramas elegidos: `front`, `back` y `side` (de lado
+   mirando a la **derecha**). Opcional: `tol` (tolerancia del fondo si tiene textura, p. ej. 30) y `erase`
+   (rectángulos por fotograma para quitar un arma dibujada: `"c"` la borra y reperfila, `"f"`/`"F"` rellena
+   con la ropa de alrededor). `npx tsx scripts/agent-grid.ts <id> <fila> salida.png` ayuda a situarlos.
+4. `npx tsx scripts/cut-agent.ts <id>` genera `public/agents/<id>.png` y `src/data/agentImages/`. Informa de
+   los píxeles de dibujo perdidos (debe ser 0).
+
 **Habilidad**: definirla con un `kind` existente (o añadir el caso en `perform()` del motor) y un `fx`
 (estilo visual en `abilityFx()` del motor y en `Renderer`/`vfx.ts`).
 

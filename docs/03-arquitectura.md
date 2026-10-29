@@ -67,7 +67,15 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Orden de dibujo: chunks → teletransportadores → gemas → golpes de área y obuses (con su aviso) → campos →
   avisos de jefes → torretas → enemigos → proyectiles → efectos de habilidad → jugadores (con drones) →
   efectos sobre el personaje → ondas y partículas → nombres en cooperativo → números de daño → viñeta.
-- Personajes: sprites 22×26 generados por código (`sprites.ts`) con poses (reposo, andar, correr, lanzar).
+- Personajes: dos tipos (`sprites.ts`).
+  - **Con imagen** (Jett, Phoenix, Sage, Reyna, Raze, Omen, Killjoy, Neon): fotogramas recortados de la hoja de
+    sprites que da Gabriel (`art/<id>.png`) con `scripts/cut-agent.ts`. Se guardan con sus colores exactos en
+    `public/agents/<id>.png` (una fila por vista —frente, espalda, lado— y una columna por paso) y sus medidas en
+    `src/data/agentImages/<id>.json` (`px` = escala para que todos midan ~58 unidades). El juego las precarga
+    al crear el `Renderer`; los retratos del menú usan la misma hoja.
+  - **Dibujados por código** (el resto): rejilla 22×30 con poses (reposo, andar, correr, lanzar).
+  - El cuerpo mira hacia donde se mueve: de frente (bajando o quieto), de espaldas (subiendo) o de lado (la
+    izquierda es el espejo de la derecha). El arma equipada se pinta aparte y apunta al enemigo.
 - Armas: sprites por piezas (`weaponSprites.ts`); las exclusivas usan la silueta de su arma base con sus colores.
 - Robots enemigos: `enemySprites.ts` dibuja cada tipo con rectángulos y contorno automático, 2 fotogramas de
   animación y variantes "golpe" (blanco) y "aturdido" (gris). Cada jefe tiene un detalle propio.

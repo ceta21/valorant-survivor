@@ -1,5 +1,5 @@
 import { SaveData } from '../utils/storage';
-import { AGENT_BY_ID } from '../data/agents';
+import { AGENTS, AGENT_BY_ID } from '../data/agents';
 import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
@@ -66,7 +66,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <div><dt>{t('Victorias')}</dt><dd>{save.stats.wins}</dd></div>
           <div><dt>{t('Mejor tiempo')}</dt><dd>{fmt(save.stats.bestTime)}</dd></div>
           <div><dt>{t('Eliminaciones')}</dt><dd>{nf(save.stats.kills)}</dd></div>
-          <div><dt>{t('Agentes')}</dt><dd>{save.unlocked.length}/10</dd></div>
+          <div><dt>{t('Agentes')}</dt><dd>{save.unlocked.length}/{AGENTS.length}</dd></div>
         </dl>
       </aside>
     </div>
