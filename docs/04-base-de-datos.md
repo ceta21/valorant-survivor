@@ -16,7 +16,7 @@ ranking local.
 | `supabase/schema.sql` | Tabla `scores` (ranking) y sus políticas | Sí |
 | `supabase/accounts.sql` | Tabla `profiles`, trigger de registro, función `username_available`, columnas `user_id`/`player_id` en `scores` y trigger que rellena el nombre | Sí |
 | `supabase/market.sql` | Permite en el ranking los agentes exclusivos (`eclipse`, `vortice`, `quimera`) | Sí |
-| `supabase/agents.sql` | Permite en el ranking los 14 agentes nuevos (Viper… Tejo) | Pendiente |
+| `supabase/agents.sql` | Permite en el ranking los 14 agentes nuevos (Viper… Tejo) | Sí |
 | `supabase/admin.sql` | Columna `is_admin` y convierte una cuenta en administrador con todo desbloqueado (cambiar `TU_USUARIO`) | Sí |
 
 Configuración de Auth necesaria: **Authentication → Sign In / Providers → "Confirm email" desactivado**
