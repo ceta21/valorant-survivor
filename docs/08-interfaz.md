@@ -29,6 +29,13 @@ Nivel, vida, escudo, vida del compañero (cooperativo), barra de XP, tiempo, avi
 jefe en modo infinito, dificultad, bajas, enemigos vivos, botón de pausa, barra de jefe, avisos grandes, armas
 con su nivel y los 3 botones de habilidad (con la tecla asignada, recarga y carga de definitiva).
 
+**Minimapa** (`Minimap.tsx`, arriba a la derecha bajo la pausa): canvas de 96×96 píxeles que se redibuja cada
+fotograma leyendo el motor y abarca 1.100 unidades desde el jugador. Pinta el entorno en miniatura con los colores
+del mapa: calles, manzanas, edificios, muros, cajas, pilares, barriles, fuentes y estanques, el marco de los sitios
+(A/B/C) y los teletransportadores de Bind. Encima: tú (punto blanco en el centro), tu pareja (punto de su color,
+gris si está caída) y los jefes (rojo). Lo que queda fuera de alcance se pega al borde, en su dirección (los jefes,
+parpadeando). La barra del jefe deja libre su hueco (`--mm` en el CSS).
+
 ## Estilo pixel art
 
 - Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes).

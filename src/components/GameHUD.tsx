@@ -3,6 +3,7 @@ import { WEAPONS } from '../data/weapons';
 import { gunRuns, gunSize } from '../game/weaponSprites';
 import { t } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
+import { Minimap } from './Minimap';
 
 function GunIcon({ id }: { id: string }) {
   const s = gunSize(id);
@@ -70,6 +71,7 @@ export function GameHUD({ hud, engine, onPause, onCast, keys }: Props) {
           <div className="kills">☠ {hud.kills}</div>
           <small>{t('{n} enemigos', { n: hud.alive })}</small>
           <button className="btn btn-sm" onClick={onPause} aria-label={t('Pausa')}><b>II</b></button>
+          <Minimap engine={engine} />
         </div>
       </div>
       {hud.boss && (
