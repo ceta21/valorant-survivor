@@ -11,6 +11,12 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.12', date: '2026-10-29', title: 'Corrección del modo en pareja', tag: 'Mejora', color: '#2fe6ff',
+    items: [
+      'En las partidas en pareja los dos jugadores ven ahora exactamente el mismo mapa.',
+    ],
+  },
+  {
     id: '1.11', date: '2026-10-29', title: 'Torretas de Killjoy', tag: 'Mejora', color: '#ffe14a',
     items: [
       'Torreta ahora despliega 1 torreta y Bloqueo despliega 3, más resistentes.',

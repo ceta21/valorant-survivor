@@ -16,7 +16,8 @@
     "test:coop": "tsx scripts/coop-test.ts",
     "test:enemies": "tsx scripts/enemies-sheet.ts",
     "test:i18n": "tsx scripts/i18n-check.ts",
-    "test:turrets": "tsx scripts/turret-test.ts"
+    "test:turrets": "tsx scripts/turret-test.ts",
+    "docs:data": "tsx scripts/docs-data.ts"
   },
   "keywords": [],
   "author": "",

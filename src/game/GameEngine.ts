@@ -162,12 +162,13 @@ export class GameEngine {
 
   /** coop: varios jugadores; local = índice del de esta pantalla. Sin coop, partida en solitario. */
   constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic',
-    coop?: { setups: PlayerSetup[]; local: number }) {
+    coop?: { setups: PlayerSetup[]; local: number; seed?: number }) {
     this.map = map;
     this.ev = ev;
     this.diff = diff;
     this.endlessBossT = FINAL_TIME + ENDLESS_BOSS_START * diff.bossEvery;
-    this.world = new World(map);
+    // en cooperativo los dos jugadores generan el mismo mundo a partir de la semilla del anfitrión
+    this.world = new World(map, coop?.seed);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
     const setups = coop?.setups ?? [{ agent, meta, startWeapon, name: '' }];
     this.players = setups.map((st, i) => this.makePlayer(i, st));

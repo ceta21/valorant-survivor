@@ -23,7 +23,7 @@ interface Props {
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
   /** Partida cooperativa: conexión, jugadores e índice del de esta pantalla (0 = anfitrión). */
-  coop?: { link: CoopLink; setups: PlayerSetup[]; local: number };
+  coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number };
   keys: KeyMap;
 }
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -101,7 +101,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
         if (link) link.send({ type: 'end', r: engine.resultFor(1) });
       },
       sfx: n => audio.play(n),
-    }, difficulty, startWeapon, coop ? { setups: coop.setups, local: coop.local } : undefined);
+    }, difficulty, startWeapon, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined);
     if (link && !isGuest) engine.netOut = [];
     if (import.meta.env.DEV) (window as any).__vs = engine;   // solo en desarrollo, para depurar
     const cast = (slot: 'special' | 'secondary' | 'ultimate') => {

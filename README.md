@@ -1,5 +1,7 @@
 # VALORANT SURVIVORS
 
+> 📚 **Documentación completa del proyecto en [`docs/`](docs/README.md)** (jugabilidad, arquitectura, base de datos, cooperativo, mercado, interfaz y desarrollo).
+
 Juego web de supervivencia por oleadas (estilo PokéSurvivor / Vampire Survivors) con temática VALORANT.
 React + TypeScript + Vite + HTML5 Canvas. Todo el arte y el audio son originales y se generan por código (sin archivos externos).
 

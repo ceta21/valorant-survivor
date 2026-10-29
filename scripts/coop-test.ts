@@ -48,3 +48,12 @@ e2.chooseUpgrade(0, 0); while (e2.me.pending > 0) e2.chooseUpgrade(0, 0);
 const stuck = e2.state;
 e2.leave(1);
 console.log('abandono con mejora pendiente:', stuck, '→', e2.state);
+
+// el anfitrión y el invitado deben generar el mismo mundo con la misma semilla
+const mk = (local: number) => new GameEngine(AGENT_BY_ID.jett, MAPS[1], meta, { onLevelUp: () => {}, onEnd: () => {}, sfx: () => {} }, undefined, 'classic', {
+  setups: [{ agent: AGENT_BY_ID.jett, meta, startWeapon: 'classic', name: 'A' }, { agent: AGENT_BY_ID.sage, meta, startWeapon: 'classic', name: 'B' }], local, seed: 12345,
+});
+const [wa, wb] = [mk(0).world, mk(1).world];
+let same = true;
+for (let cx = -3; cx <= 3; cx++) for (let cy = -3; cy <= 3; cy++) if (JSON.stringify(wa.chunk(cx, cy).obstacles) !== JSON.stringify(wb.chunk(cx, cy).obstacles)) same = false;
+console.log('mismo mundo para anfitrión e invitado:', same);

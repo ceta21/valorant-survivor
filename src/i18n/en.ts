@@ -158,6 +158,8 @@ export const EN: Record<string, string> = {
 
   /* ------------------------------------------------------------------ novedades */
   'Nuevo': 'New', 'Mejora': 'Improvement', 'Evento': 'Event',
+  'Corrección del modo en pareja': 'Co-op fix',
+  'En las partidas en pareja los dos jugadores ven ahora exactamente el mismo mapa.': 'In co-op runs both players now see exactly the same map.',
   'Torretas de Killjoy': "Killjoy's turrets",
   'Torreta ahora despliega 1 torreta y Bloqueo despliega 3, más resistentes.': 'Turret now deploys 1 turret and Lockdown deploys 3 tougher ones.',
   'Los robots cuerpo a cuerpo atacan la torreta si la tienen más cerca que a ti y pueden destruirla.': "Melee robots attack the turret if it's closer than you, and they can destroy it.",

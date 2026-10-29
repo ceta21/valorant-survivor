@@ -11,7 +11,8 @@ import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
 export interface CoopSetup { agentId: string; kit?: Kit; loadout: string; meta: MetaLevels; name: string }
-export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[] }
+/** seed: semilla del mundo, para que anfitrión e invitado vean el mismo mapa. */
+export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[]; seed: number }
 interface LobbyState extends CoopSetup { ready: boolean; mapId?: string; difficulty?: string }
 
 interface Props {
@@ -83,7 +84,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
     if (!link || !peerState) return;
     audio.play('click');
     const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, loadout: s.loadout, meta: s.meta, name: s.name });
-    const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)] };
+    const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)], seed: Math.floor(Math.random() * 2147483647) };
     link.send({ type: 'start', start: st });
     started.current = true;
     onStart(link, st, 0);

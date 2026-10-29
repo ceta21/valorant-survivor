@@ -42,7 +42,7 @@ export default function App() {
   const accountRef = useRef<Account | null>(null); accountRef.current = account;
   // la tienda de un invitado cambia en cada visita (no tiene cuenta a la que atarla)
   const [guestSeed] = useState(() => `guest-${Math.random()}`);
-  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number } }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
+  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number } }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
     setSave(prev => { const n = fn(prev); if (n !== prev && accountRef.current) saveProgress(n); return n; });
@@ -81,7 +81,7 @@ export default function App() {
       agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.jett, c.kit), meta: c.meta, name: c.name,
       startWeapon: WEAPONS[c.loadout] ? c.loadout : 'classic',
     }));
-    setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local } }));
+    setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local, seed: st.seed } }));
     setScreen('game');
   }, []);
   const leaveGame = () => { run.coop?.link.close(); setRun(r => ({ ...r, coop: undefined })); setScreen('menu'); };
