@@ -161,7 +161,7 @@ export const EN: Record<string, string> = {
   'Próximamente': 'Coming soon',
   'No disponible en estos momentos · Próximamente': 'Not available right now · Coming soon',
   'Agentes disponibles': 'Available agents',
-  'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy y los agentes exclusivos del mercado nocturno.': 'For now you can only play as Jett, Phoenix, Reyna, Sage, Killjoy and the night market exclusive agents.',
+  'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy, Raze y los agentes exclusivos del mercado nocturno.': 'For now you can only play as Jett, Phoenix, Reyna, Sage, Killjoy, Raze and the night market exclusive agents.',
   'El resto de agentes aparecen con candado: estarán disponibles próximamente.': 'The other agents show a lock: they will be available soon.',
   // agentes nuevos
   'Química letal. Llena el campo de veneno que quema y ralentiza a los robots.': 'Lethal chemist. Fills the field with poison that burns and slows the robots.',

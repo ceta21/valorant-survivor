@@ -13,7 +13,7 @@ export const NEWS: NewsEntry[] = [
   {
     id: '1.14', date: '2026-10-29', title: 'Agentes disponibles', tag: 'Mejora', color: '#ff4655',
     items: [
-      'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy y los agentes exclusivos del mercado nocturno.',
+      'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy, Raze y los agentes exclusivos del mercado nocturno.',
       'El resto de agentes aparecen con candado: estarán disponibles próximamente.',
     ],
   },
