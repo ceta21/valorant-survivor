@@ -1,6 +1,7 @@
 // Armas pixel-art ORIGINALES (silueta reconocible por tipo: pistola, rifle, francotirador, escopeta...).
 import { Grid } from './sprites';
 import { WEAPONS } from '../data/weapons';
+import { WEAPON_SKIN_BY_ID } from '../data/shop';
 
 type Part = [number, number, number, number, 'M' | 'D' | 'A' | 'W' | 'L'];
 const PARTS: Record<string, { w: number; h: number; p: Part[] }> = {
@@ -19,8 +20,11 @@ const COL = { M: '#8793a3', D: '#3b4452', W: '#7a5230', L: '#c7d0dc' } as const;
 const partsOf = (id: string) => PARTS[id] ?? PARTS[WEAPONS[id]?.sprite ?? ''] ?? PARTS.classic;
 export function gunSize(id: string) { const d = partsOf(id); return { w: d.w, h: d.h }; }
 
-export function buildGun(id: string, accent: string): Grid {
-  const d = partsOf(id), col = { ...COL, ...(WEAPONS[id]?.skin ?? {}) };
+/** `skin`: estilo de arma de la tienda (cambia los colores; la silueta es la del arma). */
+export function buildGun(id: string, accent: string, skin = ''): Grid {
+  const st = WEAPON_SKIN_BY_ID[skin]?.colors;
+  const d = partsOf(id), col = { ...COL, ...(WEAPONS[id]?.skin ?? {}), ...(st ?? {}) };
+  if (st) accent = st.A;
   const g: Grid = Array.from({ length: d.h }, () => Array<string | null>(d.w).fill(null));
   for (const [x, y, w, h, k] of d.p) for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (g[y + j] && x + i < d.w) g[y + j][x + i] = k === 'A' ? accent : col[k];
   const out: Grid = g.map(r => r.slice());
@@ -31,8 +35,8 @@ export function buildGun(id: string, accent: string): Grid {
   return out;
 }
 
-export function gunRuns(id: string, accent: string) {
-  const g = buildGun(id, accent), runs: { x: number; y: number; w: number; c: string }[] = [];
+export function gunRuns(id: string, accent: string, skin = '') {
+  const g = buildGun(id, accent, skin), runs: { x: number; y: number; w: number; c: string }[] = [];
   for (let y = 0; y < g.length; y++) {
     let x = 0;
     while (x < g[y].length) {
@@ -48,11 +52,11 @@ export function gunRuns(id: string, accent: string) {
 }
 
 const cache = new Map<string, any>();
-export function gunCanvas(id: string, accent: string, make: (w: number, h: number) => any, scale = 3) {
-  const key = `${id}@${scale}`;
+export function gunCanvas(id: string, accent: string, make: (w: number, h: number) => any, scale = 3, skin = '') {
+  const key = `${id}@${scale}|${skin}`;
   let c = cache.get(key);
   if (c) return c;
-  const grid = buildGun(id, accent);
+  const grid = buildGun(id, accent, skin);
   c = make(grid[0].length * scale, grid.length * scale);
   const g = c.getContext('2d');
   for (let y = 0; y < grid.length; y++) for (let x = 0; x < grid[y].length; x++) {

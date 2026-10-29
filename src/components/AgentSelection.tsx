@@ -7,6 +7,8 @@ import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
 import { SaveData } from '../utils/storage';
 import { AgentPortrait } from './AgentPortrait';
+import { AgentArt, GunArt } from './ShopArt';
+import { AGENT_SKINS, ShopSave, WEAPON_SKINS } from '../data/shop';
 import { audio } from '../utils/audio';
 
 interface Props {
@@ -16,10 +18,12 @@ interface Props {
   unlock: (agentId: string) => void;
   setKit: (agentId: string, kit: Kit) => void;
   setLoadout: (weaponId: string) => void;
+  /** Poner los estilos comprados en la tienda. */
+  equip: (fn: (s: ShopSave) => ShopSave) => void;
   keys: KeyMap;
 }
 
-export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, keys }: Props) {
+export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, equip, keys }: Props) {
   const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
   const [sel, setSel] = useState(playableAgent(save.lastAgent));
   const [mapId, setMapId] = useState(save.lastMap);
@@ -74,6 +78,41 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, 
             <StatBar label={t('Daño')} v={agent.damage} max={12} />
           </ul>
           <div className="trait"><b>{t(agent.trait.label)}</b><span>{t(agent.trait.desc)}</span></div>
+          {isOpen && !soon && (() => {
+            // estilos comprados en la tienda: el de este agente y el de las armas (solo estéticos)
+            const skins = AGENT_SKINS.filter(k => save.shop.owned.includes(k.id)), cur = save.shop.agent[agent.id] ?? '';
+            const wskins = WEAPON_SKINS.filter(w => save.shop.owned.includes(w.id)), wcur = save.shop.weapon;
+            return (
+              <div className="styles">
+                <b>{t('Estilo del agente')}</b>
+                {skins.length === 0 ? <small>{t('Compra estilos en la Tienda para cambiar la ropa y la armadura de tus agentes.')}</small> : (
+                  <div className="style-row">
+                    <AgentArt id={agent.id} skin={cur} className="style-preview" />
+                    <div className="style-chips" role="radiogroup" aria-label={t('Estilo del agente')}>
+                      {[{ id: '', name: 'Original' }, ...skins].map(k => (
+                        <button key={k.id} role="radio" aria-checked={cur === k.id} className={`map-chip ${cur === k.id ? 'on' : ''}`}
+                          onClick={() => { audio.play('click'); equip(s => ({ ...s, agent: { ...s.agent, [agent.id]: k.id } })); }}><b>{t(k.name)}</b></button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {wskins.length > 0 && (
+                  <>
+                    <b>{t('Estilo de arma')}</b>
+                    <div className="style-row">
+                      <GunArt weapon="vandal" skin={wcur} className="style-preview gun" />
+                      <div className="style-chips" role="radiogroup" aria-label={t('Estilo de arma')}>
+                        {[{ id: '', name: 'Original' }, ...wskins].map(w => (
+                          <button key={w.id} role="radio" aria-checked={wcur === w.id} className={`map-chip ${wcur === w.id ? 'on' : ''}`}
+                            onClick={() => { audio.play('click'); equip(s => ({ ...s, weapon: w.id })); }}><b>{t(w.name)}</b></button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
           {agent.exclusive && (
             <div className="kit-editor">
               <b>{t('Elige sus habilidades')}</b>

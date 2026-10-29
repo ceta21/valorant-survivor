@@ -10,16 +10,20 @@ import { MenuHub } from './MenuHub';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
   account: Account | null; accountsEnabled: boolean; onLogin: () => void; onLogout: () => void; keys: KeyMap;
 }
 
+/** Emoticono decorativo delante del nombre de cada botón o panel. */
+export const Emo = ({ e }: { e: string }) => <span className="emo" aria-hidden="true">{e}</span>;
+
 export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout, keys }: Props) {
   const agent = AGENT_BY_ID[playableAgent(save.lastAgent)] ?? AGENT_BY_ID.jett;
   const click = (s: Screen) => () => { audio.play('click'); go(s); };
+  const hover = () => audio.play('hover');
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const move = [keys.up, keys.left, keys.down, keys.right].map(keyLabel).join('');
   return (
@@ -42,17 +46,20 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           </div>
         )}
         <nav className="menu-nav" aria-label={t('Menú principal')}>
-          <button className="btn btn-red btn-xl" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>{t('Jugar')}</b></button>
-          <button className="btn btn-coop" onClick={click('coop')} onMouseEnter={() => audio.play('hover')}><b>{t('Jugar en pareja')}</b></button>
-          <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>{t('Agentes')}</b></button>
-          <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>{t('Mejoras')}</b></button>
-          <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={() => audio.play('hover')}><b>{t('Diario')}{hasDailyReward(save.daily, save.login, [...save.unlocked, ...save.exclusives]) && <i className="news-badge">{t('¡Premio!')}</i>}</b></button>
-          <button className="btn btn-market" onClick={click('market')} onMouseEnter={() => audio.play('hover')}><b>{t('Mercado nocturno')}</b></button>
-          <button className="btn" onClick={click('ranking')} onMouseEnter={() => audio.play('hover')}><b>{t('Ranking global')}</b></button>
-          <button className="btn" onClick={click('news')} onMouseEnter={() => audio.play('hover')}><b>{t('Novedades')}{save.newsSeen !== LATEST_NEWS && <i className="news-badge">{t('Nuevo')}</i>}</b></button>
-          <button className="btn" onClick={click('stats')} onMouseEnter={() => audio.play('hover')}><b>{t('Estadísticas')}</b></button>
-          <button className="btn" onClick={click('settings')} onMouseEnter={() => audio.play('hover')}><b>{t('Configuración')}</b></button>
-          <button className="btn btn-support" onClick={click('support')} onMouseEnter={() => audio.play('hover')}><b>{t('Apoyo')}</b></button>
+          {/* Jugar y Jugar en pareja ocupan todo el ancho; el resto va en dos columnas para que quepa sin scroll */}
+          <button className="btn btn-red btn-xl wide" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🎮" />{t('Jugar')}</b></button>
+          <button className="btn btn-coop wide" onClick={click('coop')} onMouseEnter={hover}><b><Emo e="👥" />{t('Jugar en pareja')}</b></button>
+          <button className="btn" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🦸" />{t('Agentes')}</b></button>
+          <button className="btn" onClick={click('pets')} onMouseEnter={hover}><b><Emo e="🐾" />{t('Mascotas')}</b></button>
+          <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={hover}><b><Emo e="📅" />{t('Diario')}{hasDailyReward(save.daily, save.login, [...save.unlocked, ...save.exclusives]) && <i className="news-badge">!</i>}</b></button>
+          <button className="btn btn-shop" onClick={click('shop')} onMouseEnter={hover}><b><Emo e="🧺" />{t('Tienda')}</b></button>
+          <button className="btn" onClick={click('meta')} onMouseEnter={hover}><b><Emo e="💪" />{t('Mejoras')}</b></button>
+          <button className="btn btn-market" onClick={click('market')} onMouseEnter={hover}><b><Emo e="🌙" />{t('Mercado nocturno')}</b></button>
+          <button className="btn" onClick={click('ranking')} onMouseEnter={hover}><b><Emo e="🏆" />{t('Ranking global')}</b></button>
+          <button className="btn" onClick={click('news')} onMouseEnter={hover}><b><Emo e="📰" />{t('Novedades')}{save.newsSeen !== LATEST_NEWS && <i className="news-badge">!</i>}</b></button>
+          <button className="btn" onClick={click('stats')} onMouseEnter={hover}><b><Emo e="📊" />{t('Estadísticas')}</b></button>
+          <button className="btn" onClick={click('settings')} onMouseEnter={hover}><b><Emo e="⚙️" />{t('Configuración')}</b></button>
+          <button className="btn btn-support wide" onClick={click('support')} onMouseEnter={hover}><b><Emo e="💚" />{t('Apoyo')}</b></button>
         </nav>
         <p className="hint">{t('{move} / flechas: moverse · {abil}: habilidades · Esc: pausa', { move, abil: [keys.special, keys.secondary, keys.ultimate].map(keyLabel).join(' / ') })}</p>
       </div>

@@ -50,6 +50,12 @@ export function GameHUD({ hud, engine, onPause, onCast, keys }: Props) {
                 <div><i style={{ width: `${m.dead ? 0 : Math.max(0, (m.hp / m.maxHp) * 100)}%` }} /></div>
               </div>
             ))}
+            {hud.pet && (
+              <div className={`mate pet ${hud.pet.dead ? 'down' : ''}`} style={{ ['--mc' as any]: hud.pet.color }}>
+                <span>{t(hud.pet.name)} · {hud.pet.dead ? t('vuelve en {n} s', { n: Math.ceil(hud.pet.respawn) }) : hud.pet.lv ? t('poder nivel {n}', { n: hud.pet.lv }) : t('te acompaña')}</span>
+                <div><i style={{ width: `${hud.pet.dead ? 0 : Math.max(0, (hud.pet.hp / hud.pet.maxHp) * 100)}%` }} /></div>
+              </div>
+            )}
             {hud.shield > 0 && <div className="sh"><i style={{ width: `${Math.min(100, (hud.shield / Math.max(1, hud.maxShield + 20)) * 100)}%` }} /><span>{Math.ceil(hud.shield)}</span></div>}
           </div>
         </div>

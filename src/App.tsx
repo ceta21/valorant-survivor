@@ -27,9 +27,12 @@ import { Offer, marketPeriod } from './data/market';
 import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
 import { DailyScreen } from './components/DailyScreen';
+import { ShopScreen } from './components/ShopScreen';
+import { PetsScreen } from './components/PetsScreen';
+import { PET_POWER_PRICES, ShopSave, looksFor } from './data/shop';
 import { LOGIN_REWARD, STREAK_REWARDS, addRun, dailyMissions, dayKey, todayProgress, touchLogin } from './data/daily';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -81,7 +84,7 @@ export default function App() {
   const startCoop = useCallback((link: CoopLink, st: CoopStart, local: number) => {
     const setups: PlayerSetup[] = st.setups.map(c => ({
       agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.jett, c.kit), meta: c.meta, name: c.name,
-      startWeapon: WEAPONS[c.loadout] ? c.loadout : 'classic',
+      startWeapon: WEAPONS[c.loadout] ? c.loadout : 'classic', looks: c.looks,
     }));
     setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local, seed: st.seed } }));
     setScreen('game');
@@ -118,6 +121,19 @@ export default function App() {
   const claimStreak = (n: number) => update(s => {
     const r = STREAK_REWARDS.find(x => x.day === n), l = s.login;
     return !r || l.streak < n || l.claimed.includes(n) ? s : { ...s, credits: s.credits + r.credits, login: { ...l, claimed: [...l.claimed, n] } };
+  });
+
+  // tienda
+  const buyShop = (id: string, price: number) => update(s => {
+    if (s.credits < price || s.shop.owned.includes(id)) return s;
+    // la tienda solo compra: los estilos se ponen en Agentes y las mascotas en Mascotas
+    return { ...s, credits: s.credits - price, shop: { ...s.shop, owned: [...s.shop.owned, id] } };
+  });
+  const equipShop = (fn: (s: ShopSave) => ShopSave) => update(s => ({ ...s, shop: fn(s.shop) }));
+  const buyPetPower = (petId: string) => update(s => {
+    const lv = s.shop.power[petId] ?? 0, price = PET_POWER_PRICES[lv];
+    if (!s.shop.owned.includes(petId) || lv >= 3 || s.credits < price) return s;
+    return { ...s, credits: s.credits - price, shop: { ...s.shop, power: { ...s.shop.power, [petId]: lv + 1 } } };
   });
 
   const handleEnd = (r: RunResult): string[] => {
@@ -171,7 +187,7 @@ export default function App() {
       {screen === 'agents' && (
         <AgentSelection save={save} back={() => go('menu')} start={start} keys={prefs.keys}
           setKit={(id, kit) => update(s => ({ ...s, kits: { ...s.kits, [id]: kit } }))}
-          setLoadout={id => update(s => ({ ...s, loadout: id }))}
+          setLoadout={id => update(s => ({ ...s, loadout: id }))} equip={equipShop}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
       )}
       {screen === 'meta' && (
@@ -190,11 +206,13 @@ export default function App() {
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
       {screen === 'support' && <SupportScreen back={() => go('menu')} />}
+      {screen === 'shop' && <ShopScreen save={save} back={() => go('menu')} buy={buyShop} />}
+      {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}
       {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
       {screen === 'coop' && <CoopScreen save={save} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} keys={prefs.keys} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

@@ -34,7 +34,7 @@ Arriba a la derecha se ve el estado: **Conexión directa** (P2P), **Conexión po
   proyectiles en línea recta y **predice su propio movimiento** para que responda al instante (si se separa
   más de 90 unidades de lo que dice el anfitrión, se corrige de golpe; si no, poco a poco).
 - La foto incluye: tiempo, nivel, XP, bajas, aviso grande (con su clave traducible), jugadores (posición, vida,
-  buffs, recargas, armas, torretas con su vida, mejoras pendientes), enemigos, proyectiles, gemas, golpes de
+  buffs, recargas, armas, torretas con su vida, mascota, mejoras pendientes), enemigos, proyectiles, gemas, golpes de
   área, obuses y efectos; más los eventos visuales sueltos (chispas, números de daño, ondas, sonidos).
 - Mensajes del invitado al anfitrión: `in` (dirección de movimiento, ~20/s), `cast` (habilidad), `pick`
   (mejora elegida), `reroll`.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, Kit, withKit, isAvailable } from '../data/agents';
+import { Looks, looksFor } from '../data/shop';
 import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
 import { WEAPONS } from '../data/weapons';
@@ -10,7 +11,7 @@ import { audio } from '../utils/audio';
 import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
-export interface CoopSetup { agentId: string; kit?: Kit; loadout: string; meta: MetaLevels; name: string }
+export interface CoopSetup { agentId: string; kit?: Kit; loadout: string; meta: MetaLevels; name: string; looks?: Looks }
 /** seed: semilla del mundo, para que anfitrión e invitado vean el mismo mapa. */
 export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[]; seed: number }
 interface LobbyState extends CoopSetup { ready: boolean; mapId?: string; difficulty?: string }
@@ -41,7 +42,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const started = useRef(false);
 
   const loadout = WEAPONS[save.loadout] && (!WEAPONS[save.loadout].exclusive || save.exclusives.includes(save.loadout)) ? save.loadout : 'classic';
-  const mine: LobbyState = { agentId, kit: save.kits[agentId], loadout, meta: save.meta, name, ready: link?.role === 'host' ? true : ready, mapId, difficulty };
+  const mine: LobbyState = { agentId, kit: save.kits[agentId], loadout, meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
 
   // al salir de la pantalla sin empezar, se cierra la sala
   useEffect(() => () => { if (!started.current) link?.close(); }, [link]);
@@ -83,7 +84,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const start = () => {
     if (!link || !peerState) return;
     audio.play('click');
-    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, loadout: s.loadout, meta: s.meta, name: s.name });
+    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, loadout: s.loadout, meta: s.meta, name: s.name, looks: s.looks });
     const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)], seed: Math.floor(Math.random() * 2147483647) };
     link.send({ type: 'start', start: st });
     started.current = true;

@@ -52,6 +52,7 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `market` | Rotación del mercado y cartas ya descubiertas |
 | `newsSeen` | Última versión de Novedades vista (para la etiqueta "Nuevo") |
 | `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por agente/mapa, en Difícil+) y las misiones diarias cobradas |
+| `shop` | Tienda: lo comprado (`owned`), estilo de arma, estilo de cada agente, mascota que acompaña y nivel del poder de cada mascota |
 | `login` | Racha de conexión: último día, días seguidos, mejor racha, último premio diario cobrado e hitos cobrados |
 
 - `normalizeSave()` completa cualquier guardado con los valores por defecto, así que añadir campos nuevos no

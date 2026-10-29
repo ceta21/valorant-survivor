@@ -5,6 +5,7 @@ import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RU
 import { renderChunk, CPX } from './MapArt';
 import { CS } from './World';
 import { gunCanvas, gunSize } from './weaponSprites';
+import { petCanvas, PW, PH } from './petSprites';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
 import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelField, pixelLine, snapAng, sprite } from './vfx';
 
@@ -232,16 +233,18 @@ export class Renderer {
       g.beginPath(); g.moveTo(b.x - (b.vx / sp) * len * 0.6, b.y - (b.vy / sp) * len * 0.6); g.lineTo(b.x, b.y); g.stroke();
     }
     g.globalCompositeOperation = 'source-over';
-    // dagas (Jett) y flechas (Sova): sprites orientados en 16 direcciones con estela de píxeles
+    // dagas (Jett), flechas (Sova) y disparos de mascotas: sprites orientados con estela de píxeles
+    const LOOK: Record<string, [string, string]> = { dagger: ['dagger', 'wind'], arrow: ['arrow', 'scan'], flame: ['flame', 'fire'], bolt: ['bolt', 'electric'], leaf: ['crystal', 'poison'] };
     for (const b of e.projs) {
       if (b.dead || !b.look || !vis(b.x, b.y)) continue;
       const ang = Math.atan2(b.vy, b.vx), c = Math.cos(ang), s = Math.sin(ang);
-      const trail = b.look === 'arrow' ? PAL.scan : PAL.wind;
+      const [sprName, pal] = LOOK[b.look] ?? LOOK.dagger;
+      const trail = PAL[pal];
       for (let i = 1; i <= 3; i++) {
         g.fillStyle = trail[4 - i];
         g.fillRect(Math.round((b.x - c * (10 + i * 6)) / PX) * PX - 1, Math.round((b.y - s * (10 + i * 6)) / PX) * PX - 1, PX, PX);
       }
-      drawSprite(g, b.look === 'arrow' ? sprite('arrow', b.color === '#ffffff' ? 'holy' : 'scan', this.makeCanvas) : sprite('dagger', 'wind', this.makeCanvas), b.x, b.y, PX, ang);
+      drawSprite(g, sprite(sprName, b.look === 'arrow' && b.color === '#ffffff' ? 'holy' : pal, this.makeCanvas), b.x, b.y, PX, b.look === 'flame' ? 0 : ang);
     }
     // efectos de habilidad (explosiones, anillos, llamas, haces de luz)
     for (const v of e.vfx) {
@@ -270,6 +273,24 @@ export class Renderer {
           if (k > 0.6 && (i + Math.floor(e.time * 20)) % 3 === 0) continue;
           drawSprite(g, img, Math.round((vx + Math.cos(a) * d) / PX) * PX, Math.round((vy + Math.sin(a) * d * 0.8) / PX) * PX - fl * PX, PX * (k < 0.7 ? 2 : 1), 0, fl === 1);
         }
+      }
+    }
+    // mascotas (por detrás de los jugadores)
+    for (const pl of e.players) {
+      const pet = pl.pet;
+      if (!pet || pet.dead || pl.dead) continue;
+      const px = Math.round(pet.x / PX) * PX, py = Math.round(pet.y / PX) * PX, w = PW * PX, h = PH * PX;
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.beginPath(); g.ellipse(px, py + 6, 11, 4, 0, 0, 7); g.fill();
+      g.save(); g.imageSmoothingEnabled = false;
+      if (pet.flash > 0) g.globalAlpha = 0.55;
+      g.translate(px, py + 8);
+      if (pet.face < 0) g.scale(-1, 1);
+      g.drawImage(petCanvas(pet.id, Math.floor(pet.hop) % 2, this.makeCanvas, 3), -w / 2, -h, w, h);
+      g.restore();
+      if (pet.hp < pet.maxHp) {
+        const bw = 24, k = Math.max(0, pet.hp / pet.maxHp), by = py + 8 - h - 6;
+        g.fillStyle = '#000'; g.fillRect(px - bw / 2 - 2, by, bw + 4, 6);
+        g.fillStyle = k > 0.5 ? '#5dff9a' : k > 0.25 ? '#ffb020' : '#ff4655'; g.fillRect(px - bw / 2, by + 2, Math.round((bw * k) / PX) * PX, 2);
       }
     }
     // jugadores (con sus drones); los caídos se ven como un fantasma hasta la siguiente oleada
@@ -421,7 +442,8 @@ export class Renderer {
     let sx = 1, sy = moving || casting ? 1 : 1 + Math.sin(t * 3) * 0.018;
     if (dashing) { lean = Math.sign(p.dashVx) * 0.3; sx = 1.2; sy = 0.88; }
     if (casting) { const s = 1 + Math.sin(castK * Math.PI) * 0.12; sx = s; sy = s; }
-    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame);
+    const looks = e.looksOf();
+    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame, looks.agent ?? '');
     const baseY = p.y + 15 - bob;
     const drawBody = (ox: number, oy: number, alpha: number) => {
       g.save(); g.globalAlpha = alpha; g.translate(p.x + ox, baseY + oy); g.rotate(lean);
@@ -449,7 +471,7 @@ export class Renderer {
     const aimUp = Math.sin(p.face) < -0.4 || dir === 'back';
     const drawGun = () => {
       if (casting || dashing) return;
-      const gs = gunSize(e.held), gc = gunCanvas(e.held, WEAPONS[e.held].color, this.makeCanvas, 3);
+      const gs = gunSize(e.held), gc = gunCanvas(e.held, WEAPONS[e.held].color, this.makeCanvas, 3, looks.weapon ?? '');
       const gw = gs.w * 1.5, gh = gs.h * 1.5;
       const recoil = Math.max(0, 1 - (t - e.lastShotT) / 0.09) * 4;
       g.save(); g.globalAlpha = blink ? 0.4 : 1;
@@ -476,8 +498,8 @@ export class Renderer {
   }
 
   /** Jugador caído: silueta translúcida y quieta hasta la siguiente oleada. */
-  private drawGhost(g: Ctx, e: GameEngine, pl: { agent: { id: string }; body: { x: number; y: number } }) {
-    const sz = spriteSize(pl.agent.id), spr = spriteCanvas(pl.agent.id, this.makeCanvas, 3, IDLE), dw = sz.w * sz.px, dh = sz.h * sz.px;
+  private drawGhost(g: Ctx, e: GameEngine, pl: { agent: { id: string }; body: { x: number; y: number }; looks: { agent?: string } }) {
+    const sz = spriteSize(pl.agent.id), spr = spriteCanvas(pl.agent.id, this.makeCanvas, 3, IDLE, 'front', 0, pl.looks.agent ?? ''), dw = sz.w * sz.px, dh = sz.h * sz.px;
     g.save(); g.globalAlpha = 0.3 + 0.1 * Math.sin(e.time * 4);
     g.imageSmoothingEnabled = false;
     g.drawImage(spr, Math.round(pl.body.x / PX) * PX - dw / 2, Math.round((pl.body.y + 15) / PX) * PX - dh, dw, dh);

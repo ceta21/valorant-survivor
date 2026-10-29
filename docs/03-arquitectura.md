@@ -77,6 +77,10 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   - El cuerpo mira hacia donde se mueve: de frente (bajando o quieto), de espaldas (subiendo) o de lado (la
     izquierda es el espejo de la derecha). El arma equipada se pinta aparte y apunta al enemigo.
 - Armas: sprites por piezas (`weaponSprites.ts`); las exclusivas usan la silueta de su arma base con sus colores.
+- Mascotas: `petSprites.ts`, un mismo cuerpo de 16×15 con los colores de cada una y el detalle de su elemento;
+  2 fotogramas (de pie y saltito). Sus disparos usan los aspectos `flame`, `bolt` y `leaf` de los proyectiles.
+- Estilos de la tienda: el de arma cambia los colores en `weaponSprites.ts`; el de agente se aplica al canvas del
+  sprite (`spriteCanvas(..., skin)`) pasando la ropa a la gama del estilo según su brillo.
 - Robots enemigos: `enemySprites.ts` dibuja cada tipo con rectángulos y contorno automático, 2 fotogramas de
   animación y variantes "golpe" (blanco) y "aturdido" (gris). Cada jefe tiene un detalle propio.
 - Efectos de habilidad: `vfx.ts` (sprites de dagas, flechas, llamas, granadas, cohetes, torretas, ojo, cruces…

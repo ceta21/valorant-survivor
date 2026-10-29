@@ -10,6 +10,7 @@ import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
 import { META } from '../data/meta';
 import { World } from './World';
 import type { MetaLevels } from '../utils/storage';
+import { Looks, PET_BY_ID, PET_RESPAWN, PetDef } from '../data/shop';
 
 const DT = 1 / 60;
 const CELL = 64;
@@ -49,7 +50,7 @@ export interface Strike { x: number; y: number; r: number; t: number; dur: numbe
 /** Efecto visual de habilidad (solo decorativo). follow: x,y son relativos al jugador. */
 export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number }
 export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise';
-export type ProjLook = '' | 'dagger' | 'arrow';
+export type ProjLook = '' | 'dagger' | 'arrow' | 'flame' | 'bolt' | 'leaf';
 export interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string; circle: boolean }
 export interface FloatText { x: number; y: number; life: number; text: string; color: string; size: number }
 export interface PlayerBody {
@@ -58,7 +59,14 @@ export interface PlayerBody {
 }
 export type Buffs = { sprintT: number; sprintPow: number; sprintRad: number; sprintAcc: number; frenzyT: number; frenzyMul: number; frenzyHeal: number; frenzyFx: string; stormT: number; stormAcc: number; stormPow: number };
 /** Datos con los que entra cada jugador a la partida. */
-export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; startWeapon: string; name: string }
+export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; startWeapon: string; name: string; looks?: Looks }
+/** Mascota que acompaña a un jugador. Si cae, vuelve a los PET_RESPAWN segundos. */
+export interface PetState {
+  id: string; x: number; y: number; hp: number; maxHp: number; flash: number; dead: boolean;
+  respawn: number; cd: number; lv: number; hop: number; face: number;
+}
+/** Lo que los robots pueden atacar además de los jugadores: torretas y mascotas. */
+export type Target = { x: number; y: number; hp: number; maxHp: number; flash: number; dead: boolean };
 /** Estado propio de cada jugador. El motor "carga" uno a la vez en sus campos (ver use()). */
 export interface Pl {
   idx: number; name: string; agent: AgentDef; stats: Stats; body: PlayerBody; buffs: Buffs; cds: { special: number; secondary: number };
@@ -69,6 +77,9 @@ export interface Pl {
   dead: boolean;
   /** Se fue de la partida (cooperativo): ya no vuelve. */
   gone?: boolean;
+  /** Estilos de la tienda y mascota. */
+  looks: Looks;
+  pet: PetState | null;
 }
 export interface Fx { kind: 0 | 1; x: number; y: number; x2: number; y2: number; r: number; life: number; max: number; color: string }
 
@@ -162,7 +173,7 @@ export class GameEngine {
 
   /** coop: varios jugadores; local = índice del de esta pantalla. Sin coop, partida en solitario. */
   constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic',
-    coop?: { setups: PlayerSetup[]; local: number; seed?: number }) {
+    coop?: { setups: PlayerSetup[]; local: number; seed?: number }, looks: Looks = {}) {
     this.map = map;
     this.ev = ev;
     this.diff = diff;
@@ -170,7 +181,7 @@ export class GameEngine {
     // en cooperativo los dos jugadores generan el mismo mundo a partir de la semilla del anfitrión
     this.world = new World(map, coop?.seed);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
-    const setups = coop?.setups ?? [{ agent, meta, startWeapon, name: '' }];
+    const setups = coop?.setups ?? [{ agent, meta, startWeapon, name: '', looks }];
     this.players = setups.map((st, i) => this.makePlayer(i, st));
     this.local = coop?.local ?? 0;
     this.use(this.players[this.local]);
@@ -197,6 +208,11 @@ export class GameEngine {
       buffs: { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '', stormT: 0, stormAcc: 0, stormPow: 0 },
       cds: { special: 0, secondary: 0 }, ult: 25, weapons: [{ id: w, lvl: 1, cd: 0.2 }], held: w, heldSince: -9, lastShotT: -9, castT: -9, castUlt: false,
       inputMove: { x: 0, y: 0 }, taken: {}, rerolls: 2, choices: [], pending: 0, droneAngle: 0, droneCd, turrets: [], portalCd: 0, healTextT: 0, hurtFlash: 0, dead: false,
+      looks: st.looks ?? {},
+      pet: st.looks?.pet && PET_BY_ID[st.looks.pet] ? {
+        id: st.looks.pet, x: sp.x + idx * 36 - 30, y: sp.y + 12, hp: 70 * this.dmgScale, maxHp: 70 * this.dmgScale, flash: 0, dead: false,
+        respawn: 0, cd: 1, lv: st.looks.petLv ?? 0, hop: 0, face: 1,
+      } : null,
     };
   }
 
@@ -750,7 +766,7 @@ export class GameEngine {
       const p = this.player;
       if (e.turretHitT && e.turretHitT > 0) e.turretHitT -= dt;
       // los robots cuerpo a cuerpo atacan la torreta si la tienen más cerca que al jugador
-      let tur: Turret | null = null;
+      let tur: Target | null = null;
       if (!e.isBoss && turrets.length && (e.def.behavior === 'chase' || e.def.behavior === 'exploder' || e.def.behavior === 'elite')) {
         let best = Math.hypot(p.x - e.x, p.y - e.y);
         for (const t of turrets) {
@@ -1011,17 +1027,28 @@ export class GameEngine {
     }
   }
   /** Torretas vivas de todos los jugadores. */
-  allTurrets(): Turret[] {
+  /** Torretas y mascotas en pie (lo que los robots pueden atacar además de los jugadores). */
+  allTurrets(): Target[] {
     this.sync();
-    const out: Turret[] = [];
-    for (const pl of this.players) for (const t of pl.turrets) if (!t.dead) out.push(t);
+    const out: Target[] = [];
+    for (const pl of this.players) {
+      for (const t of pl.turrets) if (!t.dead) out.push(t);
+      if (pl.pet && !pl.pet.dead && !pl.dead) out.push(pl.pet);
+    }
     return out;
   }
-  damageTurret(t: Turret, dmg: number) {
+  damageTurret(t: Target, dmg: number) {
     if (t.dead || dmg <= 0) return;
     t.hp -= dmg; t.flash = 0.1;
     if (t.hp > 0) { this.sparks(t.x, t.y, '#ffe14a', 2, 90, 0.25); return; }
     t.dead = true;
+    if ('respawn' in t) {   // mascota: vuelve al minuto
+      const pet = t as PetState;
+      pet.respawn = PET_RESPAWN;
+      this.sparks(pet.x, pet.y, PET_BY_ID[pet.id].colors.body, 14, 200, 0.5);
+      this.sfx('hit', 0.05);
+      return;
+    }
     this.addVfx('blast', 'turret', t.x, t.y, 46, 0.45);
     this.sparks(t.x, t.y, '#ffe14a', 14, 220, 0.5);
     this.sfx('explosion', 0.08);
@@ -1251,6 +1278,69 @@ export class GameEngine {
         } else t.cd = 0.15;
       }
     }
+    if (this.cur.pet) this.updatePet(this.cur.pet, dt);
+  }
+
+  /** Estilos y mascota del jugador cargado (para el render). */
+  looksOf(): Looks { return this.cur.looks; }
+
+  /* ------------------------------------------------------------------ mascotas */
+  private updatePet(pet: PetState, dt: number) {
+    const p = this.player, def = PET_BY_ID[pet.id];
+    if (pet.flash > 0) pet.flash -= dt;
+    if (pet.dead) {
+      pet.respawn -= dt;
+      if (pet.respawn <= 0) {
+        pet.dead = false; pet.maxHp = 70 * this.dmgScale; pet.hp = pet.maxHp;
+        pet.x = p.x - 30; pet.y = p.y + 12;
+        this.sparks(pet.x, pet.y, def.colors.fx, 12, 160, 0.5);
+      }
+      return;
+    }
+    // va a un lado del jugador, un poco por detrás según hacia dónde mira
+    const tx = p.x - Math.sign(p.lastDirX || 1) * 32, ty = p.y + 14;
+    const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
+    if (d > 420) { pet.x = tx; pet.y = ty; }
+    else if (d > 3) {
+      const sp = Math.min(d * 6, this.stats.speed * 1.35);
+      pet.x += (dx / d) * sp * dt; pet.y += (dy / d) * sp * dt;
+      pet.hop += dt * (d > 18 ? 10 : 4);
+      if (Math.abs(dx) > 2) pet.face = Math.sign(dx);
+    }
+    this.resolve(pet, 8);
+    // poder: solo si se ha desbloqueado en la tienda
+    if (pet.lv <= 0) return;
+    pet.cd -= dt;
+    if (pet.cd > 0) return;
+    const tg = this.nearestEnemy(pet.x, pet.y, 320);
+    if (!tg) { pet.cd = 0.25; return; }
+    this.petAttack(pet, def, tg);
+    pet.cd = [0, 1.6, 1.25, 0.95][pet.lv];
+  }
+  private petAttack(pet: PetState, def: PetDef, tg: Enemy) {
+    const s = this.stats, lv = pet.lv, dmg = (6 + 5 * lv) * s.dmg, a = Math.atan2(tg.y - pet.y, tg.x - pet.x);
+    switch (def.element) {
+      case 'fuego':   // bola de fuego que quema
+        this.spawnProj(pet.x, pet.y, a, 420, dmg, 6, 340, 0, false, '#ff7a2e', { burn: 2 + lv * 2, look: 'flame' });
+        break;
+      case 'agua':    // chorro que estalla, empuja y ralentiza
+        this.explodeAt(tg.x, tg.y, 34 + lv * 6, dmg, '#4ff0e0', { slow: 0.5 });
+        this.addVfx('blast', 'water', tg.x, tg.y, 34 + lv * 6, 0.45);
+        break;
+      case 'rayo':    // rayo que salta entre enemigos
+        this.spawnProj(pet.x, pet.y, a, 760, dmg * 0.85, 4, 380, 0, false, '#2fe6ff', { chain: true, look: 'bolt' });
+        break;
+      case 'planta':  // dos hojas y una pequeña cura
+        for (const o of [-0.16, 0.16]) this.spawnProj(pet.x, pet.y, a + o, 520, dmg * 0.65, 4, 340, 1, false, '#5dff9a', { look: 'leaf' });
+        this.player.hp = Math.min(s.maxHp, this.player.hp + s.maxHp * 0.004 * lv);
+        break;
+      case 'hielo':   // fragmentos que congelan un instante
+        this.explodeAt(tg.x, tg.y, 30 + lv * 5, dmg, '#bfe8ff', { stun: 0.3 + lv * 0.1 });
+        this.addVfx('blast', 'ice', tg.x, tg.y, 30 + lv * 5, 0.45);
+        break;
+    }
+    pet.hop += 1;
+    this.sfx('shoot', 0.05);
   }
 
   /* ------------------------------------------------------------------ habilidades */
@@ -1602,6 +1692,8 @@ export class GameEngine {
       dead: this.me.dead,
       /** Compañeros en cooperativo (vacío en solitario). */
       mates: this.players.filter(p => p !== this.me).map(p => ({ name: p.name, hp: p.body.hp, maxHp: p.stats.maxHp, dead: p.dead, gone: !!p.gone, color: p.agent.color, agent: p.agent.name })),
+      /** Mascota propia: vida o segundos para volver. */
+      pet: this.me.pet ? { name: PET_BY_ID[this.me.pet.id].name, color: PET_BY_ID[this.me.pet.id].colors.body, hp: this.me.pet.hp, maxHp: this.me.pet.maxHp, dead: this.me.pet.dead, respawn: this.me.pet.respawn, lv: this.me.pet.lv } : null,
     };
   }
 }

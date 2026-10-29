@@ -2,6 +2,7 @@
 // Cada agente tiene 3 vistas: de frente, de espaldas y de lado (mirando a la derecha; la izquierda es el
 // espejo), con fotogramas de andar/correr y una pose de lanzar habilidad.
 import { AGENT_IMAGES } from '../data/agentImages';
+import { AGENT_SKIN_BY_ID } from '../data/shop';
 export const SW = 22;
 export const SH = 30;
 export type Grid = (string | null)[][];
@@ -249,14 +250,20 @@ export function setAgentSheet(id: string, img: any) {
   sheets.set(id, img);
   for (const k of [...cache.keys()]) if (k.startsWith(id + '@')) cache.delete(k);
 }
+const waiting = new Map<string, Promise<void>>();
 function sheetOf(id: string) {
   if (!sheets.has(id) && typeof Image !== 'undefined') {
     sheets.set(id, null);
     const im = new Image();
-    im.onload = () => setAgentSheet(id, im);
+    waiting.set(id, new Promise(ok => { im.onload = () => { setAgentSheet(id, im); ok(); }; im.onerror = () => ok(); }));
     im.src = agentSheetUrl(id);
   }
   return sheets.get(id) ?? null;
+}
+/** Espera a que la hoja del agente esté cargada (o ya no haga falta). */
+export function agentSheetReady(id: string): Promise<void> {
+  if (!hasImage(id) || sheetOf(id)) return Promise.resolve();
+  return waiting.get(id) ?? Promise.resolve();
 }
 /** Empieza a cargar todas las hojas (al arrancar el juego, para que estén listas al jugar). */
 export function preloadAgentSheets() { for (const id of Object.keys(AGENT_IMAGES)) sheetOf(id); }
@@ -287,12 +294,35 @@ export function spriteRuns(id: string): { x: number; y: number; w: number; c: st
   return runs;
 }
 
+/** Estilo de agente (tienda): pasa la ropa y la armadura a la gama del estilo según su brillo.
+ *  No toca el contorno ni los tonos de piel. */
+function applySkin(c: any, skin: string) {
+  const ramp = AGENT_SKIN_BY_ID[skin]?.ramp;
+  if (!ramp) return;
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data;
+  const rgb = ramp.map(h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)));
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255;
+    const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2;
+    if (l < 0.13) continue;   // contorno
+    const s = mx === mn ? 0 : (mx - mn) / (1 - Math.abs(2 * l - 1));
+    let hue = 0;
+    if (mx !== mn) hue = mx === r ? ((gg - b) / (mx - mn)) % 6 : mx === gg ? (b - r) / (mx - mn) + 2 : (r - gg) / (mx - mn) + 4;
+    hue = (hue * 60 + 360) % 360;
+    if (hue >= 8 && hue <= 45 && s > 0.25 && s < 0.9 && l > 0.42 && l < 0.9) continue;   // piel
+    const k = Math.min(rgb.length - 1, Math.max(0, Math.round(((l - 0.13) / 0.87) * (rgb.length - 1) + 0.3)));
+    [d[i], d[i + 1], d[i + 2]] = rgb[k];
+  }
+  g.putImageData(im, 0, 0);
+}
+
 const cache = new Map<string, any>();
-/** Sprite ya pintado en un canvas (escala entera, sin suavizado). */
-export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE, dir: Dir = 'front', frame = 0) {
+/** Sprite ya pintado en un canvas (escala entera, sin suavizado). `skin`: estilo de agente de la tienda. */
+export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE, dir: Dir = 'front', frame = 0, skin = '') {
   const { w: GW, h: GH } = spriteSize(id);
   if (hasImage(id)) {
-    const col = frame % walkFrames(id, dir), key = `${id}@${scale}|${dir}|f${col}`, sheet = sheetOf(id);
+    const col = frame % walkFrames(id, dir), key = `${id}@${scale}|${dir}|f${col}|${skin}`, sheet = sheetOf(id);
     let c = cache.get(key);
     if (c) return c;
     c = make(GW * scale, GH * scale);
@@ -300,10 +330,11 @@ export function spriteCanvas(id: string, make: (w: number, h: number) => any, sc
     const g = c.getContext('2d');
     g.imageSmoothingEnabled = false;
     g.drawImage(sheet, col * GW, ROW[dir] * GH, GW, GH, 0, 0, GW * scale, GH * scale);
+    applySkin(c, skin);
     cache.set(key, c);
     return c;
   }
-  const key = `${id}@${scale}|${dir}|${pose.lL}${pose.lR}${pose.aL}${pose.aR}${pose.raise ? 1 : 0}`;
+  const key = `${id}@${scale}|${dir}|${pose.lL}${pose.lR}${pose.aL}${pose.aR}${pose.raise ? 1 : 0}|${skin}`;
   let c = cache.get(key);
   if (c) return c;
   c = make(GW * scale, GH * scale);
@@ -313,6 +344,7 @@ export function spriteCanvas(id: string, make: (w: number, h: number) => any, sc
     const col = grid[y][x];
     if (col) { g.fillStyle = col; g.fillRect(x * scale, y * scale, scale, scale); }
   }
+  applySkin(c, skin);
   cache.set(key, c);
   return c;
 }

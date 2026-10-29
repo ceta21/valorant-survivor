@@ -11,6 +11,17 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.16', date: '2026-10-29', title: 'Tienda: estilos y mascotas', tag: 'Nuevo', color: '#ffd24a',
+    items: [
+      'Nueva Tienda en el menú con estilos de armas, estilos de agentes y mascotas.',
+      'Los estilos solo cambian el aspecto: colores de tus armas y ropa o armadura de tu agente.',
+      '5 mascotas (fuego, agua, rayo, planta y hielo) te acompañan en la partida; si las derriban, vuelven en 1 minuto.',
+      'Desbloquea y mejora el poder de tu mascota (3 niveles) para que ataque con su elemento.',
+      'La Tienda solo vende; los estilos se ponen en la ficha de cada agente (Agentes) y las mascotas en el nuevo apartado Mascotas.',
+      'En Mascotas eliges cuál te acompaña (o ninguna) y desbloqueas o mejoras su poder.',
+    ],
+  },
+  {
     id: '1.15', date: '2026-10-29', title: 'Misiones diarias y racha', tag: 'Nuevo', color: '#5dff9a',
     items: [
       'Nuevo apartado Diario en el menú con 3 misiones que cambian cada día: fácil (◈ 60), media (◈ 120) y difícil (◈ 200).',

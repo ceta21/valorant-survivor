@@ -1,12 +1,13 @@
 // Cooperativo en red: el anfitrión simula la partida y envía "fotos" del estado; el invitado
 // no simula: copia esas fotos en su motor, suaviza los movimientos entre una y otra y solo
 // predice su propio personaje para que responda al instante.
-import { Enemy, GameEngine, Pl } from './GameEngine';
+import { Enemy, GameEngine, Pl, ProjLook } from './GameEngine';
 import { ENEMIES } from '../data/enemies';
 import { WEAPONS } from '../data/weapons';
 import { BossPattern, UpgradeChoice } from './types';
 
 const ENEMY_IDS = Object.keys(ENEMIES);
+const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf'];
 const PATTERNS: BossPattern[] = ['ring', 'spiral', 'slam', 'charge', 'summon'];
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -18,6 +19,8 @@ export interface PlayerSnap {
   mx: number; my: number; ult: number; cds: [number, number]; spd: number; cdr: number; area: number;
   dr: number; da: number; w: [string, number][]; tu: [number, number, number, number, number, number, string, number?, number?, number?][];
   hf: number; pend: number; rr: number; ch: UpgradeChoice[];
+  /** Mascota: x, y, vida, vida máx., caída, segundos para volver, salto, mira (1/-1), golpe. */
+  pe?: [number, number, number, number, 0 | 1, number, number, number, 0 | 1];
 }
 export interface Snap {
   t: number; st: string; lv: number; xp: number; k: number; bk: number; dmg: number; fs: 0 | 1; fk: 0 | 1; eb: number;
@@ -47,7 +50,7 @@ export function makeSnapshot(e: GameEngine): Snap {
       a ? PATTERNS.indexOf(a.kind) + 1 : 0, a ? Math.round(a.t * 100) : 0, a ? Math.round(a.dur * 100) : 0, a ? Math.round(a.x) : 0, a ? Math.round(a.y) : 0, a ? Math.round(a.ang * 100) : 0);
   }
   const pj: number[] = [];
-  for (const b of e.projs) if (!b.dead) pj.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), Math.round(b.r * 10), b.look === 'dagger' ? 1 : b.look === 'arrow' ? 2 : 0, b.crit ? 1 : 0, col(b.color));
+  for (const b of e.projs) if (!b.dead) pj.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), Math.round(b.r * 10), Math.max(0, LOOKS.indexOf(b.look)), b.crit ? 1 : 0, col(b.color));
   const ep: number[] = [];
   for (const b of e.eprojs) if (!b.dead) ep.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), b.r, col(b.color));
   const gm: number[] = [];
@@ -62,6 +65,7 @@ export function makeSnapshot(e: GameEngine): Snap {
       spd: pl.stats.speed, cdr: pl.stats.cdr, area: pl.stats.area, dr: pl.stats.drones, da: r2(pl.droneAngle),
       w: pl.weapons.map(w => [w.id, w.lvl]), tu: pl.turrets.filter(t => !t.dead).map(t => [Math.round(t.x), Math.round(t.y), r2(t.ang), r1(t.t), t.max, r2(t.cd), t.color, Math.round(t.hp), Math.round(t.maxHp), t.flash > 0 ? 1 : 0]),
       hf: r2(pl.hurtFlash), pend: pl.pending, rr: pl.rerolls, ch: pl.choices,
+      pe: pl.pet ? [r1(pl.pet.x), r1(pl.pet.y), r1(pl.pet.hp), r1(pl.pet.maxHp), pl.pet.dead ? 1 : 0, r1(pl.pet.respawn), r1(pl.pet.hop), pl.pet.face < 0 ? -1 : 1, pl.pet.flash > 0 ? 1 : 0] : undefined,
     };
   });
   const ev = e.netOut ?? [];
@@ -111,6 +115,10 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     pl.weapons.length = 0; for (const [id, lvl] of ps.w) if (WEAPONS[id]) pl.weapons.push({ id, lvl, cd: 0 });
     pl.turrets = ps.tu.map(([x, y, ang, t, max, cd, color, hp, maxHp, fl]) => ({ x, y, ang, t, max, cd, color, power: 0, dead: false, hp: hp ?? 1, maxHp: maxHp ?? 1, flash: fl ? 0.1 : 0 }));
     pl.hurtFlash = Math.max(pl.hurtFlash, ps.hf); pl.pending = ps.pend; pl.rerolls = ps.rr; pl.choices = ps.ch ?? [];
+    if (pl.pet && ps.pe) {
+      const [x, y, hp, maxHp, dead, respawn, hop, face, fl] = ps.pe;
+      Object.assign(pl.pet, { x, y, hp, maxHp, dead: !!dead, respawn, hop, face, flash: fl ? 0.1 : 0 });
+    }
   });
   // enemigos: se conservan los objetos por id para suavizar el movimiento
   const old = new Map(e.enemies.map(m => [m.id, m]));
@@ -130,7 +138,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
   e.projs = [];
   for (let i = 0; i < s.pj.length; i += PJ) {
     const look = s.pj[i + 5];
-    e.projs.push({ x: s.pj[i], y: s.pj[i + 1], vx: s.pj[i + 2], vy: s.pj[i + 3], r: s.pj[i + 4] / 10, look: look === 1 ? 'dagger' : look === 2 ? 'arrow' : '', crit: !!s.pj[i + 6],
+    e.projs.push({ x: s.pj[i], y: s.pj[i + 1], vx: s.pj[i + 2], vy: s.pj[i + 3], r: s.pj[i + 4] / 10, look: LOOKS[look] ?? '', crit: !!s.pj[i + 6],
       color: s.cl[s.pj[i + 7]], dmg: 0, life: 1, pierce: 0, hit: [], homing: false, target: null, burn: 0, explode: 0, mark: 0, dead: false, chain: false, owner: 0 });
   }
   e.eprojs = [];

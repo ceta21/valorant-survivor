@@ -70,6 +70,22 @@ aturden) y **marca** (+30 % de daño recibido).
   cerca que el jugador** y la golpean cada 0,6 s. Los disparos enemigos, obuses del Artillero, explosiones y
   golpes de jefe también las dañan. Al llegar a 0 explotan.
 
+### Mascotas
+
+Se compran en la Tienda (ver más abajo); en el apartado **Mascotas** (`PetsScreen`, debajo de Agentes en el menú)
+se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su poder. Código: `updatePet()` y
+`petAttack()` en `GameEngine`, dibujo en `src/game/petSprites.ts`.
+
+- Va a un lado del jugador, un poco por detrás; si se queda a más de 420 de distancia, aparece junto a él.
+- Vida `70 × escala de daño enemigo`. Los robots la atacan igual que a las torretas (cuenta en `allTurrets()`,
+  que devuelve torretas y mascotas): cuerpo a cuerpo si está más cerca que el jugador, disparos y explosiones.
+- Si la derriban vuelve a los **60 s** (`PET_RESPAWN`) con toda la vida. El HUD muestra su vida o el tiempo que falta.
+- Sin poder solo acompaña. Con poder (niveles 1–3) ataca al enemigo más cercano (alcance 320) cada 1,6 / 1,25 /
+  0,95 s con daño `(6 + 5 × nivel) × daño del jugador`:
+  - Fuego (Brasín): bola de fuego que quema. Agua (Ajolín): chorro que estalla y ralentiza.
+  - Rayo (Voltio): rayo que salta entre enemigos. Planta (Brotín): dos hojas y cura un 0,4 % por nivel.
+  - Hielo (Copito): fragmentos que aturden 0,4–0,6 s.
+
 ## Experiencia y nivel
 
 - XP necesaria para el siguiente nivel: `round(5 + 5·nivel + 0,55·nivel²)`.
@@ -138,3 +154,10 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
 - **Agentes**: Jett, Phoenix y Sage gratis; el resto se desbloquean con créditos.
 - **Mejoras permanentes**: daño, vida, velocidad y experiencia, 10 niveles cada una (ver coste en [10](10-datos-del-juego.md#mejoras-permanentes)).
 - **Mercado nocturno**: ver [07](07-mercado-nocturno.md).
+- **Tienda** (`src/data/shop.ts`, `ShopScreen`): **solo compra** (con confirmación). Lo comprado se pone en otro sitio:
+  estilos de agente y de arma en la ficha de cada agente (**Agentes**); mascotas y su poder en **Mascotas**.
+  - Estilos de armas (◈ 3.000–5.000): cambian los colores de todas las armas (`buildGun(..., skin)`).
+  - Estilos de agentes (◈ 8.000–12.000): recolorean ropa y armadura del agente al que se pongan, respetando piel y
+    contorno (`applySkin()` en `sprites.ts`). Cada agente lleva el suyo. Solo estéticos.
+  - Mascotas (◈ 12.000–16.000). Su poder se compra en Mascotas: ◈ 5.000 / 8.000 / 12.000 por nivel.
+  - Lo comprado y lo equipado va en `save.shop` y se lleva a la partida como `Looks` (también en cooperativo).
