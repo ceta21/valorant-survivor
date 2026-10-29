@@ -87,6 +87,7 @@ h3 { text-transform: uppercase; font-weight: 700; letter-spacing: .1em; font-siz
 .agent-card:hover { transform: translateY(-4px); } .agent-card:hover::after { box-shadow: inset 0 0 0 var(--p) var(--ac); }
 .agent-card.on::after { box-shadow: inset 0 0 0 var(--p) var(--ac), inset 0 0 0 calc(var(--p) * 2) #000; }
 .agent-card-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 8px 8px; background: rgba(0, 0, 0, .75); font-weight: 700; font-size: 16px; text-transform: uppercase; text-align: left; }
+.agent-card-soon { position: absolute; left: 0; right: 0; top: 8px; padding: 5px 4px; background: rgba(0, 0, 0, .8); color: #ff4655; font-family: var(--font-px); font-size: 11px; text-transform: uppercase; text-align: center; }
 .agent-card-cost { position: absolute; right: 8px; top: 8px; background: #000; padding: 3px 7px; color: #ffd24a; font-size: 14px; font-weight: 700; }
 .agent-panel { width: min(430px, 42%); background: var(--ink2); box-shadow: inset 0 var(--p) 0 var(--ac), inset 0 0 0 var(--p) var(--line); padding: 20px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
 .panel-head small { color: var(--ac); text-transform: uppercase; font-size: 15px; } .panel-head h3 { margin: 8px 0 0; font-family: var(--font-px); font-weight: 400; font-size: 26px; text-transform: uppercase; color: var(--cream); text-shadow: 4px 4px 0 #000; }

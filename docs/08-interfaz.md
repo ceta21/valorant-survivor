@@ -9,7 +9,7 @@
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones, panel central (novedad, mercado, top 3, misiones), retrato y estadísticas |
-| Agentes | `AgentSelection` | Elegir agente, kit (exclusivos), mapa, arma inicial, dificultad; desbloquear agentes |
+| Agentes | `AgentSelection` | Elegir agente, kit (exclusivos), mapa, arma inicial, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente") |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir agente, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |

@@ -251,6 +251,11 @@ export const EXCLUSIVE_AGENTS: AgentDef[] = [
 ];
 export const ALL_AGENTS: AgentDef[] = [...AGENTS, ...EXCLUSIVE_AGENTS];
 export const AGENT_BY_ID: Record<string, AgentDef> = Object.fromEntries(ALL_AGENTS.map(a => [a.id, a]));
+/** Agentes que se pueden jugar ahora mismo (más los exclusivos del mercado); el resto sale con candado de "Próximamente". */
+export const AVAILABLE_AGENTS = ['jett', 'phoenix', 'reyna', 'sage', 'killjoy', 'eclipse', 'vortice', 'quimera'];
+export const isAvailable = (id: string) => AVAILABLE_AGENTS.includes(id);
+/** Agente con el que empezar si el último elegido no está disponible. */
+export const playableAgent = (id: string) => isAvailable(id) ? id : AVAILABLE_AGENTS[0];
 
 export interface Kit { special: string; secondary: string; ultimate: string }
 /** Agente con las habilidades elegidas por el jugador (solo afecta a los exclusivos). */

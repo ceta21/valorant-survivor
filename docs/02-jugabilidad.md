@@ -7,6 +7,9 @@ Código principal: `src/game/GameEngine.ts`.
 ## Flujo de una partida
 
 1. En **Jugar** se elige agente, mapa, dificultad y (si se tiene alguna exclusiva) arma inicial.
+   De momento solo se pueden jugar Jett, Phoenix, Reyna, Sage, Killjoy y los exclusivos del mercado
+   (`AVAILABLE_AGENTS` en `src/data/agents.ts`); el resto sale con candado y el rótulo **Próximamente**, y
+   no se puede comprar ni elegir (tampoco en cooperativo).
 2. La partida empieza con el aviso "¡SOBREVIVE!" y el arma inicial (Classic por defecto) a nivel 1.
 3. Las armas disparan solas al enemigo más cercano dentro de su alcance.
 4. Los enemigos muertos sueltan **gemas de experiencia**; al recogerlas se llena la barra de XP.

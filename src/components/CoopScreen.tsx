@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, Kit, withKit } from '../data/agents';
+import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, Kit, withKit, isAvailable } from '../data/agents';
 import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
 import { WEAPONS } from '../data/weapons';
@@ -32,7 +32,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const roster = useMemo(() => [...AGENTS.filter(a => save.unlocked.includes(a.id)), ...EXCLUSIVE_AGENTS.filter(a => save.exclusives.includes(a.id))], [save]);
+  const roster = useMemo(() => [...AGENTS.filter(a => save.unlocked.includes(a.id)), ...EXCLUSIVE_AGENTS.filter(a => save.exclusives.includes(a.id))].filter(a => isAvailable(a.id)), [save]);
   const [agentId, setAgentId] = useState(roster.some(a => a.id === save.lastAgent) ? save.lastAgent : roster[0]?.id ?? 'jett');
   const [mapId, setMapId] = useState(save.lastMap);
   const [difficulty, setDifficulty] = useState(save.lastDifficulty);

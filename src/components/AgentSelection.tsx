@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ABILITIES, ABILITY_OWNER, AGENTS, EXCLUSIVE_AGENTS, Kit, ULTIMATES, withKit } from '../data/agents';
+import { ABILITIES, ABILITY_OWNER, AGENTS, EXCLUSIVE_AGENTS, Kit, ULTIMATES, withKit, isAvailable, playableAgent } from '../data/agents';
 import { WEAPONS } from '../data/weapons';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
@@ -21,7 +21,7 @@ interface Props {
 
 export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, keys }: Props) {
   const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
-  const [sel, setSel] = useState(save.lastAgent);
+  const [sel, setSel] = useState(playableAgent(save.lastAgent));
   const [mapId, setMapId] = useState(save.lastMap);
   const [diffId, setDiffId] = useState(save.lastDifficulty);
   // los agentes exclusivos solo aparecen si se han comprado en el mercado nocturno
@@ -36,7 +36,8 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, 
     audio.play('click');
     setKit(agent.id, { special: agent.special.id, secondary: agent.secondary?.id ?? '', ultimate: agent.ultimate.id, [slot]: id });
   };
-  const canBuy = !isOpen && save.credits >= agent.cost;
+  const soon = !isAvailable(agent.id);
+  const canBuy = !isOpen && !soon && save.credits >= agent.cost;
   const rec = save.records[mapId];
   return (
     <div className="screen select">
@@ -48,13 +49,15 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, 
       <div className="select-body">
         <div className="agent-grid" role="listbox" aria-label={t('Agentes')}>
           {roster.map(a => {
-            const open = save.unlocked.includes(a.id) || save.exclusives.includes(a.id);
+            const open = save.unlocked.includes(a.id) || save.exclusives.includes(a.id), later = !isAvailable(a.id);
             return (
-              <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open ? '' : 'locked'} ${a.exclusive ? 'exclusive' : ''}`}
+              <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open && !later ? '' : 'locked'} ${later ? 'soon' : ''} ${a.exclusive ? 'exclusive' : ''}`}
                 style={{ ['--ac' as any]: a.color }} onClick={() => { audio.play('click'); setSel(a.id); }} onMouseEnter={() => audio.play('hover')}>
-                <AgentPortrait agent={a} locked={!open} />
+                <AgentPortrait agent={a} locked={!open || later} />
                 <span className="agent-card-name">{t(a.name)}</span>
-                {!open && <span className="agent-card-cost">◈ {a.cost}</span>}
+                {later
+                  ? <span className="agent-card-soon">{t('Próximamente')}</span>
+                  : !open && <span className="agent-card-cost">◈ {a.cost}</span>}
               </button>
             );
           })}
@@ -116,7 +119,9 @@ export function AgentSelection({ save, back, start, unlock, setKit, setLoadout, 
             ))}
           </div>
           <p className="map-desc">{t(DIFFICULTIES.find(d => d.id === diffId)?.desc ?? '')} {t('Créditos')} ×{DIFFICULTIES.find(d => d.id === diffId)?.credits}.</p>
-          {isOpen ? (
+          {soon ? (
+            <button className="btn btn-red btn-xl" disabled><b>{t('No disponible en estos momentos · Próximamente')}</b></button>
+          ) : isOpen ? (
             <button className="btn btn-red btn-xl" onClick={() => { audio.play('click'); start(agent.id, mapId, diffId); }}><b>{t('Confirmar y jugar')}</b></button>
           ) : (
             <button className="btn btn-red btn-xl" disabled={!canBuy} onClick={() => { audio.play('pick'); unlock(agent.id); }}>

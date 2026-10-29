@@ -11,6 +11,13 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.14', date: '2026-10-29', title: 'Agentes disponibles', tag: 'Mejora', color: '#ff4655',
+    items: [
+      'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy y los agentes exclusivos del mercado nocturno.',
+      'El resto de agentes aparecen con candado: estarán disponibles próximamente.',
+    ],
+  },
+  {
     id: '1.13', date: '2026-10-29', title: '14 agentes nuevos y nuevo aspecto', tag: 'Nuevo', color: '#ff4655',
     items: [
       'Llegan Viper, Cypher, Fade, Breach, Skye, Yoru, Astra, KAY/O, Chamber, Harbor, Iso, Deadlock, Gekko y Tejo, con habilidades inspiradas en las suyas.',

@@ -7,7 +7,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { RankingScreen } from './components/RankingScreen';
 import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
-import { AGENT_BY_ID, withKit } from './data/agents';
+import { AGENT_BY_ID, withKit, isAvailable } from './data/agents';
 import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
@@ -87,6 +87,7 @@ export default function App() {
   const leaveGame = () => { run.coop?.link.close(); setRun(r => ({ ...r, coop: undefined })); setScreen('menu'); };
 
   const start = (agentId: string, mapId: string, difficulty: string) => {
+    if (!isAvailable(agentId)) return;   // agente "Próximamente"
     update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
     setRun(r => ({ agentId, mapId, difficulty, key: r.key + 1 }));
     setScreen('game');

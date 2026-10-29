@@ -1,5 +1,5 @@
 import { SaveData } from '../utils/storage';
-import { AGENTS, AGENT_BY_ID } from '../data/agents';
+import { AGENTS, AGENT_BY_ID, playableAgent } from '../data/agents';
 import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
 import { audio } from '../utils/audio';
@@ -17,7 +17,7 @@ interface Props {
 }
 
 export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout, keys }: Props) {
-  const agent = AGENT_BY_ID[save.lastAgent] ?? AGENT_BY_ID.jett;
+  const agent = AGENT_BY_ID[playableAgent(save.lastAgent)] ?? AGENT_BY_ID.jett;
   const click = (s: Screen) => () => { audio.play('click'); go(s); };
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const move = [keys.up, keys.left, keys.down, keys.right].map(keyLabel).join('');
