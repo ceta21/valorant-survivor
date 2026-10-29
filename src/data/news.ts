@@ -11,6 +11,15 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.15', date: '2026-10-29', title: 'Misiones diarias y racha', tag: 'Nuevo', color: '#5dff9a',
+    items: [
+      'Nuevo apartado Diario en el menú con 3 misiones que cambian cada día: fácil (◈ 60), media (◈ 120) y difícil (◈ 200).',
+      'Racha de conexión: cada día que entras cobras ◈ 50 y vas avanzando por el camino.',
+      'Premios grandes a los 7 y 14 días, al mes, a los 2 meses… y hasta un año seguido.',
+      'Si un día no entras, la racha vuelve a empezar desde el día 1.',
+    ],
+  },
+  {
     id: '1.14', date: '2026-10-29', title: 'Agentes disponibles', tag: 'Mejora', color: '#ff4655',
     items: [
       'De momento solo se puede jugar con Jett, Phoenix, Reyna, Sage, Killjoy, Raze y los agentes exclusivos del mercado nocturno.',

@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-29 · versión de Novedades: v1.14
+> Última generación: 2026-10-29 · versión de Novedades: v1.15
 
 ## Agentes base
 
@@ -305,6 +305,7 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
+| v1.15 | 2026-10-29 | Misiones diarias y racha | Nuevo |
 | v1.14 | 2026-10-29 | Agentes disponibles | Mejora |
 | v1.13 | 2026-10-29 | 14 agentes nuevos y nuevo aspecto | Nuevo |
 | v1.12 | 2026-10-29 | Corrección del modo en pareja | Mejora |

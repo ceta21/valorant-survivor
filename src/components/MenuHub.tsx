@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { SaveData } from '../utils/storage';
 import { NEWS } from '../data/news';
-import { MISSIONS } from '../data/goals';
+import { DAILY_REWARDS, dailyMissions, dayKey, todayProgress } from '../data/daily';
 import { AGENT_BY_ID } from '../data/agents';
 import { DIFFICULTY_BY_ID } from '../data/difficulty';
 import { marketPeriod, msToNextRotation, MARKET_SLOTS } from '../data/market';
@@ -9,7 +9,7 @@ import { ScoreEntry, fetchScores } from '../utils/leaderboard';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
 
-type Target = 'news' | 'market' | 'ranking' | 'stats';
+type Target = 'news' | 'market' | 'ranking' | 'stats' | 'daily';
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 const fmtLeft = (ms: number) => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 
@@ -27,10 +27,11 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
   const open = (s: Target) => () => { audio.play('click'); go(s); };
   const news = NEWS[0];
   const revealed = save.market.period === marketPeriod() ? save.market.revealed.length : 0;
-  const missions = MISSIONS.filter(m => !save.claimed.includes(m.id))
-    .map(m => { const [c, tt] = m.progress(save.stats); return { m, c: Math.min(c, tt), tt, done: c >= tt }; })
-    .sort((a, b) => Number(b.done) - Number(a.done) || b.c / b.tt - a.c / a.tt)
-    .slice(0, 2);
+  const day = dayKey(), today = todayProgress(save.daily, day);
+  const missions = dailyMissions(day, [...save.unlocked, ...save.exclusives])
+    .map((m, i) => ({ m, reward: DAILY_REWARDS[i], c: Math.min(m.value(today), m.goal), claimed: today.claimed.includes(m.id) }))
+    .filter(x => !x.claimed);
+  const streak = save.login.last === day ? save.login.streak : 0;
 
   return (
     <section className="menu-mid" aria-label={t('Resumen')}>
@@ -65,18 +66,16 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
           </ol>
         )}
       </button>
-      {missions.length > 0 && (
-        <button className="hub-card hub-missions" style={{ ['--hc' as any]: '#5dff9a' }} onClick={open('stats')}>
-          <span className="hub-kicker">{t('Misiones')}</span>
-          {missions.map(({ m, c, tt, done }) => (
-            <div key={m.id} className="hub-mission">
-              <span><b>{t(m.name)}</b> {done ? <em>{t('¡Reclama ◈ {n}!', { n: m.reward })}</em> : <em>◈ {m.reward}</em>}</span>
-              <div className="bar"><i style={{ width: `${(c / tt) * 100}%` }} /></div>
-              <small>{t(m.desc)} · {nf(c)}/{nf(tt)}</small>
-            </div>
-          ))}
-        </button>
-      )}
+      <button className="hub-card hub-missions" style={{ ['--hc' as any]: '#5dff9a' }} onClick={open('daily')}>
+        <span className="hub-kicker">{t('Misiones diarias')} · {t('Racha: {n} días', { n: streak })}</span>
+        {missions.length === 0 ? <span className="hub-muted">{t('¡Misiones de hoy completadas!')}</span> : missions.slice(0, 2).map(({ m, reward, c }) => (
+          <div key={m.id} className="hub-mission">
+            <span><b>{m.text}</b> {c >= m.goal ? <em>{t('¡Reclama ◈ {n}!', { n: reward })}</em> : <em>◈ {reward}</em>}</span>
+            <div className="bar"><i style={{ width: `${(c / m.goal) * 100}%` }} /></div>
+            <small>{nf(c)}/{nf(m.goal)}</small>
+          </div>
+        ))}
+      </button>
     </section>
   );
 }

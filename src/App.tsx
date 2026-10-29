@@ -26,8 +26,10 @@ import { LATEST_NEWS } from './data/news';
 import { Offer, marketPeriod } from './data/market';
 import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
+import { DailyScreen } from './components/DailyScreen';
+import { LOGIN_REWARD, STREAK_REWARDS, addRun, dailyMissions, dayKey, todayProgress, touchLogin } from './data/daily';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -93,6 +95,31 @@ export default function App() {
     setScreen('game');
   };
 
+  // racha de conexión: cuenta el día al entrar al juego (y a medianoche si sigue abierto)
+  const inGame = screen !== 'loading' && screen !== 'auth';
+  useEffect(() => {
+    if (!inGame) return;
+    const tick = () => update(s => { const l = touchLogin(s.login); return l === s.login ? s : { ...s, login: l }; });
+    tick();
+    const id = setInterval(tick, 60000);
+    return () => clearInterval(id);
+  }, [inGame, account?.uid, update]);
+
+  const claimDaily = (id: string) => update(s => {
+    const day = dayKey(), d = todayProgress(s.daily, day);
+    const m = dailyMissions(day, [...s.unlocked, ...s.exclusives]).find(x => x.id === id);
+    if (!m || d.claimed.includes(id) || m.value(d) < m.goal) return s;
+    return { ...s, credits: s.credits + m.reward, daily: { ...d, claimed: [...d.claimed, id] } };
+  });
+  const claimLogin = () => update(s => {
+    const day = dayKey(), l = touchLogin(s.login, day);
+    return l.dayClaimed === day ? s : { ...s, credits: s.credits + LOGIN_REWARD, login: { ...l, dayClaimed: day } };
+  });
+  const claimStreak = (n: number) => update(s => {
+    const r = STREAK_REWARDS.find(x => x.day === n), l = s.login;
+    return !r || l.streak < n || l.claimed.includes(n) ? s : { ...s, credits: s.credits + r.credits, login: { ...l, claimed: [...l.claimed, n] } };
+  });
+
   const handleEnd = (r: RunResult): string[] => {
     const names: string[] = [];
     update(s => {
@@ -108,7 +135,7 @@ export default function App() {
         const [c, t] = a.progress(stats);
         if (c >= t && !achievements.includes(a.id)) { achievements.push(a.id); names.push(a.name); }
       }
-      return { ...s, credits: s.credits + r.credits, stats, records, achievements };
+      return { ...s, credits: s.credits + r.credits, stats, records, achievements, daily: addRun(s.daily, r) };
     });
     return names;
   };
@@ -163,6 +190,7 @@ export default function App() {
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
       {screen === 'support' && <SupportScreen back={() => go('menu')} />}
+      {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
       {screen === 'coop' && <CoopScreen save={save} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (

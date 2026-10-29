@@ -8,7 +8,8 @@
 | Pantalla | Componente | Qué hay |
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
-| Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones, panel central (novedad, mercado, top 3, misiones), retrato y estadísticas |
+| Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones, panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas |
+| Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Agentes | `AgentSelection` | Elegir agente, kit (exclusivos), mapa, arma inicial, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente") |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir agente, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |

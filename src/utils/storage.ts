@@ -1,6 +1,7 @@
 import type { Lang } from '../i18n';
 import { browserLang } from '../i18n';
 import { KeyMap, normalizeKeys } from '../game/controls';
+import { DailyProgress, LoginStreak, emptyDaily, emptyLogin } from '../data/daily';
 export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
 }
@@ -34,6 +35,10 @@ export interface SaveData {
   market: { period: number; revealed: number[] };
   /** Última versión de las novedades que ha visto el jugador. */
   newsSeen: string;
+  /** Misiones diarias: lo hecho hoy y lo ya cobrado. */
+  daily: DailyProgress;
+  /** Racha de días seguidos entrando al juego. */
+  login: LoginStreak;
 }
 
 const KEY = 'valorant-survivors-save-v1';
@@ -57,6 +62,8 @@ export const defaultSave = (): SaveData => ({
   loadout: 'classic',
   market: { period: 0, revealed: [] },
   newsSeen: '',
+  daily: emptyDaily(''),
+  login: emptyLogin(),
 });
 
 /** Completa un guardado (local o de la nube) con los valores por defecto que falten. */
@@ -75,6 +82,8 @@ export function normalizeSave(p: any): SaveData {
     exclusives: Array.isArray(p.exclusives) ? p.exclusives : [],
     kits: p.kits && typeof p.kits === 'object' ? p.kits : {},
     market: p.market && typeof p.market.period === 'number' ? p.market : d.market,
+    daily: p.daily && typeof p.daily.day === 'string' ? { ...d.daily, ...p.daily } : d.daily,
+    login: p.login && typeof p.login.streak === 'number' ? { ...d.login, ...p.login } : d.login,
   };
 }
 

@@ -5,11 +5,12 @@ import { Logo } from './Logo';
 import { audio } from '../utils/audio';
 import type { Account } from '../utils/account';
 import { LATEST_NEWS } from '../data/news';
+import { hasDailyReward } from '../data/daily';
 import { MenuHub } from './MenuHub';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -45,6 +46,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn btn-coop" onClick={click('coop')} onMouseEnter={() => audio.play('hover')}><b>{t('Jugar en pareja')}</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={() => audio.play('hover')}><b>{t('Agentes')}</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={() => audio.play('hover')}><b>{t('Mejoras')}</b></button>
+          <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={() => audio.play('hover')}><b>{t('Diario')}{hasDailyReward(save.daily, save.login, [...save.unlocked, ...save.exclusives]) && <i className="news-badge">{t('¡Premio!')}</i>}</b></button>
           <button className="btn btn-market" onClick={click('market')} onMouseEnter={() => audio.play('hover')}><b>{t('Mercado nocturno')}</b></button>
           <button className="btn" onClick={click('ranking')} onMouseEnter={() => audio.play('hover')}><b>{t('Ranking global')}</b></button>
           <button className="btn" onClick={click('news')} onMouseEnter={() => audio.play('hover')}><b>{t('Novedades')}{save.newsSeen !== LATEST_NEWS && <i className="news-badge">{t('Nuevo')}</i>}</b></button>

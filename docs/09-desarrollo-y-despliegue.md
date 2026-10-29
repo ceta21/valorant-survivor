@@ -21,6 +21,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:sim` | Simula partidas de todos los agentes en solitario |
 | `npm run test:coop` | Motor con 2 jugadores: caídas, vuelta en la oleada, mejoras, abandono, mismo mundo con la misma semilla |
 | `npm run test:turrets` | Torretas de Killjoy: cuántas salen y si los robots las destruyen |
+| `npm run test:daily` | Diario: racha de conexión, misiones del día y su progreso |
 | `npm run test:i18n` | Que todos los textos tengan traducción al inglés |
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada agente usando cada habilidad (`shots/abilities.png`) |
@@ -87,7 +88,7 @@ Esta carpeta es la memoria del proyecto. **Cada cambio del juego debe actualizar
 ### Lista de comprobación antes de subir
 
 - [ ] `npm run build` sin errores
-- [ ] `npm run test:sim`, `npm run test:coop` y `npm run test:i18n` pasan
+- [ ] `npm run test:sim`, `npm run test:coop`, `npm run test:i18n` y `npm run test:daily` pasan
 - [ ] Probado en el navegador lo que cambia
 - [ ] Novedad añadida y traducida
 - [ ] `docs/` actualizado y `npm run docs:data` ejecutado

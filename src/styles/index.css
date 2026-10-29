@@ -122,6 +122,23 @@ kbd { font-family: var(--font-px); font-size: 8px; background: var(--cream); col
 .goals, .achv { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .goals li { display: flex; justify-content: space-between; align-items: center; gap: 14px; background: var(--panel); padding: 10px 14px; box-shadow: var(--bevel); } .goals li > div { flex: 1; display: flex; flex-direction: column; gap: 3px; } .goals span, .achv span { color: var(--mute); font-size: 14px; } .goals small { color: var(--mute); }
 .goals li.claimed { opacity: .5; }
+/* diario: misiones del día y racha */
+.daily-body { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; align-items: start; }
+.daily-note { margin: 0 0 10px; color: var(--mute); font-size: 14px; }
+.streak h4 { margin: 18px 0 8px; font-family: var(--font-px); font-weight: 400; font-size: 14px; text-transform: uppercase; }
+.streak-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; background: var(--panel); padding: 12px 16px; box-shadow: var(--bevel); margin-bottom: 10px; }
+.streak-head > div { display: flex; align-items: baseline; gap: 8px; } .streak-head strong { font-family: var(--font-px); font-size: 34px; color: #ffd24a; text-shadow: 3px 3px 0 #000; }
+.streak-head small { color: var(--mute); flex: 1; }
+.streak-path { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.streak-path li { position: relative; width: 34px; height: 34px; display: grid; place-items: center; background: var(--panel); color: var(--mute); font-size: 13px; box-shadow: var(--bevel); }
+.streak-path li.on { background: #2fa84a; color: #fff; } .streak-path li.today { box-shadow: 0 0 0 3px #ffd24a, var(--bevel); }
+.streak-path li.goal { width: auto; padding: 0 8px; gap: 2px; color: #ffd24a; font-size: 16px; } .streak-path li.goal em { font-style: normal; font-size: 12px; }
+.streak-path li.goal.on { background: #b07a14; color: #fff; }
+.streak-goals { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.streak-goals li { display: grid; gap: 4px; background: var(--panel); padding: 10px 12px; box-shadow: var(--bevel); }
+.streak-goals li span { color: #ffd24a; font-weight: 700; } .streak-goals li small { color: var(--mute); }
+.streak-goals li.ready { box-shadow: inset 0 0 0 2px #ffd24a, var(--bevel); } .streak-goals li.claimed { opacity: .5; }
+.btn-daily { box-shadow: inset 4px 0 0 #5dff9a, var(--bevel); }
 .achv { grid-template-columns: 1fr 1fr; } .achv li { display: flex; gap: 10px; align-items: center; padding: 8px 12px; background: var(--panel); opacity: .55; } .achv li.got { opacity: 1; box-shadow: inset var(--p) 0 0 #ffd24a; } .achv i { font-style: normal; font-size: 22px; color: #ffd24a; } .achv li div { display: flex; flex-direction: column; }
 .settings-body { max-width: 640px; display: grid; gap: 14px; }
 .row { display: flex; align-items: center; gap: 16px; background: var(--panel); padding: 14px 16px; box-shadow: var(--bevel); } .row > span { flex: 1; } .mute { font-size: 15px; color: var(--mute); display: flex; gap: 6px; align-items: center; }
@@ -184,7 +201,7 @@ input[type=checkbox]:checked { background: var(--red); box-shadow: inset 0 0 0 2
 @media (max-width: 860px) {
   .menu { flex-direction: column; } .menu-right { width: 100%; flex-direction: row; } .menu-hero { max-height: 30vh; flex: none; } .progress { flex: 1; }
   .select-body { flex-direction: column; overflow: auto; } .agent-panel { width: 100%; overflow: visible; } .agent-grid { overflow: visible; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
-  .stats-body { grid-template-columns: 1fr; } .meta-row { grid-template-columns: 36px 1fr auto; } .meta-val { display: none; }
+  .stats-body, .daily-body { grid-template-columns: 1fr; } .meta-row { grid-template-columns: 36px 1fr auto; } .meta-val { display: none; }
   .hud-mid small { display: none; } .weapons { bottom: 88px; } .abilities-bar { bottom: 10px; } .ucard { min-height: 0; width: 92vw; }
   .menu-nav .btn, .menu-nav .btn-xl { width: 100%; max-width: 340px; }
 }

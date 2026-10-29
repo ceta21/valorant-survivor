@@ -51,6 +51,8 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `loadout` | Arma inicial |
 | `market` | Rotación del mercado y cartas ya descubiertas |
 | `newsSeen` | Última versión de Novedades vista (para la etiqueta "Nuevo") |
+| `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por agente/mapa, en Difícil+) y las misiones diarias cobradas |
+| `login` | Racha de conexión: último día, días seguidos, mejor racha, último premio diario cobrado e hitos cobrados |
 
 - `normalizeSave()` completa cualquier guardado con los valores por defecto, así que añadir campos nuevos no
   rompe las cuentas existentes (añadir el campo en `SaveData`, `defaultSave()` y, si es un objeto/lista,
@@ -59,6 +61,24 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
   cada 1,5 s; al ocultar la pestaña se envía lo pendiente (`flushProgress()`).
 - El progreso se guarda desde el navegador, así que un jugador avanzado podría modificar el suyo. Es aceptable
   para un juego entre amigos; el ranking sí está protegido (nombre e ID los pone el servidor).
+
+## Diario: misiones diarias y racha de conexión
+
+Código: `src/data/daily.ts` (datos y reglas), `src/components/DailyScreen.tsx` (pantalla), `src/App.tsx` (cobros).
+
+- El **día** es el del reloj del dispositivo (`dayKey()`, AAAA-MM-DD) y cambia a medianoche.
+- **Misiones diarias**: 3 al día (fácil ◈ 60, media ◈ 120, difícil ◈ 200), elegidas con una semilla del día entre
+  10 plantillas (bajas del día, bajas en una partida, sobrevivir, nivel, partidas, jefes, daño, partidas con un
+  agente que el jugador tenga, partidas en un mapa, partidas en Difícil/Pesadilla). Cuentan las partidas
+  terminadas ese día (`addRun()` en `handleEnd`, también en cooperativo). Al cambiar de día el progreso
+  empieza de cero.
+- **Racha de conexión**: al entrar al juego (y cada minuto, por si pasa la medianoche) `touchLogin()` suma un
+  día si el último fue ayer o vuelve a 1 si se saltó alguno (y se pierden los hitos cobrados de esa racha).
+  - Cada día se cobra **◈ 50** (`LOGIN_REWARD`).
+  - Hitos (`STREAK_REWARDS`): 7 días ◈ 300, 14 ◈ 600, 30 ◈ 1.500, 60 ◈ 2.500, 90 ◈ 3.500, 120 ◈ 4.500,
+    150 ◈ 5.500, 180 ◈ 7.000, 210 ◈ 8.000, 240 ◈ 9.000, 270 ◈ 10.000, 300 ◈ 12.000, 330 ◈ 14.000, 365 ◈ 25.000.
+- El botón **Diario** del menú muestra "¡Premio!" si hay algo por cobrar (`hasDailyReward()`).
+- Como el resto del guardado, un invitado lo pierde al cerrar la página.
 
 ## Preferencias del dispositivo
 
