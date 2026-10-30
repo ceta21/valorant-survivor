@@ -1,16 +1,22 @@
 import {
-  AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, Rarity, RunResult, Stats, UpgradeChoice,
+  AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, ProjLook, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
-import { WEAPONS, WEAPON_LIST } from '../data/weapons';
+import { POWERS, POWER_LIST, heroPower } from '../data/powers';
 import {
   BOSS_SCHEDULE, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, WAVE_TIMES,
 } from '../data/enemies';
 import { DIFFICULTY_BY_ID, DifficultyDef } from '../data/difficulty';
 import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
 import { META } from '../data/meta';
-import { World } from './World';
+import { World, Cell } from './World';
 import type { MetaLevels } from '../utils/storage';
 import { Looks, PET_BY_ID, PET_RESPAWN, PetDef } from '../data/shop';
+
+/** Terreno: el agua te frena (multiplicador de velocidad) y la lava quema (fracción de la vida máx. por golpe, ~1 golpe cada 0,55 s). */
+export const WATER_SLOW = 0.6, LAVA_BURN = 0.05;
+import { MAPS } from '../data/maps';
+/** Zona por su índice en MAPS. */
+const MAP_BY_ID_ZONE = (z: number) => MAPS[z] ?? MAPS[0];
 
 const DT = 1 / 60;
 const CELL = 64;
@@ -48,9 +54,10 @@ export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolea
 export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number; hp: number; maxHp: number; flash: number }
 export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number; owner: number }
 /** Efecto visual de habilidad (solo decorativo). follow: x,y son relativos al jugador. */
-export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number }
-export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise';
-export type ProjLook = '' | 'dagger' | 'arrow' | 'flame' | 'bolt' | 'leaf';
+/** w: ancho del rayo (ray) o apertura en radianes del abanico (cone). */
+export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number; w?: number }
+export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise' | 'ray' | 'cone';
+export type { ProjLook };
 export interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string; circle: boolean }
 export interface FloatText { x: number; y: number; life: number; text: string; color: string; size: number }
 export interface PlayerBody {
@@ -59,11 +66,13 @@ export interface PlayerBody {
 }
 export type Buffs = { sprintT: number; sprintPow: number; sprintRad: number; sprintAcc: number; frenzyT: number; frenzyMul: number; frenzyHeal: number; frenzyFx: string; stormT: number; stormAcc: number; stormPow: number };
 /** Datos con los que entra cada jugador a la partida. */
-export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; startWeapon: string; name: string; looks?: Looks }
+export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; name: string; looks?: Looks }
 /** Mascota que acompaña a un jugador. Si cae, vuelve a los PET_RESPAWN segundos. */
 export interface PetState {
   id: string; x: number; y: number; hp: number; maxHp: number; flash: number; dead: boolean;
   respawn: number; cd: number; lv: number; hop: number; face: number;
+  /** Segundos que lleva sin poder avanzar hacia el jugador (atascada contra un muro). */
+  stuck?: number;
 }
 /** Lo que los robots pueden atacar además de los jugadores: torretas y mascotas. */
 export type Target = { x: number; y: number; hp: number; maxHp: number; flash: number; dead: boolean };
@@ -172,7 +181,7 @@ export class GameEngine {
   private endlessWaveT = 0;
 
   /** coop: varios jugadores; local = índice del de esta pantalla. Sin coop, partida en solitario. */
-  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal, startWeapon = 'classic',
+  constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal,
     coop?: { setups: PlayerSetup[]; local: number; seed?: number }, looks: Looks = {}) {
     this.map = map;
     this.ev = ev;
@@ -181,7 +190,7 @@ export class GameEngine {
     // en cooperativo los dos jugadores generan el mismo mundo a partir de la semilla del anfitrión
     this.world = new World(map, coop?.seed);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
-    const setups = coop?.setups ?? [{ agent, meta, startWeapon, name: '', looks }];
+    const setups = coop?.setups ?? [{ agent, meta, name: '', looks }];
     this.players = setups.map((st, i) => this.makePlayer(i, st));
     this.local = coop?.local ?? 0;
     this.use(this.players[this.local]);
@@ -197,7 +206,7 @@ export class GameEngine {
       xp: 1 + m('xp'), chain: 0, drones: 0, maxShield: 0, killExplode: 0, regen: 0.5, magnet: 1, burn: 0, ult: 1, lifeOnKill: 0,
     };
     for (const k of Object.keys(a.trait.mods) as (keyof Stats)[]) stats[k] += a.trait.mods[k] as number;
-    const w = WEAPONS[st.startWeapon] ? st.startWeapon : 'classic';
+    const w = heroPower(a.id).id;   // cada héroe empieza con su poder (ya no hay armas)
     const sp = this.world.spawn;
     const droneCd: number[] = [];
     while (droneCd.length < stats.drones) droneCd.push(rnd(0.5));
@@ -414,24 +423,30 @@ export class GameEngine {
       });
       if (Math.random() < 0.8) this.sparks(p.x, p.y, this.agent.color, 1, 60);
     } else {
+      const ground = this.world.terrainAt(p.x, p.y);
+      if (ground === Cell.Water) sp *= WATER_SLOW;   // el agua frena
       p.x += mx * sp * dt; p.y += my * sp * dt;
     }
     this.resolve(p, p.r);
-    // teletransportadores (Bind): pisas uno y apareces en su pareja
+    // la lava quema: un golpe cada vez que se acaba la invulnerabilidad
+    if (this.world.terrainAt(p.x, p.y) === Cell.Lava && p.dashT <= 0) {
+      if (Math.random() < 0.4) this.sparks(p.x, p.y + 6, Math.random() < 0.5 ? '#ff8a1c' : '#ffd24a', 1, 90, 0.4);
+      if (p.iframes <= 0 && p.invuln <= 0) this.hurtPlayer(s.maxHp * LAVA_BURN);
+    }
+    // portales entre zonas: pisas uno y apareces junto a su pareja, en la otra zona
     if (this.portalCd > 0) this.portalCd -= dt;
-    else if (this.map.id === 'bind') {
-      for (const [A, B] of this.world.portalsNear(p.x, p.y)) {
-        for (const [from, to] of [[A, B], [B, A]]) {
-          if (Math.hypot(p.x - from.x, p.y - from.y) < 30) {
-            this.addFx(0, from.x, from.y, 0, 0, 80, 0.4, '#b05cff');
-            p.x = to.x + p.lastDirX * 44; p.y = to.y + p.lastDirY * 44;
-            this.resolve(p, p.r);
-            this.addFx(0, to.x, to.y, 0, 0, 80, 0.4, '#b05cff');
-            this.sparks(to.x, to.y, '#b05cff', 14, 220, 0.5);
-            this.portalCd = 1.5; this.sfx('ability', 0);
-            return;
-          }
-        }
+    else {
+      for (const from of this.world.portals) {
+        if (Math.hypot(p.x - from.x, p.y - from.y) >= 38) continue;
+        const to = this.world.portalPair(from), col = MAP_BY_ID_ZONE(to.zone).colors.accent;
+        this.addFx(0, from.x, from.y, 0, 0, 90, 0.45, col);
+        p.x = to.x + p.lastDirX * 70; p.y = to.y + p.lastDirY * 70;
+        this.resolve(p, p.r);
+        this.addFx(0, to.x, to.y, 0, 0, 90, 0.45, col);
+        this.sparks(to.x, to.y, col, 16, 240, 0.6);
+        this.portalCd = 1.5; this.sfx('ability', 0);
+        if (this.cur === this.me) this.showBanner(MAP_BY_ID_ZONE(to.zone).name.toUpperCase(), col, 1.4, '{n}', { n: MAP_BY_ID_ZONE(to.zone).name });
+        return;
       }
     }
   }
@@ -494,9 +509,9 @@ export class GameEngine {
   }
   healPct(frac: number) { this.heal(frac * this.stats.maxHp); }
 
-  /* ------------------------------------------------------------------ armas */
+  /* ------------------------------------------------------------------ poderes (se lanzan solos) */
   private weaponCd(w: WeaponInst) {
-    const d = WEAPONS[w.id];
+    const d = POWERS[w.id];
     const ev = w.lvl >= 5 ? d.evolved : null;
     const cd = d.cooldown * (1 - 0.06 * (w.lvl - 1)) * (ev?.cdMul ?? 1);
     return cd / (this.stats.aspd * (this.buffs.frenzyT > 0 ? this.buffs.frenzyMul : 1));
@@ -508,7 +523,7 @@ export class GameEngine {
     }
   }
   private fire(w: WeaponInst): boolean {
-    const d = WEAPONS[w.id], s = this.stats, p = this.player;
+    const d = POWERS[w.id], s = this.stats, p = this.player;
     const ev = w.lvl >= 5 ? d.evolved : null;
     const range = d.range * s.range;
     const t = this.nearestEnemy(p.x, p.y, range + 20);
@@ -527,9 +542,9 @@ export class GameEngine {
     for (let i = 0; i < count; i++) {
       const a = base + (i - (count - 1) / 2) * fan + rnd(-d.jitter, d.jitter);
       const crit = Math.random() < critCh;
-      this.spawnProj(p.x + Math.cos(a) * 12, p.y + Math.sin(a) * 12, a, d.speed, crit ? dmg * critMul : dmg, d.size, range, pierce, crit, d.color, { burn: s.burn * s.dmg, explode, chain: s.chain > 0 });
+      this.spawnProj(p.x + Math.cos(a) * 12, p.y + Math.sin(a) * 12, a, d.speed, crit ? dmg * critMul : dmg, d.size, range, pierce, crit, d.color, { burn: ((d.burn ?? 0) + s.burn) * s.dmg, explode, chain: !!d.chain || s.chain > 0, look: d.look, homing: d.homing, target: t });
     }
-    this.sfx(d.heavy ? 'shoot_heavy' : 'shoot', d.heavy ? 0.06 : 0.045);
+    this.sfx(d.size >= 6 ? 'shoot_heavy' : 'shoot', d.size >= 6 ? 0.06 : 0.045);
     const mx = p.x + Math.cos(base) * 16, my = p.y + Math.sin(base) * 16;
     this.sparks(mx, my, d.color, 1, 80, 0.12);
     return true;
@@ -579,7 +594,7 @@ export class GameEngine {
         if (p.burn > 0) { e.burnT = 3; e.burnDps = Math.max(e.burnDps, p.burn); }
         if (p.mark > 0) e.markT = p.mark;
         if (p.explode > 0) this.explodeAt(e.x, e.y, 70 * stats.area, p.dmg * p.explode, '#d6a8ff');
-        if (p.chain && stats.chain > 0) this.chainFrom(e, p.dmg * 0.45, stats.chain);
+        if (p.chain) this.chainFrom(e, p.dmg * 0.45, Math.max(1, stats.chain));
         if (p.pierce <= 0) p.dead = true; else p.pierce--;
       });
     }
@@ -615,6 +630,15 @@ export class GameEngine {
     if (e.hp <= 0) this.killEnemy(e, !!o.blast);
   }
 
+  /** Golpe de una habilidad a un enemigo: daño con empuje desde (ox,oy) y sus efectos (aturdir, quemar, frenar, marcar). */
+  private abilityHit(e: Enemy, dmg: number, ab: AbilityDef, ox: number, oy: number) {
+    this.damageEnemy(e, dmg, false, { kx: e.x - ox, ky: e.y - oy, knock: 140, blast: true });
+    if (e.dead) return;
+    if (ab.stun && !e.isBoss) e.stunT = Math.max(e.stunT, ab.stun);
+    if (ab.burn) { e.burnT = 4; e.burnDps = Math.max(e.burnDps, ab.burn * this.stats.dmg); }
+    if (ab.slow) { e.slowT = ab.duration ?? 3; e.slowMul = ab.slow; }
+    if (ab.mark) e.markT = ab.mark;
+  }
   explodeAt(x: number, y: number, r: number, dmg: number, color: string, o: { stun?: number; burn?: number; slow?: number; mark?: number } = {}) {
     this.addFx(0, x, y, 0, 0, r, 0.35, color);
     this.sparks(x, y, color, Math.min(18, 6 + (r / 12) | 0), 260, 0.5);
@@ -647,9 +671,10 @@ export class GameEngine {
   }
   private edgeSpawn(): { x: number; y: number } {
     const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 50;
-    for (let i = 0; i < 14; i++) {
-      const a = rnd(Math.PI * 2);
-      const x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
+    // junto a un abismo muchos puntos caen fuera de la isla: se prueba más y, si no, algo más cerca
+    for (let i = 0; i < 40; i++) {
+      const a = rnd(Math.PI * 2), d = R * (i < 24 ? 1 : 0.75);
+      const x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d;
       if (this.inObstacle(x, y, 16)) continue;
       return { x, y };
     }
@@ -791,6 +816,9 @@ export class GameEngine {
       const nx = dx / d, ny = dy / d;
       e.face = Math.atan2(dy, dx);
       let sp = e.speed;
+      const ground = this.world.terrainAt(e.x, e.y);
+      if (ground === Cell.Water) sp *= WATER_SLOW;
+      else if (ground === Cell.Lava && !e.isBoss) { e.burnT = Math.max(e.burnT, 1); e.burnDps = Math.max(e.burnDps, Math.max(6, e.maxHp * 0.12)); }
       if (e.slowT > 0) { e.slowT -= dt; sp *= e.isBoss ? (1 + e.slowMul) / 2 : e.slowMul; }
       let mx = 0, my = 0;
       if (e.stunT > 0) e.stunT -= dt;
@@ -1180,22 +1208,22 @@ export class GameEngine {
     }
     const owned = new Set(this.weapons.map(w => w.id));
     if (this.weapons.length < 4) {
-      for (const w of WEAPON_LIST) {
+      for (const w of POWER_LIST) {
         if (owned.has(w.id)) continue;
         cands.push({
           weight: (this.weapons.length < 2 ? 9 : 4) * (w.rare === 2 ? 0.6 : 1),
-          make: () => ({ id: w.id, kind: 'weapon-new', name: w.name, desc: `Nueva arma: ${w.desc}`, icon: '⌖', rarity: w.rare, value: 0, weaponId: w.id }),
+          make: () => ({ id: w.id, kind: 'power-new', name: w.name, desc: `Nuevo poder: ${w.desc}`, icon: w.icon, rarity: w.rare, value: 0, powerId: w.id }),
         });
       }
     }
     for (const inst of this.weapons) {
       if (inst.lvl >= 5) continue;
-      const w = WEAPONS[inst.id];
+      const w = POWERS[inst.id];
       const nl = inst.lvl + 1;
       cands.push({
         weight: 7,
         make: () => ({
-          id: w.id + '_up', kind: 'weapon-up', weaponId: w.id, icon: '⌖', value: nl,
+          id: w.id + '_up', kind: 'power-up', powerId: w.id, icon: w.icon, value: nl,
           rarity: (nl >= 5 ? 3 : nl >= 4 ? 2 : 1) as Rarity,
           name: nl >= 5 ? `${w.evolved.name}` : `${w.name} Nv.${nl}`,
           desc: nl >= 5 ? `EVOLUCIÓN: ${w.evolved.desc}` : `${w.name}: +22% daño y -6% de recarga`,
@@ -1231,11 +1259,11 @@ export class GameEngine {
       this.taken[c.id] = (this.taken[c.id] ?? 0) + 1;
       UPGRADE_BY_ID[c.id]?.apply({ stats: this.stats, healPct: f => this.healPct(f) }, c.value);
       this.syncDrones();
-    } else if (c.kind === 'weapon-new') {
-      this.weapons.push({ id: c.weaponId as string, lvl: 1, cd: 0.1 });
+    } else if (c.kind === 'power-new') {
+      this.weapons.push({ id: c.powerId as string, lvl: 1, cd: 0.1 });
     } else {
-      const w = this.weapons.find(x => x.id === c.weaponId);
-      if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${WEAPONS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2, '¡{n}!', { n: WEAPONS[w.id].evolved.name }); }
+      const w = this.weapons.find(x => x.id === c.powerId);
+      if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${POWERS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2, '¡{n}!', { n: POWERS[w.id].evolved.name }); }
     }
     this.sfx('pick', 0);
     pl.pending--;
@@ -1300,14 +1328,17 @@ export class GameEngine {
     // va a un lado del jugador, un poco por detrás según hacia dónde mira
     const tx = p.x - Math.sign(p.lastDirX || 1) * 32, ty = p.y + 14;
     const dx = tx - pet.x, dy = ty - pet.y, d = Math.hypot(dx, dy);
-    if (d > 420) { pet.x = tx; pet.y = ty; }
+    // muy lejos, o atascada contra un muro más de 0,8 s: aparece a tu lado
+    if (d > 220 || (pet.stuck ?? 0) > 0.8) { pet.x = tx; pet.y = ty; pet.stuck = 0; this.sparks(tx, ty, def.colors.fx, 6, 120, 0.3); }
     else if (d > 3) {
-      const sp = Math.min(d * 6, this.stats.speed * 1.35);
+      const sp = Math.min(d * 6, this.stats.speed * 1.35), x0 = pet.x, y0 = pet.y;
       pet.x += (dx / d) * sp * dt; pet.y += (dy / d) * sp * dt;
       pet.hop += dt * (d > 18 ? 10 : 4);
       if (Math.abs(dx) > 2) pet.face = Math.sign(dx);
+      this.resolve(pet, 8);
+      const moved = Math.hypot(pet.x - x0, pet.y - y0);
+      pet.stuck = d > 40 && moved < sp * dt * 0.3 ? (pet.stuck ?? 0) + dt : 0;
     }
-    this.resolve(pet, 8);
     // poder: solo si se ha desbloqueado en la tienda
     if (pet.lv <= 0) return;
     pet.cd -= dt;
@@ -1416,7 +1447,7 @@ export class GameEngine {
         const n = ab.count ?? 4;
         for (let i = 0; i < n; i++) {
           const a = (i / n) * Math.PI * 2;
-          this.spawnProj(p.x, p.y, a, 380, dmg, 6, 1500, ult ? 99 : 3 + s.pierce, false, ab.color, { homing: true, mark: ab.mark ?? 0, look: 'arrow' });
+          this.spawnProj(p.x, p.y, a, 380, dmg, 6, 1500, ult ? 99 : 3 + s.pierce, false, ab.color, { homing: true, mark: ab.mark ?? 0, look: ab.fx === 'soul' ? 'wisp' : 'arrow' });
         }
         break;
       }
@@ -1442,6 +1473,40 @@ export class GameEngine {
       case 'storm':
         b.stormT = ab.duration ?? 3; b.stormPow = ab.power;
         break;
+      case 'beam': {
+        // hacia el enemigo más cercano a su alcance o, si no hay, hacia donde camina; count > 1: rayos en estrella
+        const L = (ab.radius ?? 440) * Math.sqrt(s.range), W = (ab.width ?? 24) * s.area, n = ab.count ?? 1;
+        const tg = this.nearestEnemy(p.x, p.y, L);
+        const a0 = tg ? Math.atan2(tg.y - p.y, tg.x - p.x) : Math.atan2(p.lastDirY, p.lastDirX);
+        if (n === 1) p.face = a0;
+        for (let i = 0; i < n; i++) {
+          const a = a0 + (i / n) * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+          this.forEnemiesIn(p.x + c * L / 2, p.y + sn * L / 2, L / 2 + W, e => {
+            const dx = e.x - p.x, dy = e.y - p.y, along = dx * c + dy * sn;
+            if (along < -e.r || along > L + e.r || Math.abs(dy * c - dx * sn) > W / 2 + e.r) return;
+            this.abilityHit(e, dmg, ab, p.x, p.y);
+          });
+          this.addVfx('ray', ab.fx ?? 'fire', p.x, p.y, L, ult ? 0.55 : 0.4, { ang: a, w: W });
+          this.sparks(p.x + c * L, p.y + sn * L, ab.color, 6, 160, 0.4);
+        }
+        this.sfx('ult', 0.04);
+        this.shakeT = Math.max(this.shakeT, ult ? 0.3 : 0.12);
+        break;
+      }
+      case 'cone': {
+        const R = (ab.radius ?? 200) * s.area, half = ((ab.spread ?? 70) * Math.PI) / 360;
+        const tg = this.nearestEnemy(p.x, p.y, R + 60);
+        const a0 = tg ? Math.atan2(tg.y - p.y, tg.x - p.x) : Math.atan2(p.lastDirY, p.lastDirX);
+        p.face = a0;
+        this.forEnemiesIn(p.x, p.y, R, e => {
+          let d = Math.atan2(e.y - p.y, e.x - p.x) - a0;
+          d = Math.atan2(Math.sin(d), Math.cos(d));
+          if (Math.abs(d) <= half + Math.atan2(e.r, Math.max(1, Math.hypot(e.x - p.x, e.y - p.y)))) this.abilityHit(e, dmg, ab, p.x, p.y);
+        });
+        this.addVfx('cone', ab.fx ?? 'fire', p.x, p.y, R, 0.55, { ang: a0, w: half * 2 });
+        this.shakeT = Math.max(this.shakeT, 0.12);
+        break;
+      }
       case 'heal':
         this.addFx(0, p.x, p.y, 0, 0, 70, 0.5, ab.color);
         break;
@@ -1462,6 +1527,7 @@ export class GameEngine {
   }
   /** Lanza los efectos de una habilidad. before = antes de aplicarla (p. ej. origen de un teletransporte). */
   private abilityFx(ab: AbilityDef, ult: boolean, ox: number, oy: number, before: boolean) {
+    if (ab.kind === 'beam' || ab.kind === 'cone') return;   // su efecto lo pinta perform() en la dirección del disparo
     const p = this.player, s = this.stats, R = (ab.radius ?? 150) * s.area, big = ult ? 1.4 : 1;
     const rise = (sprite: string, pal: string, n: number, spread: number, dur: number) => {
       for (let i = 0; i < n; i++) {

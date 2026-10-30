@@ -9,10 +9,10 @@
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar, Jugar en pareja y Apoyo a todo el ancho; el resto en dos columnas), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
-| Tienda | `ShopScreen` | Pestañas de estilos de armas, estilos de agentes (con selector del agente en el que verlos) y mascotas; solo comprar (con confirmación) |
+| Tienda | `ShopScreen` | Pestañas de estilos de agentes (con selector del agente en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
 | Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
-| Agentes | `AgentSelection` | Elegir agente, kit (exclusivos), mapa, arma inicial, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente"); estilo del agente y de arma comprados en la Tienda |
+| Agentes | `AgentSelection` | Elegir agente (con su poder), kit (exclusivos), zona, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente"); estilo del agente comprado en la Tienda |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir agente, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
@@ -26,21 +26,28 @@
 ### HUD de la partida
 
 Nivel, vida, escudo, vida del compañero (cooperativo), barra de XP, tiempo, aviso de jefe final o del siguiente
-jefe en modo infinito, dificultad, bajas, enemigos vivos, botón de pausa, barra de jefe, avisos grandes, armas
+jefe en modo infinito, dificultad, bajas, enemigos vivos, botón de pausa, barra de jefe, avisos grandes, poderes (con su icono y nivel)
 con su nivel y los 3 botones de habilidad (con la tecla asignada, recarga y carga de definitiva).
 
-**Minimapa** (`Minimap.tsx`, arriba a la derecha bajo la pausa): canvas de 96×96 píxeles que se redibuja cada
-fotograma leyendo el motor y abarca 1.100 unidades desde el jugador. Pinta el entorno en miniatura con los colores
-del mapa: calles, manzanas, edificios, muros, cajas, pilares, barriles, fuentes y estanques, el marco de los sitios
-(A/B/C) y los teletransportadores de Bind. Encima: tú (punto blanco en el centro), tu pareja (punto de su color,
-gris si está caída) y los jefes (rojo). Lo que queda fuera de alcance se pega al borde, en su dirección (los jefes,
-parpadeando). La barra del jefe deja libre su hueco (`--mm` en el CSS).
+**Minimapa** (`Minimap.tsx`, arriba a la derecha bajo la pausa): recorte de 2.200 unidades alrededor del jugador
+de la vista del mundo (`WorldMap.ts`), redibujado cada fotograma. Encima: los portales (del color de la zona a la
+que llevan), tú (punto blanco en el centro), tu pareja (punto de su color, gris si está caída) y los jefes (rojo);
+lo que queda fuera se pega al borde en su dirección (los jefes, parpadeando). Debajo, el nombre de la zona en la que
+estás y la tecla del mapa. Pulsarlo abre el mapa grande. La barra del jefe deja libre su hueco (`--mm` en el CSS).
+
+**Mapa grande** (`BigMap.tsx`, tecla `map` = M por defecto, o pulsando el minimapa): el mundo entero con el nombre
+de cada zona, los portales con su destino, tú (parpadeando), tu pareja y los jefes. Se cierra con la misma tecla, Esc
+o pulsando fuera. En solitario detiene la partida mientras está abierto; en cooperativo no.
 
 ## Estilo pixel art
 
 - Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes).
 - Botones y paneles con esquinas en escalón (`--notch`), bordes de 4 px, sombras duras y sin degradados suaves;
   animaciones con `steps()`.
+- Tema **ENDLESS RIFT**: noche violeta (`--ink`, `--panel`), morado de grieta como color de acción (`--red`,
+  que conserva el nombre antiguo: botones principales, pestañas activas) y oro (`--gold`) en títulos y al pasar el
+  ratón por los botones principales. Fondo de los menús: estrellas blancas, moradas y doradas, resplandor central
+  y 3 grietas pixeladas (`public/ui/crack.svg`) que bajan y laten con `steps()`.
 - Colores de botones especiales: Jugar en pareja (cian), Mercado nocturno (morado), Apoyo (verde).
 - Todo el estilo está en `src/styles/index.css` (variables de color en `:root`).
 
@@ -59,7 +66,7 @@ parpadeando). La barra del jefe deja libre su hueco (`--mm` en el CSS).
 - Español (por defecto) e inglés. Se cambia en **Configuración → Idioma** y se aplica al momento.
 - `t('texto')` en `src/i18n/index.ts`; el inglés en `src/i18n/en.ts` (clave = texto en español, con `{parámetros}`).
   Las descripciones de mejoras de partida tienen funciones propias (`EN_UPGRADE`).
-- Los datos (agentes, armas, enemigos, novedades…) se escriben en español y se pasan por `t()` al mostrarse.
+- Los datos (agentes, poderes, enemigos, novedades…) se escriben en español y se pasan por `t()` al mostrarse.
 - Los avisos del motor llevan una clave y parámetros (`banner.key`, `banner.p`) para traducirse en cada
   pantalla, también en cooperativo.
 - `npm run test:i18n` lista los textos sin traducir.

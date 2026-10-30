@@ -1,18 +1,9 @@
 import { GameEngine } from '../game/GameEngine';
-import { WEAPONS } from '../data/weapons';
-import { gunRuns, gunSize } from '../game/weaponSprites';
+import { POWERS } from '../data/powers';
 import { t } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 import { Minimap } from './Minimap';
 
-function GunIcon({ id }: { id: string }) {
-  const s = gunSize(id);
-  return (
-    <svg className="gunicon" viewBox={`0 0 ${s.w} ${s.h}`} shapeRendering="crispEdges" aria-hidden="true">
-      {gunRuns(id, WEAPONS[id].color).map((r, i) => <rect key={i} x={r.x} y={r.y} width={r.w} height={1.02} fill={r.c} />)}
-    </svg>
-  );
-}
 
 export type Hud = ReturnType<GameEngine['hud']>;
 /** Texto del aviso grande: los del motor llevan clave y nombres sin traducir. */
@@ -20,9 +11,9 @@ const bannerText = (b: NonNullable<Hud['banner']>) =>
   b.key ? t(b.key, Object.fromEntries(Object.entries(b.p ?? {}).map(([k, v]) => [k, t(v).toUpperCase()]))) : t(b.text);
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-interface Props { hud: Hud; engine: GameEngine; onPause: () => void; onCast?: (slot: 'special' | 'secondary' | 'ultimate') => void; keys: KeyMap }
+interface Props { hud: Hud; engine: GameEngine; onPause: () => void; onCast?: (slot: 'special' | 'secondary' | 'ultimate') => void; keys: KeyMap; onMap?: () => void }
 
-export function GameHUD({ hud, engine, onPause, onCast, keys }: Props) {
+export function GameHUD({ hud, engine, onPause, onCast, keys, onMap }: Props) {
   const ag = engine.agent;
   const cast = (slot: 'special' | 'secondary' | 'ultimate') => (onCast ? onCast(slot) : engine.cast(slot));
   const slot = (key: string, label: string, name: string, cd: number, max: number, ready: boolean, cast: () => void, ult = false) => {
@@ -71,7 +62,8 @@ export function GameHUD({ hud, engine, onPause, onCast, keys }: Props) {
           <div className="kills">☠ {hud.kills}</div>
           <small>{t('{n} enemigos', { n: hud.alive })}</small>
           <button className="btn btn-sm" onClick={onPause} aria-label={t('Pausa')}><b>II</b></button>
-          <Minimap engine={engine} />
+          <Minimap engine={engine} onOpen={onMap} />
+          <small className="minimap-hint">{t('{k}: mapa', { k: keyLabel(keys.map) })}</small>
         </div>
       </div>
       {hud.boss && (
@@ -80,8 +72,8 @@ export function GameHUD({ hud, engine, onPause, onCast, keys }: Props) {
       {hud.banner && <div className="banner" style={{ color: hud.banner.color }} key={hud.banner.text}>{bannerText(hud.banner)}</div>}
       <div className="weapons">
         {hud.weapons.map(w => (
-          <div key={w.id} className={`wslot ${w.lvl >= 5 ? 'evo' : ''}`} style={{ ['--wc' as any]: WEAPONS[w.id].color }}>
-            <GunIcon id={w.id} /><b>{t(w.lvl >= 5 ? WEAPONS[w.id].evolved.name : WEAPONS[w.id].name)}</b><span>{t('Nv')} {w.lvl}</span>
+          <div key={w.id} className={`wslot ${w.lvl >= 5 ? 'evo' : ''}`} style={{ ['--wc' as any]: POWERS[w.id].color }}>
+            <i className="powicon" aria-hidden="true">{POWERS[w.id].icon}</i><b>{t(w.lvl >= 5 ? POWERS[w.id].evolved.name : POWERS[w.id].name)}</b><span>{t('Nv')} {w.lvl}</span>
           </div>
         ))}
       </div>

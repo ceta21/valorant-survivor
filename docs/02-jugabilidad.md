@@ -1,17 +1,18 @@
 # 02 · Jugabilidad
 
-Los valores exactos (vida de cada agente, daño de cada arma, etc.) están en
+Los valores exactos (vida de cada agente, daño de cada poder, etc.) están en
 [10 · Datos del juego](10-datos-del-juego.md). Aquí se explican las reglas y las fórmulas.
 Código principal: `src/game/GameEngine.ts`.
 
 ## Flujo de una partida
 
-1. En **Jugar** se elige agente, mapa, dificultad y (si se tiene alguna exclusiva) arma inicial.
-   De momento solo se pueden jugar Jett, Phoenix, Reyna, Sage, Killjoy, Raze y los exclusivos del mercado
-   (`AVAILABLE_AGENTS` en `src/data/agents.ts`); el resto sale con candado y el rótulo **Próximamente**, y
-   no se puede comprar ni elegir (tampoco en cooperativo).
-2. La partida empieza con el aviso "¡SOBREVIVE!" y el arma inicial (Classic por defecto) a nivel 1.
-3. Las armas disparan solas al enemigo más cercano dentro de su alcance.
+1. En **Jugar** se elige agente, zona de inicio y dificultad.
+   Se puede jugar con los 20 héroes y los exclusivos del mercado (`AVAILABLE_AGENTS` en `src/data/agents.ts`);
+   si algún agente se saca de esa lista, sale con candado y el rótulo **Próximamente** y no se puede comprar ni
+   elegir (tampoco en cooperativo).
+2. La partida empieza con el aviso "¡SOBREVIVE!" y el **poder** del héroe a nivel 1 (`HERO_POWER` en
+   `src/data/powers.ts`). No hay armas.
+3. Los poderes se lanzan solos, sin parar, al enemigo más cercano dentro de su alcance.
 4. Los enemigos muertos sueltan **gemas de experiencia**; al recogerlas se llena la barra de XP.
 5. Al subir de nivel la partida se detiene y se elige **1 de 3 mejoras** (se puede relanzar 2 veces por partida).
 6. Oleadas, élites y jefes llegan según el [calendario](10-datos-del-juego.md#calendario-de-la-partida).
@@ -27,15 +28,23 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
   multiplicador crítico ×1,6, regeneración 0,5 vida/s, más el rasgo del agente y las mejoras permanentes.
 - Al recibir daño: 0,55 s de invulnerabilidad (parpadeo). El escudo absorbe el daño antes que la vida y
   se regenera a 4/s tras 5 s sin recibir golpes (hasta su máximo).
-- Movimiento en 8 direcciones; el mundo no tiene bordes. En Bind, pisar un teletransportador lleva a su pareja
-  (1,5 s de espera entre usos).
-
-## Armas
-
-- Hasta **4 armas** a la vez. Al subir de nivel pueden ofrecerse armas nuevas o subir de nivel las que se tienen.
-- Por nivel: **+22 % daño y −6 % de recarga**. Al **nivel 5 el arma evoluciona** (efecto especial propio).
-- Daño de un disparo: `daño base × (1 + 0,22 × (nivel − 1)) × mult. evolución × daño del jugador`.
-- Las armas exclusivas del mercado no salen al subir de nivel: solo se usan como arma inicial.
+- Movimiento en 8 direcciones por un mundo grande y cerrado de 4 zonas (Reino, Glaciar, Infierno, Ciudad) separadas
+  por abismos que no se pueden pisar. Se elige la zona de inicio y se cambia de zona pisando un **portal**: cada zona
+  tiene 3, uno hacia cada otra zona (rótulo con el destino y color de esa zona); te deja junto a su pareja y no se
+  puede volver a usar hasta pasados 1,5 s. Con **M** (configurable) se abre el mapa del mundo; en solitario la
+  partida se detiene mientras está abierto.
+- **Terreno**: el **agua** frena a ×0,6 (jugador y enemigos); la **lava** quema: al jugador le quita un 5 % de su
+  vida máxima en cada golpe (uno cada 0,55 s, con la invulnerabilidad normal; el dash la cruza sin daño) y a los
+  enemigos que no son jefe los hace arder (12 % de su vida/s, mínimo 6). Hielo, puentes, caminos y hierba se pisan
+  sin efecto; la roca y el abismo no se pueden pisar.
+- **Poderes** (11 elementales: arcano, flecha, fuego, rayo, hojas, viento, sombra, hielo, luz, roca y agua). Hasta
+  **4 a la vez**: al subir de nivel pueden ofrecerse poderes nuevos ("Nuevo poder") o subir de nivel los que se
+  tienen. Algunos tienen efecto propio: el fuego quema 3 s, el rayo salta a otro enemigo, la sombra persigue, la
+  roca y la evolución de otros estallan.
+- Por nivel: **+22 % daño y −6 % de recarga**. Al **nivel 5 el poder evoluciona** (efecto especial propio).
+- Las mejoras de partida también son sobre los poderes (daño, velocidad de lanzamiento, proyectiles extra,
+  perforación, quemadura, alcance…).
+- Daño de un lanzamiento: `daño base × (1 + 0,22 × (nivel − 1)) × mult. evolución × daño del jugador`.
 
 ## Habilidades
 
@@ -48,21 +57,23 @@ Tipos de habilidad (`kind`):
 
 | Tipo | Qué hace |
 |---|---|
-| `dash` | Impulso rápido e invulnerable que daña a lo que atraviesa (Jett). |
-| `sprint` | Velocidad ×1,6 y un aura que daña cada 0,15 s (Neon). |
+| `dash` | Impulso rápido e invulnerable que daña a lo que atraviesa (Kael, Brutus, Zahir). |
+| `sprint` | Velocidad ×1,6 y un aura que daña cada 0,15 s (Volt). |
 | `nova` | Explosión alrededor: daño + aturdir / quemar / ralentizar / marcar según la habilidad. |
 | `strike` | Golpes de área con retardo sobre enemigos cercanos (granadas, cohetes, bombardeos). |
-| `turret` | Torretas que disparan solas durante un tiempo (Killjoy). Tienen vida y los robots pueden destruirlas. |
-| `seekers` | Proyectiles teledirigidos que marcan (Sova). |
-| `blink` | Teletransporte en la dirección de movimiento + explosión al reaparecer (Omen). |
-| `frenzy` | Cadencia aumentada y robo de vida por baja durante unos segundos (Reyna, Brimstone). |
-| `storm` | Lluvia de cuchillas al enemigo más cercano cada 0,07 s (Jett). |
-| `heal` | Curación y escudo (Sage, Phoenix). |
+| `turret` | Torretas que disparan solas durante un tiempo (Tink). Tienen vida y los robots pueden destruirlas. |
+| `seekers` | Proyectiles teledirigidos que marcan (Lyra: flechas; Morgan: espíritus). |
+| `blink` | Teletransporte en la dirección de movimiento + explosión al reaparecer (Vex, Grim, Draco, Sora). |
+| `frenzy` | Cadencia aumentada y robo de vida por baja durante unos segundos (Brutus, Raven, Sora). |
+| `storm` | Lluvia de dagas al enemigo más cercano cada 0,07 s (Vex). |
+| `heal` | Curación y escudo (Seraph, Sylvan, Aqua…). |
+| `beam` | **Rayo** recto hacia el enemigo más cercano (o hacia donde vas) que atraviesa a todos los que toca: largo `radius` × √alcance, ancho `width` × área; aplica aturdir / quemar / frenar / marcar. `count` > 1 = rayos en estrella (Zephyr, Ember, Frost, Seraph, Nox, Volt, Lyra, Talos, Aqua). Se dibuja con `pixelRay()`. |
+| `cone` | **Abanico** delante de ti de apertura `spread` (grados) y alcance `radius` (aliento de Draco, llamarada de Ember). Se dibuja con `pixelCone()`. |
 
 Efectos de estado: **quemadura** (daño por segundo), **ralentización**, **aturdimiento** (los jefes no se
 aturden) y **marca** (+30 % de daño recibido).
 
-### Torretas (Killjoy)
+### Torretas (Tink)
 
 - Torreta: 1 torreta; Bloqueo: 3 torretas más resistentes. Duran 14 s, disparan cada 0,3 s al enemigo más cercano (alcance 340).
 - Vida: `75 × escala de daño enemigo` (Torreta) o `110 × escala` (Bloqueo), para que aguanten igual en toda la partida.
@@ -76,7 +87,7 @@ Se compran en la Tienda (ver más abajo); en el apartado **Mascotas** (`PetsScre
 se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su poder. Código: `updatePet()` y
 `petAttack()` en `GameEngine`, dibujo en `src/game/petSprites.ts`.
 
-- Va a un lado del jugador, un poco por detrás; si se queda a más de 420 de distancia, aparece junto a él.
+- Va a un lado del jugador, un poco por detrás; si se queda a más de 220 de distancia o lleva 0,8 s atascada contra un muro, aparece junto a él.
 - Vida `70 × escala de daño enemigo`. Los robots la atacan igual que a las torretas (cuenta en `allTurrets()`,
   que devuelve torretas y mascotas): cuerpo a cuerpo si está más cerca que el jugador, disparos y explosiones.
 - Si la derriban vuelve a los **60 s** (`PET_RESPAWN`) con toda la vida. El HUD muestra su vida o el tiempo que falta.
@@ -152,13 +163,16 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
 ## Progresión fuera de la partida
 
 - **Créditos (◈)**: se ganan jugando y cobrando misiones.
-- **Agentes**: Jett, Phoenix y Sage gratis; el resto se desbloquean con créditos.
+- **Agentes**: 20 héroes originales; Zephyr, Lyra y Kael gratis y el resto se desbloquean con créditos. Los
+  agentes de versiones anteriores ya no existen: al cargar un guardado se quitan y se devuelve lo que costaron
+  (`LEGACY_AGENT_COSTS`); sus marcas del ranking salen como "Héroe retirado".
 - **Mejoras permanentes**: daño, vida, velocidad y experiencia, 10 niveles cada una (ver coste en [10](10-datos-del-juego.md#mejoras-permanentes)).
 - **Mercado nocturno**: ver [07](07-mercado-nocturno.md).
 - **Tienda** (`src/data/shop.ts`, `ShopScreen`): **solo compra** (con confirmación). Lo comprado se pone en otro sitio:
-  estilos de agente y de arma en la ficha de cada agente (**Agentes**); mascotas y su poder en **Mascotas**.
-  - Estilos de armas (◈ 3.000–5.000): cambian los colores de todas las armas (`buildGun(..., skin)`).
+  estilos de agente en la ficha de cada agente (**Agentes**); mascotas y su poder en **Mascotas**.
   - Estilos de agentes (◈ 8.000–12.000): recolorean ropa y armadura del agente al que se pongan, respetando piel y
     contorno (`applySkin()` en `sprites.ts`). Cada agente lleva el suyo. Solo estéticos.
+  - Ya no hay armas: al cargar un guardado, las armas exclusivas y los estilos de arma comprados antes se quitan y
+    se devuelve su precio base (`LEGACY_WEAPON_PRICES`).
   - Mascotas (◈ 12.000–16.000). Su poder se compra en Mascotas: ◈ 5.000 / 8.000 / 12.000 por nivel.
   - Lo comprado y lo equipado va en `save.shop` y se lleva a la partida como `Looks` (también en cooperativo).

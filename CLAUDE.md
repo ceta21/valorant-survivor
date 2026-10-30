@@ -1,4 +1,4 @@
-# Instrucciones del proyecto VALORANT SURVIVORS
+# Instrucciones del proyecto ENDLESS RIFT (antes VALORANT SURVIVORS)
 
 ## Documentación (obligatorio)
 

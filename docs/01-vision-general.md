@@ -2,9 +2,9 @@
 
 ## Qué es
 
-VALORANT SURVIVORS es un juego web de supervivencia por oleadas (género "survivors", como Vampire
-Survivors) con temática VALORANT. El jugador elige un agente, se mueve por un mapa infinito y sus
-armas disparan solas; las habilidades se lanzan con teclas. Gana experiencia, sube de nivel, elige
+ENDLESS RIFT (antes VALORANT SURVIVORS) es un juego web de supervivencia por oleadas (género "survivors", como Vampire
+Survivors). El jugador elige un héroe, se mueve por un mundo de 4 zonas y su
+poder se lanza solo, sin parar (no hay armas); las habilidades se lanzan con teclas. Gana experiencia, sube de nivel, elige
 mejoras y aguanta todo lo posible: la partida solo acaba al morir. Todo el arte (personajes, robots,
 mapas, efectos) y el audio son **originales y generados por código**; no hay imágenes ni sonidos
 externos.
@@ -15,7 +15,7 @@ Modos y funciones principales:
 - **Cooperativo para 2 jugadores** con código de sala.
 - **Cuentas** (usuario + contraseña, ID de jugador) o **modo invitado**.
 - **Ranking global** filtrable por agente y dificultad.
-- **Mercado nocturno** diario con armas y agentes exclusivos.
+- **Mercado nocturno** diario con los agentes exclusivos.
 - Mejoras permanentes, misiones, logros, estadísticas, novedades.
 - **Español e inglés**, controles reasignables, adaptado a móvil y escritorio.
 
@@ -41,7 +41,7 @@ valorant-survivors/
 │  ├─ main.tsx, App.tsx    arranque y navegación entre pantallas, estado global (guardado, cuenta, preferencias)
 │  ├─ components/          pantallas y piezas de interfaz (menú, agentes, partida, HUD, mercado, sala…)
 │  ├─ game/                motor y render: GameEngine, Renderer, World, MapArt, sprites, vfx, netSync, Input…
-│  ├─ data/                datos del juego: agentes, armas, enemigos, mejoras, mapas, dificultad, mercado, novedades
+│  ├─ data/                datos del juego: agentes, poderes, enemigos, mejoras, mapas, dificultad, mercado, novedades
 │  ├─ net/coopLink.ts      conexión del cooperativo (sala + WebRTC)
 │  ├─ utils/               supabase, cuentas, ranking, guardado/preferencias, audio
 │  ├─ i18n/                idiomas: t() y diccionario inglés (en.ts)
@@ -77,3 +77,8 @@ La lista completa de versiones está en [Novedades](10-datos-del-juego.md#histor
 8. Cooperativo para 2 jugadores.
 9. Panel del menú, robots enemigos, Artillero, sección Apoyo, adaptación a pantallas.
 10. Idiomas y controles; torretas de Killjoy destruibles.
+11. Diario, Tienda, Mascotas, minimapa y 20 héroes originales que sustituyen a los agentes de VALORANT.
+12. Mundo nuevo de 4 zonas (Reino, Glaciar, Infierno, Ciudad) con portales y mapa grande.
+13. Poderes en lugar de armas y nuevo nombre: **ENDLESS RIFT**, grietas infinitas de las que emergen hordas de
+    enemigos (logo pixelado en `Logo.tsx`; las claves de guardado y el dominio de las cuentas siguen siendo los
+    antiguos para no perder partidas ni sesiones).

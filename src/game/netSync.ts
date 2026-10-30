@@ -3,11 +3,11 @@
 // predice su propio personaje para que responda al instante.
 import { Enemy, GameEngine, Pl, ProjLook } from './GameEngine';
 import { ENEMIES } from '../data/enemies';
-import { WEAPONS } from '../data/weapons';
+import { POWERS } from '../data/powers';
 import { BossPattern, UpgradeChoice } from './types';
 
 const ENEMY_IDS = Object.keys(ENEMIES);
-const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf'];
+const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf', 'wisp', 'ice', 'water', 'rock', 'star'];
 const PATTERNS: BossPattern[] = ['ring', 'spiral', 'slam', 'charge', 'summon'];
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -75,7 +75,7 @@ export function makeSnapshot(e: GameEngine): Snap {
     eb: r1(e.endlessBossT), ban: e.banner.t > 0 ? [e.banner.text, e.banner.color, r1(e.banner.t), e.banner.key, e.banner.p] : 0, shk: r2(e.shakeT),
     p, en, pj, ep, gm,
     sk: e.strikes.filter(s => !s.dead).map(s => [Math.round(s.x), Math.round(s.y), Math.round(s.r), r2(s.t), r2(s.dur), s.fx ?? '', Math.round(s.ox), Math.round(s.oy), s.color]),
-    vf: e.vfx.map(v => [v.kind, v.pal, Math.round(v.x), Math.round(v.y), Math.round(v.r), r2(v.t), r2(v.dur), r2(v.ang), v.seed, v.follow ? 1 : 0, v.sprite ?? '', v.owner ?? 0]),
+    vf: e.vfx.map(v => [v.kind, v.pal, Math.round(v.x), Math.round(v.y), Math.round(v.r), r2(v.t), r2(v.dur), r2(v.ang), v.seed, v.follow ? 1 : 0, v.sprite ?? '', v.owner ?? 0, r2(v.w ?? 0)]),
     cl: colors, ev: ev.length > 400 ? ev.slice(-400) : ev,
     sh: e.shells.filter(s => !s.dead).flatMap(s => [Math.round(s.x), Math.round(s.y), Math.round(s.ox), Math.round(s.oy), Math.round(s.t * 100), Math.round(s.dur * 100), s.r]),
   };
@@ -112,7 +112,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     Object.assign(pl.buffs, { sprintT: ps.b[0], sprintRad: ps.b[1], frenzyT: ps.b[2], frenzyFx: ps.b[3], stormT: ps.b[4], stormPow: ps.b[5] });
     if (!mine) { pl.inputMove.x = ps.mx; pl.inputMove.y = ps.my; }
     pl.ult = ps.ult; pl.cds.special = ps.cds[0]; pl.cds.secondary = ps.cds[1]; pl.droneAngle = ps.da;
-    pl.weapons.length = 0; for (const [id, lvl] of ps.w) if (WEAPONS[id]) pl.weapons.push({ id, lvl, cd: 0 });
+    pl.weapons.length = 0; for (const [id, lvl] of ps.w) if (POWERS[id]) pl.weapons.push({ id, lvl, cd: 0 });
     pl.turrets = ps.tu.map(([x, y, ang, t, max, cd, color, hp, maxHp, fl]) => ({ x, y, ang, t, max, cd, color, power: 0, dead: false, hp: hp ?? 1, maxHp: maxHp ?? 1, flash: fl ? 0.1 : 0 }));
     pl.hurtFlash = Math.max(pl.hurtFlash, ps.hf); pl.pending = ps.pend; pl.rerolls = ps.rr; pl.choices = ps.ch ?? [];
     if (pl.pet && ps.pe) {
@@ -157,7 +157,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
   e.strikes = s.sk.map(a => ({ x: a[0] as number, y: a[1] as number, r: a[2] as number, t: a[3] as number, dur: a[4] as number, fx: (a[5] || undefined) as any,
     ox: a[6] as number, oy: a[7] as number, color: a[8] as string, dmg: 0, stun: 0, burn: 0, slow: 0, mark: 0, dead: false, owner: 0 }));
   e.vfx = s.vf.map(a => ({ kind: a[0] as any, pal: a[1] as string, x: a[2] as number, y: a[3] as number, r: a[4] as number, t: a[5] as number, dur: a[6] as number,
-    ang: a[7] as number, seed: a[8] as number, follow: !!a[9], sprite: (a[10] || undefined) as string | undefined, owner: a[11] as number }));
+    ang: a[7] as number, seed: a[8] as number, follow: !!a[9], sprite: (a[10] || undefined) as string | undefined, owner: a[11] as number, w: (a[12] as number) || undefined }));
   // efectos sueltos (chispas, números de daño, ondas, sonidos)
   for (const v of s.ev) {
     if (v[0] === 's') e.sparks(v[1] as number, v[2] as number, v[3] as string, v[4] as number, v[5] as number, v[6] as number);

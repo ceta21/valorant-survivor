@@ -21,7 +21,7 @@ const out: [string, string][] = [
   ['menu', renderToString(<MainMenu save={s} go={noop} account={{ uid: 'x', username: 'Prueba', playerId: 10000 }} accountsEnabled onLogin={noop} onLogout={noop} keys={DEFAULT_KEYS} />)],
   ['market', renderToString(<MarketScreen save={{ ...s, market: { period: Math.floor(Date.now() / 86400000), revealed: [0, 1, 2, 3] } }} seed="test" reveal={noop} buy={noop} back={noop} goAgents={noop} />)],
   ['auth', renderToString(<AuthScreen guestHasProgress onSignIn={async () => {}} onSignUp={async () => {}} onGuest={noop} />)],
-  ['agents', renderToString(<AgentSelection save={{ ...s, exclusives: ['eclipse', 'ares_inferno'], shop: { ...s.shop, owned: ['as_oro', 'ws_oro'], agent: { jett: 'as_oro' } } }} back={noop} start={noop} unlock={noop} setKit={noop} setLoadout={noop} equip={noop} keys={DEFAULT_KEYS} />)],
+  ['agents', renderToString(<AgentSelection save={{ ...s, exclusives: ['eclipse'], shop: { ...s.shop, owned: ['as_oro'], agent: { zephyr: 'as_oro' } } }} back={noop} start={noop} unlock={noop} setKit={noop} equip={noop} keys={DEFAULT_KEYS} />)],
   ['shop', renderToString(<ShopScreen save={{ ...s, shop: { ...s.shop, owned: ['ws_oro', 'pet_voltio'] } }} back={noop} buy={noop} />)],
   ['pets', renderToString(<PetsScreen save={{ ...s, shop: { ...s.shop, owned: ['pet_voltio', 'pet_copito'], pet: 'pet_voltio', power: { pet_voltio: 2 } } }} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],
   ['pets-vacio', renderToString(<PetsScreen save={s} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],

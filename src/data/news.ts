@@ -11,6 +11,46 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.20', date: '2026-10-30', title: 'Ahora somos ENDLESS RIFT', tag: 'Nuevo', color: '#9b5cff',
+    items: [
+      'Nuevo nombre: el juego pasa a llamarse ENDLESS RIFT, grietas infinitas de las que emergen hordas de enemigos.',
+      'Logo nuevo en el menú y en la pestaña del navegador.',
+      'Menús renovados con los colores de la grieta: noche violeta, grietas moradas que laten y detalles dorados.',
+    ],
+  },
+  {
+    id: '1.19', date: '2026-10-30', title: 'Poderes en vez de armas', tag: 'Nuevo', color: '#ff7a2e',
+    items: [
+      'Adiós a las armas: cada héroe lanza su propio poder sin parar (fuego, rayo, hielo, agua, hojas, sombra, luz…).',
+      'Al subir de nivel aprendes poderes nuevos (hasta 4 a la vez) o mejoras los que tienes; al nivel 5 evolucionan.',
+      'Las mejoras de partida ahora potencian tus poderes: más daño, más proyectiles, perforación y quemadura.',
+      'Si habías comprado armas exclusivas o estilos de arma, te devolvemos sus créditos.',
+      'El mercado nocturno ofrece ahora los agentes exclusivos.',
+      'Los poderes y las habilidades se ven mucho más grandes: bolas de fuego, rocas, rayos, bombas, explosiones…',
+    ],
+  },
+  {
+    id: '1.18', date: '2026-10-30', title: 'Un mundo nuevo', tag: 'Nuevo', color: '#5a9a3e',
+    items: [
+      'Un único mapa enorme con 4 zonas: Reino, Glaciar, Infierno y Ciudad, separadas por abismos.',
+      'Al empezar eliges en qué zona aparecer; para cambiar de zona, pisa uno de sus portales.',
+      'Pulsa M (o la tecla que elijas en Controles) para abrir el mapa del mundo en grande; también al pulsar el minimapa.',
+      'El minimapa muestra el terreno, los portales, tu pareja, los jefes y la zona en la que estás.',
+      'Terreno natural sin parcelas: praderas de hierba alta, ríos, bosques, montañas de roca y castillos en el Reino, el Glaciar y el Infierno.',
+      'El agua te frena (y a los enemigos también).',
+      'La lava quema: si la pisas pierdes vida poco a poco; los enemigos que la cruzan arden.',
+    ],
+  },
+  {
+    id: '1.17', date: '2026-10-30', title: '20 héroes nuevos', tag: 'Nuevo', color: '#5c8bff',
+    items: [
+      'Llegan 20 héroes originales: Zephyr, Lyra, Kael, Vex, Sylvan, Ember, Brutus, Frost, Seraph, Nox, Raven, Talos, Morgan, Volt, Grim, Aqua, Zahir, Draco, Sora y Tink.',
+      'Sustituyen a los agentes anteriores; los créditos que gastaste en ellos se te devuelven.',
+      'Habilidades nuevas: rayos que atraviesan en línea recta (arcano, fuego, hielo, luz, vacío, rayo) y alientos de fuego en abanico.',
+      'Zephyr, Lyra y Kael son gratis; el resto se desbloquea con créditos.',
+    ],
+  },
+  {
     id: '1.16', date: '2026-10-29', title: 'Tienda: estilos y mascotas', tag: 'Nuevo', color: '#ffd24a',
     items: [
       'Nueva Tienda en el menú con estilos de armas, estilos de agentes y mascotas.',

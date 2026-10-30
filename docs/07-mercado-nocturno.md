@@ -1,31 +1,24 @@
 # 07 · Mercado nocturno
 
 Código: `src/data/market.ts` (rotación y precios), `src/components/MarketScreen.tsx` (pantalla),
-`src/data/weapons.ts` (`EXCLUSIVE_WEAPONS`), `src/data/agents.ts` (`EXCLUSIVE_AGENTS`, `withKit`).
+`src/data/agents.ts` (`EXCLUSIVE_AGENTS`, `withKit`).
 
 ## Rotación
 
-- Cada jugador ve **4 cartas boca abajo** que se descubren con un clic (animación de giro). Las descubiertas se
-  guardan en `save.market` para la rotación actual.
+- Cada jugador ve **3 cartas boca abajo** (una por agente exclusivo) que se descubren con un clic (animación de
+  giro). Las descubiertas se guardan en `save.market` para la rotación actual.
 - **Nueva rotación cada 24 h** (a medianoche UTC; periodo = `floor(ahora / 24 h)`).
 - Las ofertas se calculan con un generador aleatorio con semilla `id de cuenta + periodo`: **recargar no cambia
   la tienda**. Los invitados usan una semilla por visita.
-- Cartas 1–3: armas exclusivas distintas. Carta 4: **agente exclusivo con un 35 %** de probabilidad (uno de los
-  tres al azar); si no, otra arma.
-- Probabilidades aproximadas por día: que salga algún agente 35 %, un agente concreto ~12 %, un arma concreta ~61 %.
+- Las cartas son los agentes exclusivos en orden al azar, cada uno con su descuento del día. (Antes también había
+  armas exclusivas; ya no hay armas y las compradas se devolvieron en créditos.)
 
 ## Precios
 
-- Precio base alto: armas ◈ 9.000–14.000, agentes ◈ 38.000–45.000 (ver [10](10-datos-del-juego.md)).
+- Precio base alto: agentes ◈ 38.000–45.000 (ver [10](10-datos-del-juego.md)).
 - Cada carta tiene un **descuento aleatorio del 10 % al 35 %**; el precio final se redondea a múltiplos de 50.
-- Una buena partida da unos ◈ 400–1.500 (más en dificultades altas): un arma cuesta ~10 partidas y un agente ~30+.
+- Una buena partida da unos ◈ 400–1.500 (más en dificultades altas): un agente cuesta ~30+ partidas.
 - Comprar pide confirmación y descuenta los créditos. Lo comprado se marca "En tu colección".
-
-## Armas exclusivas
-
-- Rareza legendaria, colores propios y silueta de un arma base (`sprite`), con su propia evolución.
-- **No salen al subir de nivel**: se eligen como **arma inicial** en la pantalla de agentes (al comprar una, se
-  equipa sola).
 
 ## Agentes exclusivos
 

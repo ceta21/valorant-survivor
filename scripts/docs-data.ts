@@ -3,14 +3,14 @@
 // Se ejecuta con `npm run docs:data` cada vez que cambian los datos del juego.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { AGENTS, EXCLUSIVE_AGENTS, ULTIMATES, ABILITIES } from '../src/data/agents';
-import { WEAPONS } from '../src/data/weapons';
+import { POWERS, HERO_POWER } from '../src/data/powers';
 import { ENEMIES, SPAWNABLE, BOSS_SCHEDULE, WAVE_TIMES, FINAL_TIME, ENDLESS_BOSS_START, ENDLESS_BOSS_MIN, ENDLESS_BOSSES, ENDLESS_MAX_BOSSES } from '../src/data/enemies';
 import { MAPS } from '../src/data/maps';
 import { DIFFICULTIES } from '../src/data/difficulty';
 import { MISSIONS, ACHIEVEMENTS } from '../src/data/goals';
 import { META, metaCost } from '../src/data/meta';
 import { UPGRADES } from '../src/data/upgrades';
-import { MARKET_SLOTS, AGENT_CHANCE, MARKET_PERIOD_MS } from '../src/data/market';
+import { MARKET_SLOTS, MARKET_PERIOD_MS } from '../src/data/market';
 import { NEWS } from '../src/data/news';
 import { DEFAULT_KEYS, ACTIONS } from '../src/game/controls';
 import { RARITY_NAMES } from '../src/game/types';
@@ -47,11 +47,12 @@ out.push(`\n## Agentes exclusivos (mercado nocturno)\n`);
 out.push(table(['id', 'Nombre', 'Rol', 'Vida', 'Velocidad', 'Daño', 'Precio base', 'Rasgo', 'Kit por defecto'],
   EXCLUSIVE_AGENTS.map(a => [`\`${a.id}\``, a.name, a.role, a.hp, a.speed, a.damage, a.cost, `${a.trait.label}: ${mods(a.trait.mods)}`, `${a.special.id} / ${a.secondary?.id} / ${a.ultimate.id}`])));
 
-out.push(`\n## Armas\n`);
-out.push(table(['id', 'Nombre', 'Rareza', 'Daño', 'Recarga (s)', 'Proyectiles', 'Perfora', 'Alcance', 'Crítico', 'Explota', 'Evolución (Nv 5)'],
-  Object.values(WEAPONS).map(w => [`\`${w.id}\``, w.name, RARITY_NAMES[w.rare] + (w.exclusive ? ' · exclusiva' : ''), w.damage, w.cooldown, w.count, w.pierce, w.range, w.crit, w.explode ?? 0,
-    `${w.evolved.name}: ${w.evolved.desc}`])));
-out.push(`\nArmas exclusivas: precio base en el mercado → ${Object.values(WEAPONS).filter(w => w.exclusive).map(w => `${w.name} ◈${w.price}`).join(', ')}.\n`);
+out.push(`\n## Poderes\n`);
+out.push(table(['id', 'Nombre', 'Rareza', 'Daño', 'Recarga (s)', 'Proyectiles', 'Perfora', 'Alcance', 'Crítico', 'Extra', 'Evolución (Nv 5)', 'Héroes que empiezan con él'],
+  Object.values(POWERS).map(w => [`\`${w.id}\``, `${w.icon} ${w.name}`, RARITY_NAMES[w.rare], w.damage, w.cooldown, w.count, w.pierce, w.range, w.crit,
+    [w.burn ? `quema ${w.burn}/s` : '', w.chain ? 'encadena' : '', w.homing ? 'persigue' : '', w.explode ? `explota ${w.explode}` : ''].filter(Boolean).join(', ') || '—',
+    `${w.evolved.name}: ${w.evolved.desc}`, Object.keys(HERO_POWER).filter(h => HERO_POWER[h] === w.id).join(', ')])));
+out.push('');
 
 out.push(`## Enemigos\n`);
 out.push(table(['id', 'Nombre', 'Comportamiento', 'Vida', 'Velocidad', 'Daño', 'Radio', 'XP', 'Desde (s)', 'Peso', 'Patrones'],
@@ -88,7 +89,7 @@ out.push(table(['id', 'Nombre', 'Descripción'], MAPS.map(m => [`\`${m.id}\``, m
 
 out.push(`\n## Mercado nocturno\n`);
 out.push(`- ${MARKET_SLOTS} cartas por jugador, nueva rotación cada ${MARKET_PERIOD_MS / 3600000} h (medianoche UTC).
-- Las ${MARKET_SLOTS - 1} primeras son armas exclusivas distintas; la última es un agente exclusivo con probabilidad ${AGENT_CHANCE * 100}% (si no, otra arma).
+- Son los agentes exclusivos, en orden al azar.
 - Descuento aleatorio del 10 % al 35 %; el precio se redondea a múltiplos de 50.
 `);
 

@@ -20,14 +20,15 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 |---|---|
 | `npm run test:sim` | Simula partidas de todos los agentes en solitario |
 | `npm run test:coop` | Motor con 2 jugadores: caídas, vuelta en la oleada, mejoras, abandono, mismo mundo con la misma semilla |
-| `npm run test:turrets` | Torretas de Killjoy: cuántas salen y si los robots las destruyen |
+| `npm run test:turrets` | Torretas de Tink: cuántas salen y si los robots las destruyen |
 | `npm run test:daily` | Diario: racha de conexión, misiones del día y su progreso |
 | `npm run test:pets` | Mascotas: te siguen, caen, vuelven al minuto y atacan con su poder (captura en `shots/pets.png`) |
 | `npm run test:i18n` | Que todos los textos tengan traducción al inglés |
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada agente usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
-| `npm run test:world` | Generación del mundo infinito |
+| `npm run test:world` | Mundo: zonas y abismos, determinismo, terreno de cada zona y castillos, que el agua frene y la lava queme, que todo el suelo esté conectado y que cada portal lleve a su pareja |
+| `npx tsx scripts/maps-overview.ts` | Capturas del monumento principal de cada zona en `shots/overview_<zona>.png` |
 | `npx tsx scripts/ui-smoke.tsx` | Renderiza cada pantalla de React en Node para detectar errores |
 
 ## Publicar
@@ -51,20 +52,23 @@ Notas:
 `en.ts`.
 
 **Aspecto de un agente a partir de su hoja de sprites**:
-1. Guardar la imagen en `art/<id>.png` (fondo liso).
+1. Guardar la imagen en `art/<id>.png` (fondo liso). Si varios personajes salen de la misma hoja (como
+   `art/heroes.png`), poner `"src": "heroes"` en su entrada de `art/frames.json`.
 2. `npx tsx scripts/cut-agent.ts <id> --find` lista dónde está cada fotograma.
 3. Apuntar en `art/frames.json` el centro de los fotogramas elegidos: `front`, `back` y `side` (de lado
    mirando a la **derecha**). Opcional: `tol` (tolerancia del fondo si tiene textura, p. ej. 30) y `erase`
    (rectángulos por fotograma para quitar un arma dibujada: `"c"` la borra y reperfila, `"f"`/`"F"` rellena
-   con la ropa de alrededor). `npx tsx scripts/agent-grid.ts <id> <fila> salida.png` ayuda a situarlos.
+   con la ropa de alrededor), `cell` ([medio ancho, medio alto] de la celda de cada dibujo, por defecto [24, 31];
+   los héroes usan [44, 66]). `npx tsx scripts/agent-grid.ts <id> <fila> salida.png` ayuda a situarlos.
 4. `npx tsx scripts/cut-agent.ts <id>` genera `public/agents/<id>.png` y `src/data/agentImages/`. Informa de
    los píxeles de dibujo perdidos (debe ser 0).
 
 **Habilidad**: definirla con un `kind` existente (o añadir el caso en `perform()` del motor) y un `fx`
 (estilo visual en `abilityFx()` del motor y en `Renderer`/`vfx.ts`).
 
-**Arma**: añadirla en `src/data/weapons.ts` y su silueta en `PARTS` de `src/game/weaponSprites.ts` (o
-`sprite` + `skin` si es exclusiva).
+**Poder**: añadirlo en `POWERS` de `src/data/powers.ts` (con su `look`; uno nuevo necesita su sprite en `vfx.ts`
+y su entrada en `LOOK` del Renderer y en `LOOKS` de `netSync.ts`) y, si es el inicial de algún héroe, en
+`HERO_POWER`.
 
 **Enemigo**: añadirlo **al final** de `ENEMIES` en `src/data/enemies.ts` (el cooperativo usa el orden), a
 `SPAWNABLE` si aparece solo, su lógica si tiene un comportamiento nuevo, su sprite en `src/game/enemySprites.ts`
@@ -81,7 +85,7 @@ y su nombre en `en.ts`.
 Esta carpeta es la memoria del proyecto. **Cada cambio del juego debe actualizarla**:
 
 1. Cambios de reglas, fórmulas o funcionamiento → editar el documento del tema (02–08).
-2. Cambios de datos (agentes, armas, enemigos, mejoras, precios, novedades…) → `npm run docs:data`.
+2. Cambios de datos (agentes, poderes, enemigos, mejoras, precios, novedades…) → `npm run docs:data`.
 3. Cambios de base de datos → `04-base-de-datos.md` y el SQL correspondiente en `supabase/`.
 4. Nuevos comandos o pruebas → este documento.
 5. Añadir la novedad en `src/data/news.ts` (aparece también en la tabla de versiones de `10-datos-del-juego.md`).

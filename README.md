@@ -1,8 +1,8 @@
-# VALORANT SURVIVORS
+# ENDLESS RIFT
 
 > 📚 **Documentación completa del proyecto en [`docs/`](docs/README.md)** (jugabilidad, arquitectura, base de datos, cooperativo, mercado, interfaz y desarrollo).
 
-Juego web de supervivencia por oleadas (estilo PokéSurvivor / Vampire Survivors) con temática VALORANT.
+Juego web de supervivencia por oleadas (estilo PokéSurvivor / Vampire Survivors): grietas infinitas de las que emergen hordas de enemigos.
 React + TypeScript + Vite + HTML5 Canvas. Todo el arte y el audio son originales y se generan por código (sin archivos externos).
 
 ## Ejecutar en local

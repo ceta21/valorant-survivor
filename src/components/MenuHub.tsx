@@ -59,7 +59,7 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
               <li key={i}>
                 <em>{i + 1}</em>
                 <b>{r.name}</b>
-                <span style={{ color: AGENT_BY_ID[r.agent]?.color }}>{t(AGENT_BY_ID[r.agent]?.name ?? r.agent)}</span>
+                <span style={{ color: AGENT_BY_ID[r.agent]?.color }}>{AGENT_BY_ID[r.agent] ? t(AGENT_BY_ID[r.agent].name) : t('Héroe retirado')}</span>
                 <span style={{ color: DIFFICULTY_BY_ID[r.difficulty]?.color }}>{t(DIFFICULTY_BY_ID[r.difficulty]?.name ?? '')}</span>
                 <strong>{fmt(r.time)}</strong>
               </li>

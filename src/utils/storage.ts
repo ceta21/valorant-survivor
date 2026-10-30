@@ -2,7 +2,9 @@ import type { Lang } from '../i18n';
 import { browserLang } from '../i18n';
 import { KeyMap, normalizeKeys } from '../game/controls';
 import { DailyProgress, LoginStreak, emptyDaily, emptyLogin } from '../data/daily';
-import { ShopSave, emptyShop } from '../data/shop';
+import { ShopSave, emptyShop, LEGACY_WEAPON_PRICES } from '../data/shop';
+import { LEGACY_AGENT_COSTS } from '../data/agents';
+import { mapOrDefault } from '../data/maps';
 export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
 }
@@ -26,12 +28,10 @@ export interface SaveData {
   lastMap: string;
   lastDifficulty: string;
   playerName: string;
-  /** Mercado nocturno: armas y agentes exclusivos comprados. */
+  /** Mercado nocturno: agentes exclusivos comprados. */
   exclusives: string[];
   /** Habilidades elegidas para cada agente exclusivo. */
   kits: Record<string, { special: string; secondary: string; ultimate: string }>;
-  /** Arma con la que se empieza la partida. */
-  loadout: string;
   /** Cartas del mercado ya descubiertas en la rotación actual. */
   market: { period: number; revealed: number[] };
   /** Última versión de las novedades que ha visto el jugador. */
@@ -49,20 +49,19 @@ const KEY = 'valorant-survivors-save-v1';
 export const defaultSave = (): SaveData => ({
   version: 1,
   credits: 0,
-  unlocked: ['jett', 'phoenix', 'sage'],
+  unlocked: ['zephyr', 'lyra', 'kael'],
   meta: { dmg: 0, hp: 0, speed: 0, xp: 0 },
   stats: { games: 0, wins: 0, kills: 0, bossKills: 0, damage: 0, time: 0, bestTime: 0, bestLevel: 0, bestKills: 0, credits: 0 },
   records: {},
   claimed: [],
   achievements: [],
   settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true },
-  lastAgent: 'jett',
-  lastMap: 'ascent',
+  lastAgent: 'zephyr',
+  lastMap: 'reino',
   lastDifficulty: 'normal',
   playerName: '',
   exclusives: [],
   kits: {},
-  loadout: 'classic',
   market: { period: 0, revealed: [] },
   newsSeen: '',
   daily: emptyDaily(''),
@@ -74,8 +73,23 @@ export const defaultSave = (): SaveData => ({
 export function normalizeSave(p: any): SaveData {
   const d = defaultSave();
   if (!p || typeof p !== 'object') return d;
+  // agentes de versiones anteriores que ya no existen: se quitan y se devuelve lo que costaron
+  const legacy = Array.isArray(p.unlocked) ? p.unlocked.filter((id: string) => id in LEGACY_AGENT_COSTS) : [];
+  if (legacy.length) {
+    p = { ...p, unlocked: [...d.unlocked, ...p.unlocked.filter((id: string) => !(id in LEGACY_AGENT_COSTS) && !d.unlocked.includes(id))],
+      credits: (p.credits ?? 0) + legacy.reduce((t: number, id: string) => t + LEGACY_AGENT_COSTS[id], 0) };
+  }
+  // ya no hay armas: las exclusivas y los estilos de arma comprados se quitan y se devuelve lo que costaron
+  const ex: string[] = Array.isArray(p.exclusives) ? p.exclusives : [], own: string[] = Array.isArray(p.shop?.owned) ? p.shop.owned : [];
+  const guns = [...ex, ...own].filter(id => id in LEGACY_WEAPON_PRICES);
+  if (guns.length) {
+    p = { ...p, credits: (p.credits ?? 0) + guns.reduce((t, id) => t + LEGACY_WEAPON_PRICES[id], 0), exclusives: ex.filter(id => !(id in LEGACY_WEAPON_PRICES)),
+      shop: { ...p.shop, owned: own.filter(id => !(id in LEGACY_WEAPON_PRICES)) } };
+  }
+  delete p.loadout; if (p.shop) delete p.shop.weapon;
   return {
     ...d, ...p,
+    lastMap: mapOrDefault(p.lastMap ?? d.lastMap),   // los mapas antiguos (Ascent, Bind, Haven) pasan a la zona por defecto
     meta: { ...d.meta, ...(p.meta || {}) },
     stats: { ...d.stats, ...(p.stats || {}) },
     settings: { ...d.settings, ...(p.settings || {}) },

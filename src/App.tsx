@@ -7,7 +7,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { RankingScreen } from './components/RankingScreen';
 import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
-import { AGENT_BY_ID, withKit, isAvailable } from './data/agents';
+import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, withKit, isAvailable } from './data/agents';
 import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
@@ -24,7 +24,6 @@ import type { CoopLink } from './net/coopLink';
 import type { PlayerSetup } from './game/GameEngine';
 import { LATEST_NEWS } from './data/news';
 import { Offer, marketPeriod } from './data/market';
-import { WEAPONS } from './data/weapons';
 import { audio } from './utils/audio';
 import { DailyScreen } from './components/DailyScreen';
 import { ShopScreen } from './components/ShopScreen';
@@ -47,7 +46,7 @@ export default function App() {
   const accountRef = useRef<Account | null>(null); accountRef.current = account;
   // la tienda de un invitado cambia en cada visita (no tiene cuenta a la que atarla)
   const [guestSeed] = useState(() => `guest-${Math.random()}`);
-  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number } }>({ agentId: 'jett', mapId: 'ascent', difficulty: 'normal', key: 0 });
+  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number } }>({ agentId: 'zephyr', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
     setSave(prev => { const n = fn(prev); if (n !== prev && accountRef.current) saveProgress(n); return n; });
@@ -83,14 +82,17 @@ export default function App() {
   /** Empieza una partida cooperativa con lo acordado en la sala. */
   const startCoop = useCallback((link: CoopLink, st: CoopStart, local: number) => {
     const setups: PlayerSetup[] = st.setups.map(c => ({
-      agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.jett, c.kit), meta: c.meta, name: c.name,
-      startWeapon: WEAPONS[c.loadout] ? c.loadout : 'classic', looks: c.looks,
+      agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.zephyr, c.kit), meta: c.meta, name: c.name, looks: c.looks,
     }));
     setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local, seed: st.seed } }));
     setScreen('game');
   }, []);
   const leaveGame = () => { run.coop?.link.close(); setRun(r => ({ ...r, coop: undefined })); setScreen('menu'); };
 
+  // en local (npm run dev) se pueden elegir todos los agentes, también los exclusivos, para probarlos; no toca el guardado
+  const pickSave = import.meta.env?.DEV
+    ? { ...save, unlocked: AGENTS.map(a => a.id), exclusives: [...new Set([...save.exclusives, ...EXCLUSIVE_AGENTS.map(a => a.id)])] }
+    : save;
   const start = (agentId: string, mapId: string, difficulty: string) => {
     if (!isAvailable(agentId)) return;   // agente "Próximamente"
     update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
@@ -164,14 +166,13 @@ export default function App() {
     if (s.credits < o.price || s.exclusives.includes(o.id)) return s;
     const a = AGENT_BY_ID[o.id];
     const kits = o.kind === 'agent' && a ? { ...s.kits, [o.id]: { special: a.special.id, secondary: a.secondary?.id ?? '', ultimate: a.ultimate.id } } : s.kits;
-    return { ...s, credits: s.credits - o.price, exclusives: [...s.exclusives, o.id], kits, loadout: o.kind === 'weapon' ? o.id : s.loadout };
+    return { ...s, credits: s.credits - o.price, exclusives: [...s.exclusives, o.id], kits };
   });
 
   const go = (s: Screen) => {
     if (s === 'news') update(v => (v.newsSeen === LATEST_NEWS ? v : { ...v, newsSeen: LATEST_NEWS }));
     setScreen(s);
   };
-  const startWeapon = WEAPONS[save.loadout] && (!WEAPONS[save.loadout].exclusive || save.exclusives.includes(save.loadout)) ? save.loadout : 'classic';
   const baseAgent = AGENT_BY_ID[run.agentId];
   const agent = baseAgent && withKit(baseAgent, save.kits[run.agentId]), map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
 
@@ -185,9 +186,9 @@ export default function App() {
       )}
       {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} keys={prefs.keys} />}
       {screen === 'agents' && (
-        <AgentSelection save={save} back={() => go('menu')} start={start} keys={prefs.keys}
+        <AgentSelection save={pickSave} back={() => go('menu')} start={start} keys={prefs.keys}
           setKit={(id, kit) => update(s => ({ ...s, kits: { ...s.kits, [id]: kit } }))}
-          setLoadout={id => update(s => ({ ...s, loadout: id }))} equip={equipShop}
+          equip={equipShop}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
       )}
       {screen === 'meta' && (
@@ -209,10 +210,10 @@ export default function App() {
       {screen === 'shop' && <ShopScreen save={save} back={() => go('menu')} buy={buyShop} />}
       {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}
       {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
-      {screen === 'coop' && <CoopScreen save={save} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
+      {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} startWeapon={startWeapon} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

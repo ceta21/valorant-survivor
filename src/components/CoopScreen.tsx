@@ -3,7 +3,6 @@ import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, Kit, withKit, isAvailable } from
 import { Looks, looksFor } from '../data/shop';
 import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
-import { WEAPONS } from '../data/weapons';
 import { SaveData, MetaLevels } from '../utils/storage';
 import { CoopLink } from '../net/coopLink';
 import { AgentPortrait } from './AgentPortrait';
@@ -11,7 +10,7 @@ import { audio } from '../utils/audio';
 import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
-export interface CoopSetup { agentId: string; kit?: Kit; loadout: string; meta: MetaLevels; name: string; looks?: Looks }
+export interface CoopSetup { agentId: string; kit?: Kit; meta: MetaLevels; name: string; looks?: Looks }
 /** seed: semilla del mundo, para que anfitrión e invitado vean el mismo mapa. */
 export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[]; seed: number }
 interface LobbyState extends CoopSetup { ready: boolean; mapId?: string; difficulty?: string }
@@ -34,15 +33,14 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const roster = useMemo(() => [...AGENTS.filter(a => save.unlocked.includes(a.id)), ...EXCLUSIVE_AGENTS.filter(a => save.exclusives.includes(a.id))].filter(a => isAvailable(a.id)), [save]);
-  const [agentId, setAgentId] = useState(roster.some(a => a.id === save.lastAgent) ? save.lastAgent : roster[0]?.id ?? 'jett');
+  const [agentId, setAgentId] = useState(roster.some(a => a.id === save.lastAgent) ? save.lastAgent : roster[0]?.id ?? 'zephyr');
   const [mapId, setMapId] = useState(save.lastMap);
   const [difficulty, setDifficulty] = useState(save.lastDifficulty);
   const [ready, setReady] = useState(false);
   const [peerState, setPeerState] = useState<LobbyState | null>(null);
   const started = useRef(false);
 
-  const loadout = WEAPONS[save.loadout] && (!WEAPONS[save.loadout].exclusive || save.exclusives.includes(save.loadout)) ? save.loadout : 'classic';
-  const mine: LobbyState = { agentId, kit: save.kits[agentId], loadout, meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
+  const mine: LobbyState = { agentId, kit: save.kits[agentId], meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
 
   // al salir de la pantalla sin empezar, se cierra la sala
   useEffect(() => () => { if (!started.current) link?.close(); }, [link]);
@@ -84,7 +82,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const start = () => {
     if (!link || !peerState) return;
     audio.play('click');
-    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, loadout: s.loadout, meta: s.meta, name: s.name, looks: s.looks });
+    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, meta: s.meta, name: s.name, looks: s.looks });
     const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)], seed: Math.floor(Math.random() * 2147483647) };
     link.send({ type: 'start', start: st });
     started.current = true;
@@ -165,7 +163,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
         <div className="map-pick" role="radiogroup" aria-label={t('Mapa')}>
           {MAPS.map(m => (
             <button key={m.id} role="radio" aria-checked={m.id === shownMap} disabled={!isHost} className={`map-chip ${m.id === shownMap ? 'on' : ''}`} onClick={() => { audio.play('click'); setMapId(m.id); }}>
-              <i style={{ background: m.colors.wallTop }} /><b>{m.name}</b>
+              <i style={{ background: m.colors.wallTop }} /><b>{t(m.name)}</b>
             </button>
           ))}
         </div>

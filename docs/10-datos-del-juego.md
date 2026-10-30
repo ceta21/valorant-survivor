@@ -3,36 +3,32 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-29 · versión de Novedades: v1.16
+> Última generación: 2026-10-30 · versión de Novedades: v1.20
 
 ## Agentes base
 
 | id | Nombre | Rol | Vida | Velocidad | Daño | Coste | Rasgo | Modificadores |
 |---|---|---|---|---|---|---|---|---|
-| `jett` | Jett | Duelista | 90 | 205 | 10 | gratis | Agilidad | speed +20, crit +0.1 |
-| `phoenix` | Phoenix | Duelista | 110 | 190 | 10 | gratis | Llama viva | regen +1.2, burn +3 |
-| `sage` | Sage | Centinela | 130 | 180 | 9 | gratis | Sanadora | heal +0.4, maxShield +15 |
-| `reyna` | Reyna | Duelista | 100 | 188 | 11 | 500 | Devoradora | lifeOnKill +1.2, ult +0.2 |
-| `raze` | Raze | Duelista | 105 | 185 | 10 | 500 | Demoledora | area +0.25, killExplode +0.4 |
-| `sova` | Sova | Iniciador | 95 | 185 | 10 | 500 | Cazador | range +0.25, crit +0.05 |
-| `neon` | Neon | Duelista | 95 | 200 | 9 | 900 | Alta tensión | aspd +0.15, chain +1 |
-| `omen` | Omen | Controlador | 100 | 188 | 10 | 900 | Sombra | cdr +0.15 |
-| `killjoy` | Killjoy | Centinela | 100 | 180 | 9 | 900 | Ingeniera | drones +1 |
-| `brimstone` | Brimstone | Controlador | 120 | 178 | 11 | 1000 | Comandante | area +0.15, dmg +0.1 |
-| `viper` | Viper | Controladora | 105 | 186 | 10 | 1000 | Toxina | burn +3, area +0.1 |
-| `cypher` | Cypher | Centinela | 100 | 184 | 10 | 900 | Vigilancia | range +0.2, crit +0.05 |
-| `fade` | Fade | Iniciadora | 100 | 188 | 10 | 1000 | Terror | ult +0.2, xp +0.1 |
-| `breach` | Breach | Iniciador | 125 | 178 | 11 | 1000 | Brazos biónicos | area +0.2, dmg +0.05 |
-| `skye` | Skye | Iniciadora | 105 | 190 | 9 | 900 | Naturaleza | regen +1, heal +0.2 |
-| `yoru` | Yoru | Duelista | 95 | 200 | 11 | 1100 | Dimensional | cdr +0.1, speed +10 |
-| `astra` | Astra | Controladora | 100 | 182 | 10 | 1100 | Astral | area +0.2, ult +0.1 |
-| `kayo` | KAY/O | Iniciador | 120 | 184 | 10 | 1100 | Supresión | crit +0.05, maxShield +20 |
-| `chamber` | Chamber | Centinela | 100 | 186 | 12 | 1200 | Precisión | crit +0.15, critMul +0.3 |
-| `harbor` | Harbor | Controlador | 110 | 184 | 10 | 1100 | Marea | maxShield +20, regen +0.6 |
-| `iso` | Iso | Duelista | 105 | 192 | 11 | 1200 | Concentración | lifeOnKill +0.8, crit +0.05 |
-| `deadlock` | Deadlock | Centinela | 120 | 180 | 10 | 1200 | Nanohilo | area +0.15, maxShield +15 |
-| `gekko` | Gekko | Iniciador | 105 | 190 | 10 | 1000 | Compañeros | xp +0.15, magnet +0.3 |
-| `tejo` | Tejo | Iniciador | 115 | 182 | 11 | 1300 | Veterano | area +0.15, dmg +0.08 |
+| `zephyr` | Zephyr | Mago | 95 | 190 | 11 | gratis | Sabiduría arcana | area +0.15, cdr +0.1 |
+| `lyra` | Lyra | Arquera | 90 | 205 | 10 | gratis | Ojo de halcón | range +0.2, crit +0.1 |
+| `kael` | Kael | Caballero | 140 | 175 | 10 | gratis | Armadura pesada | maxShield +30, maxHp +20 |
+| `vex` | Vex | Asesino | 85 | 210 | 11 | 900 | Sigilo | crit +0.15, critMul +0.4 |
+| `sylvan` | Sylvan | Druida | 120 | 185 | 9 | 900 | Vínculo natural | regen +1, heal +0.2 |
+| `ember` | Ember | Hechicera | 95 | 195 | 11 | 1000 | Llama interior | burn +3, regen +1 |
+| `brutus` | Brutus | Berserker | 140 | 190 | 11 | 1000 | Sed de sangre | lifeOnKill +1, dmg +0.1 |
+| `frost` | Frost | Hechicera | 100 | 190 | 10 | 1000 | Corazón helado | maxShield +15, area +0.1 |
+| `seraph` | Seraph | Clériga | 115 | 185 | 9 | 1100 | Bendición | heal +0.4, maxShield +15 |
+| `nox` | Nox | Hechicero | 100 | 190 | 11 | 1100 | Vacío | ult +0.2, dmg +0.1 |
+| `raven` | Raven | Pistolero | 100 | 200 | 11 | 1100 | Gatillo rápido | aspd +0.15, crit +0.05 |
+| `talos` | Talos | Guardián | 150 | 170 | 9 | 1200 | Piel de piedra | maxShield +40, maxHp +20 |
+| `morgan` | Morgan | Necromante | 100 | 185 | 11 | 1200 | Pacto oscuro | lifeOnKill +1.2 |
+| `volt` | Volt | Templario | 115 | 195 | 10 | 1200 | Sobrecarga | chain +1 |
+| `grim` | Grim | Bárbaro | 135 | 185 | 12 | 1100 | Brutalidad | dmg +0.15, area +0.15 |
+| `aqua` | Aqua | Sacerdotisa | 110 | 190 | 10 | 1100 | Marea | maxShield +20, regen +0.8 |
+| `zahir` | Zahir | Explorador | 100 | 210 | 10 | 900 | Nómada | speed +25, magnet +0.2 |
+| `draco` | Draco | Dragón | 130 | 180 | 12 | 1300 | Escamas | maxShield +20, burn +4 |
+| `sora` | Sora | Ilusionista | 95 | 200 | 10 | 1000 | Engaño | cdr +0.15, crit +0.1 |
+| `tink` | Tink | Ingeniera | 105 | 185 | 10 | 1200 | Ingenio | drones +1 |
 
 Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el principio.
 
@@ -40,104 +36,91 @@ Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 
 | Agente | Espacio (especial) | E (secundaria) | Q (definitiva) |
 |---|---|---|---|
-| Jett | Viento de cola (`tailwind`, dash, 4.5 s) | Ráfaga de cuchillas (`bladeburst`, storm, 14 s) | Tormenta de cuchillas (`bladestorm`, storm) |
-| Phoenix | Llamarada (`blaze`, nova, 8 s) | Manos ardientes (`hothands`, heal, 20 s) | Rematch (`rematch`, nova) |
-| Sage | Orbe curativo (`healorb`, heal, 14 s) | Orbe ralentizador (`sloworb`, nova, 10 s) | Resurrección (`resurrection`, nova) |
-| Reyna | Devorar (`devour`, frenzy, 12 s) | — | Emperatriz (`empress`, frenzy) |
-| Raze | Granada de racimo (`cluster`, strike, 8 s) | Paquete explosivo (`blastpack`, nova, 6 s) | Showstopper (`showstopper`, strike) |
-| Sova | Flechas rastreadoras (`hunterdrone`, seekers, 7 s) | Escáner (`scan`, nova, 12 s) | Furia del cazador (`hunterfury`, seekers) |
-| Neon | Sprint eléctrico (`sprint`, sprint, 10 s) | — | Sobrecarga (`overdrive`, sprint) |
-| Omen | Paso en la sombra (`shadowstep`, blink, 7 s) | Paranoia (`paranoia`, nova, 13 s) | Desde las sombras (`fromshadows`, blink) |
-| Killjoy | Torreta (`turret`, turret, 9 s) | — | Bloqueo (`lockdown`, turret) |
-| Brimstone | Ataque orbital (`orbital`, strike, 10 s) | Estimulante (`stim`, frenzy, 22 s) | Tormenta orbital (`orbitalstorm`, strike) |
-| Viper | Mordedura de serpiente (`snakebite`, strike, 8 s) | Pantalla tóxica (`toxicscreen`, nova, 12 s) | Foso de la víbora (`viperspit`, nova) |
-| Cypher | Cable trampa (`trapwire`, nova, 9 s) | Jaula cibernética (`cybercage`, nova, 12 s) | Robo neural (`neuraltheft`, nova) |
-| Fade | Acechador (`prowler`, seekers, 8 s) | Captura (`seize`, nova, 12 s) | Anochecer (`nightfall`, nova) |
-| Breach | Réplica (`aftershock`, strike, 7 s) | Línea de falla (`faultline`, nova, 12 s) | Trueno ensordecedor (`rollingthunder`, strike) |
-| Skye | Explorador (`trailblazer`, dash, 6 s) | Rebrote (`regrowth`, heal, 16 s) | Buscadores (`seekers`, seekers) |
-| Yoru | Irrupción (`gatecrash`, blink, 7 s) | Engaño (`fakeout`, nova, 11 s) | Deriva dimensional (`dimensionaldrift`, frenzy) |
-| Astra | Pozo gravitatorio (`gravitywell`, nova, 9 s) | Pulso de nova (`novapulse`, nova, 12 s) | División cósmica (`cosmicdivide`, strike) |
-| KAY/O | FRAG/mento (`fragment`, strike, 8 s) | CERO/punto (`zeropoint`, nova, 12 s) | NULO/orden (`nullcmd`, frenzy) |
-| Chamber | Cazacabezas (`headhunter`, storm, 9 s) | Encuentro (`rendezvous`, blink, 9 s) | Golpe de gracia (`tourdeforce`, seekers) |
-| Harbor | Cascada (`cascade`, nova, 9 s) | Cala (`cove`, heal, 18 s) | Ajuste de cuentas (`reckoning`, strike) |
-| Iso | Doble golpe (`doubletap`, frenzy, 14 s) | Socavar (`undercut`, nova, 10 s) | Contrato de muerte (`killcontract`, frenzy) |
-| Deadlock | Red gravitatoria (`gravnet`, nova, 10 s) | Malla barrera (`barriermesh`, heal, 18 s) | Aniquilación (`annihilation`, nova) |
-| Gekko | Wingman (`wingman`, turret, 9 s) | Mosh Pit (`moshpit`, strike, 10 s) | Thrash (`thrash`, strike) |
-| Tejo | Entrega especial (`specialdelivery`, strike, 8 s) | Salva guiada (`guidedsalvo`, strike, 12 s) | Armagedón (`armageddon`, strike) |
+| Zephyr | Haz arcano (`arcanebeam`, beam, 5 s) | Pulso arcano (`arcanepulse`, nova, 10 s) | Tormenta arcana (`arcanestorm`, beam) |
+| Lyra | Flechas rastreadoras (`hunterdrone`, seekers, 7 s) | Disparo perforante (`piercingshot`, beam, 8 s) | Lluvia de flechas (`arrowrain`, strike) |
+| Kael | Carga con escudo (`shieldcharge`, dash, 6 s) | Baluarte (`bulwark`, heal, 18 s) | Juicio del acero (`steeljudgement`, strike) |
+| Vex | Paso sombrío (`shadowstep`, blink, 7 s) | Dagas sombrías (`shadowdaggers`, storm, 14 s) | Frenesí letal (`bladestorm`, storm) |
+| Sylvan | Raíces (`roots`, nova, 9 s) | Renovación (`renewal`, heal, 16 s) | Bosque viviente (`livingforest`, nova) |
+| Ember | Rayo de fuego (`firebeam`, beam, 5 s) | Llamarada (`flameblast`, cone, 9 s) | Lluvia de meteoritos (`orbitalstorm`, strike) |
+| Brutus | Embestida (`wildcharge`, dash, 5 s) | Grito de guerra (`warcry`, frenzy, 16 s) | Furia (`rage`, frenzy) |
+| Frost | Haz de hielo (`icebeam`, beam, 6 s) | Nova helada (`sloworb`, nova, 10 s) | Ventisca (`blizzard`, nova) |
+| Seraph | Haz sagrado (`holybeam`, beam, 5 s) | Gran curación (`healorb`, heal, 14 s) | Luz divina (`divinelight`, nova) |
+| Nox | Rayo del vacío (`voidbeam`, beam, 6 s) | Ojo del vacío (`voideye`, nova, 12 s) | Pesadilla (`nightmare`, nova) |
+| Raven | Ráfaga (`fanfire`, frenzy, 12 s) | Rodar (`roll`, dash, 5 s) | Lluvia de balas (`leadrain`, strike) |
+| Talos | Muro de tierra (`earthwall`, beam, 8 s) | Piel de roca (`stoneskin`, heal, 16 s) | Terremoto (`earthquake`, nova) |
+| Morgan | Invocar espíritus (`raisespirits`, seekers, 8 s) | Drenar vida (`drainlife`, nova, 12 s) | Ejército de no muertos (`undeadarmy`, seekers) |
+| Volt | Rayo (`lightningbeam`, beam, 5 s) | Campo eléctrico (`staticfield`, sprint, 14 s) | Tormenta eléctrica (`thunderstorm`, strike) |
+| Grim | Torbellino (`whirlwind`, nova, 6 s) | Salto (`leap`, blink, 9 s) | Tajo devastador (`devastate`, strike) |
+| Aqua | Ola (`wave`, beam, 7 s) | Curación de la marea (`tidecure`, heal, 15 s) | Maremoto (`tsunami`, nova) |
+| Zahir | Ráfaga del desierto (`tailwind`, dash, 4.5 s) | Bomba de arena (`blastpack`, nova, 6 s) | Tormenta de arena (`sandstorm`, nova) |
+| Draco | Aliento de fuego (`dragonbreath`, cone, 6 s) | Vuelo (`wingflight`, blink, 9 s) | Furia del dragón (`rematch`, nova) |
+| Sora | Señuelo (`decoy`, nova, 9 s) | Desvanecer (`phase`, blink, 8 s) | Doble ilusorio (`mirrorself`, frenzy) |
+| Tink | Torreta (`miniturret`, turret, 10 s) | Dron bombardero (`bombdrone`, strike, 8 s) | Escuadrón de robots (`robotsquad`, turret) |
 
 ### Parámetros de cada habilidad
 
 | id | Nombre | Tipo | Recarga | Efecto visual | Parámetros | Descripción |
 |---|---|---|---|---|---|---|
-| `tailwind` | Viento de cola | dash | 4.5 s | wind | power=3, radius=200, invuln=0.25 | Impulso rápido e invulnerable que daña a lo que atraviesa. |
-| `bladeburst` | Ráfaga de cuchillas | storm | 14 s | blades | power=1.6, duration=2.5 | 2.5 s lanzando cuchillas perforantes al enemigo más cercano. |
-| `blaze` | Llamarada | nova | 8 s | fire | power=3.5, radius=160, burn=6 | Onda de fuego que daña e incendia a los enemigos cercanos. |
-| `hothands` | Manos ardientes | heal | 20 s | hothands | power=0, heal=0.18, shield=12 | Absorbes el fuego: recuperas vida y ganas escudo. |
-| `healorb` | Orbe curativo | heal | 14 s | heal | power=0, heal=0.35, shield=20 | Recuperas 35% de vida y ganas escudo. |
-| `sloworb` | Orbe ralentizador | nova | 10 s | ice | power=1.5, radius=240, slow=0.4, duration=3.5 | Campo que daña y ralentiza un 60% a los enemigos. |
-| `devour` | Devorar | frenzy | 12 s | soul | power=1.5, duration=5, heal=0.08 | 5 s de frenesí: +50% cadencia y mucha más vida robada por baja. |
-| `cluster` | Granada de racimo | strike | 8 s | grenade | power=4.5, count=6, radius=85, delay=0.45 | 6 explosiones sobre los enemigos cercanos. |
-| `blastpack` | Paquete explosivo | nova | 6 s | boom | power=4, radius=150 | Detonación inmediata a tu alrededor. |
+| `arcanebeam` | Haz arcano | beam | 5 s | scan | power=4, radius=460, width=26 | Haz de energía hacia delante que atraviesa a todos los enemigos. |
+| `arcanepulse` | Pulso arcano | nova | 10 s | scan | power=3, radius=170, stun=0.8 | Onda arcana que daña y aturde 0.8 s a tu alrededor. |
 | `hunterdrone` | Flechas rastreadoras | seekers | 7 s | arrow | power=5, count=4, mark=5 | 4 flechas teledirigidas que marcan (+30% daño recibido). |
-| `scan` | Escáner | nova | 12 s | scan | power=0, radius=460, mark=7 | Marca a todos los enemigos cercanos 7 s (+30% daño). |
-| `sprint` | Sprint eléctrico | sprint | 10 s | electric | power=1.6, radius=75, duration=5 | 5 s de velocidad +60% con aura eléctrica que daña. |
-| `shadowstep` | Paso en la sombra | blink | 7 s | shadow | power=3, radius=240, count=120 | Te teletransportas y dañas al reaparecer. |
-| `paranoia` | Paranoia | nova | 13 s | paranoia | power=2, radius=250, stun=1.2, slow=0.5, duration=3 | Onda que aturde 1.2 s y ralentiza. |
-| `turret` | Torreta | turret | 9 s | turret | power=1.6, count=1, duration=14 | Despliega 1 torreta durante 14 s. Los robots pueden destruirla. |
-| `orbital` | Ataque orbital | strike | 10 s | orbital | power=6, count=3, radius=125, delay=1 | 3 bombardeos orbitales con retardo y gran radio. |
-| `stim` | Estimulante | frenzy | 22 s | stim | power=1.35, duration=6 | 6 s de +35% de cadencia de disparo. |
-| `snakebite` | Mordedura de serpiente | strike | 8 s | poison | power=4, count=3, radius=90, delay=0.6 | Lanza 3 frascos de ácido que estallan y dejan veneno. |
-| `toxicscreen` | Pantalla tóxica | nova | 12 s | poison | power=1.8, radius=230, slow=0.5, duration=3.5 | Nube venenosa a tu alrededor que daña y ralentiza un 50%. |
-| `trapwire` | Cable trampa | nova | 9 s | wire | power=1.5, radius=180, stun=1.5 | Cables que aturden 1.5 s a los enemigos cercanos. |
-| `cybercage` | Jaula cibernética | nova | 12 s | wire | power=1.5, radius=200, slow=0.5, duration=4 | Jaula de humo que daña y ralentiza un 50%. |
-| `prowler` | Acechador | seekers | 8 s | arrow | power=4, count=3, mark=4 | 3 criaturas de sombra persiguen y marcan a los enemigos. |
-| `seize` | Captura | nova | 12 s | paranoia | power=2, radius=200, stun=1.2, slow=0.5, duration=2 | Nudo de pesadilla que aturde 1.2 s y ralentiza. |
-| `aftershock` | Réplica | strike | 7 s | boom | power=6, count=1, radius=110, delay=0.7 | Carga explosiva que estalla tras un instante con gran daño. |
-| `faultline` | Línea de falla | nova | 12 s | boom | power=2.5, radius=260, stun=1.5 | Terremoto que aturde 1.5 s en área. |
-| `trailblazer` | Explorador | dash | 6 s | wind | power=3.2, radius=220, invuln=0.25 | Tu tigre espiritual embiste a los enemigos que atraviesa. |
-| `regrowth` | Rebrote | heal | 16 s | heal | power=0, heal=0.3, shield=15 | Recuperas 30% de vida y ganas escudo. |
-| `gatecrash` | Irrupción | blink | 7 s | shadow | power=3, radius=260, count=120 | Te teletransportas y dañas al aparecer. |
-| `fakeout` | Engaño | nova | 11 s | paranoia | power=1.5, radius=180, stun=1 | Señuelo que estalla y aturde 1 s a los enemigos cercanos. |
-| `gravitywell` | Pozo gravitatorio | nova | 9 s | gravity | power=2, radius=210, slow=0.35, duration=3, mark=3 | Atrae y ralentiza a los enemigos, que quedan marcados. |
-| `novapulse` | Pulso de nova | nova | 12 s | gravity | power=2, radius=190, stun=1.5 | Pulso cósmico que aturde 1.5 s. |
-| `fragment` | FRAG/mento | strike | 8 s | grenade | power=5, count=2, radius=120, delay=0.6 | Granadas que explotan en área sobre los enemigos. |
-| `zeropoint` | CERO/punto | nova | 12 s | electric | power=2, radius=300, stun=1, mark=5 | Cuchillo supresor: aturde 1 s y marca a los enemigos cercanos. |
-| `headhunter` | Cazacabezas | storm | 9 s | blades | power=2.2, duration=1.5 | Ráfaga de disparos de precisión al enemigo más cercano. |
-| `rendezvous` | Encuentro | blink | 9 s | holy | power=2.5, radius=260, count=100 | Te teletransportas a tu ancla y dañas al llegar. |
-| `cascade` | Cascada | nova | 9 s | water | power=2, radius=220, slow=0.5, duration=3 | Ola de agua que daña y ralentiza un 50%. |
-| `cove` | Cala | heal | 18 s | water | power=0, heal=0.12, shield=40 | Burbuja protectora: gran escudo y algo de vida. |
-| `doubletap` | Doble golpe | frenzy | 14 s | soul | power=1.35, duration=5, shield=25 | Escudo de energía y +35% cadencia durante 5 s. |
-| `undercut` | Socavar | nova | 10 s | gravity | power=1.5, radius=300, mark=6 | Rayo que hace vulnerables a los enemigos (+30% daño) 6 s. |
-| `gravnet` | Red gravitatoria | nova | 10 s | wire | power=1.5, radius=220, slow=0.4, duration=3.5 | Red que ralentiza un 60% y daña a los enemigos. |
-| `barriermesh` | Malla barrera | heal | 18 s | wire | power=0, shield=50 | Barrera de nanohilo: gran escudo. |
-| `wingman` | Wingman | turret | 9 s | turret | power=1.6, count=1, duration=10 | Wingman dispara a los enemigos durante 10 s (los robots pueden destruirlo). |
-| `moshpit` | Mosh Pit | strike | 10 s | poison | power=6, count=1, radius=150, delay=1 | Charco que estalla con gran daño en área. |
-| `specialdelivery` | Entrega especial | strike | 8 s | grenade | power=5, count=2, radius=100, delay=0.6 | Granadas adhesivas que estallan sobre los enemigos. |
-| `guidedsalvo` | Salva guiada | strike | 12 s | rocket | power=5, count=4, radius=105, delay=0.5 | 4 misiles guiados que estallan en área. |
-| `bladestorm` | Tormenta de cuchillas | storm | carga de definitiva | blades | power=2.4, duration=7 | 7 s de lluvia de cuchillas perforantes de alto daño. |
-| `rematch` | Rematch | nova | carga de definitiva | fire | power=9, radius=360, burn=14, heal=0.6, invuln=1.5 | Explosión masiva, curación y 1.5 s de invulnerabilidad. |
-| `resurrection` | Resurrección | nova | carga de definitiva | holy | power=3, radius=380, stun=2, heal=1, shield=60, invuln=2 | Cura el 100%, gran escudo, invulnerable 2 s y aturde en área. |
-| `empress` | Emperatriz | frenzy | carga de definitiva | soul | power=1.9, duration=12, heal=0.25, invuln=0.5 | 12 s de frenesí: +90% cadencia y robo de vida masivo. |
-| `showstopper` | Showstopper | strike | carga de definitiva | rocket | power=9, count=14, radius=125, delay=0.5 | Lluvia de 14 cohetes de gran daño. |
-| `hunterfury` | Furia del cazador | seekers | carga de definitiva | arrow | power=9, count=10, mark=6 | 10 flechas teledirigidas perforantes de daño enorme. |
-| `overdrive` | Sobrecarga | sprint | carga de definitiva | electric | power=3.2, radius=125, duration=9 | 9 s de velocidad extrema con un aura devastadora. |
-| `fromshadows` | Desde las sombras | blink | carga de definitiva | shadow | power=8, radius=440, count=300, stun=2 | Gran salto con explosión de sombra que aturde 2 s. |
-| `lockdown` | Bloqueo | turret | carga de definitiva | turret | power=2.6, count=3, duration=14 | Despliega 3 torretas de gran cadencia y más resistentes durante 14 s. |
-| `orbitalstorm` | Tormenta orbital | strike | carga de definitiva | orbital | power=8, count=20, radius=140, delay=0.9 | 20 ataques orbitales devastadores. |
-| `viperspit` | Foso de la víbora | nova | carga de definitiva | poison | power=6, radius=380, burn=10, slow=0.5, duration=6 | Gran nube tóxica: daño, quemadura y ralentización durante 6 s. |
-| `neuraltheft` | Robo neural | nova | carga de definitiva | scan | power=3, radius=560, mark=8 | Revela y marca a todos los enemigos en un gran radio durante 8 s. |
-| `nightfall` | Anochecer | nova | carga de definitiva | shadow | power=5, radius=460, mark=8, slow=0.5, duration=3 | Ola de pesadilla que daña, marca y ralentiza en un gran radio. |
-| `rollingthunder` | Trueno ensordecedor | strike | carga de definitiva | boom | power=7, count=10, radius=120, delay=0.4 | Cadena de 10 terremotos devastadores. |
-| `seekers` | Buscadores | seekers | carga de definitiva | arrow | power=8, count=5, mark=6 | 5 buscadores que persiguen y marcan a los enemigos. |
-| `dimensionaldrift` | Deriva dimensional | frenzy | carga de definitiva | soul | power=1.7, duration=8, invuln=3, heal=0.1 | 8 s fuera de esta dimensión: invulnerable 3 s y +70% cadencia. |
-| `cosmicdivide` | División cósmica | strike | carga de definitiva | gravity | power=7, count=12, radius=120, delay=0.6 | 12 impactos astrales devastadores. |
-| `nullcmd` | NULO/orden | frenzy | carga de definitiva | stim | power=1.8, duration=10, heal=0.3, shield=40, invuln=1 | Sobrecarga 10 s: +80% cadencia, escudo y curación. |
-| `tourdeforce` | Golpe de gracia | seekers | carga de definitiva | arrow | power=10, count=6, mark=4 | 6 disparos de francotirador teledirigidos y perforantes. |
-| `reckoning` | Ajuste de cuentas | strike | carga de definitiva | water | power=7, count=10, radius=115, delay=0.5 | Géiseres que golpean en cadena con gran daño. |
-| `killcontract` | Contrato de muerte | frenzy | carga de definitiva | soul | power=2, duration=10, invuln=1.5, heal=0.2 | Arena de duelo: 10 s de frenesí con invulnerabilidad inicial. |
-| `annihilation` | Aniquilación | nova | carga de definitiva | wire | power=5, radius=420, stun=3 | Nanohilos que atrapan y aturden 3 s en un gran radio. |
-| `thrash` | Thrash | strike | carga de definitiva | poison | power=6, count=6, radius=110, delay=0.5 | Thrash embiste y estalla 6 veces sobre los enemigos. |
-| `armageddon` | Armagedón | strike | carga de definitiva | orbital | power=8, count=16, radius=120, delay=0.5 | Ola de 16 explosiones devastadoras. |
+| `piercingshot` | Disparo perforante | beam | 8 s | poison | power=6, radius=620, width=14 | Flecha cargada que atraviesa toda la línea de enemigos. |
+| `shieldcharge` | Carga con escudo | dash | 6 s | wind | power=4, radius=220, invuln=0.3 | Embestida invulnerable que daña a lo que atraviesa. |
+| `bulwark` | Baluarte | heal | 18 s | holy | power=0, heal=0.1, shield=40, invuln=1 | Gran escudo, algo de vida y 1 s de invulnerabilidad. |
+| `shadowstep` | Paso sombrío | blink | 7 s | shadow | power=3, radius=240, count=120 | Te teletransportas y dañas al reaparecer. |
+| `shadowdaggers` | Dagas sombrías | storm | 14 s | blades | power=1.6, duration=2.5 | 2.5 s lanzando dagas perforantes al enemigo más cercano. |
+| `roots` | Raíces | nova | 9 s | poison | power=2, radius=200, slow=0.3, duration=3.5 | Raíces venenosas que dañan y ralentizan un 70% a tu alrededor. |
+| `renewal` | Renovación | heal | 16 s | heal | power=0, heal=0.3, shield=15 | Recuperas 30% de vida y ganas escudo. |
+| `firebeam` | Rayo de fuego | beam | 5 s | fire | power=4, radius=440, width=28, burn=6 | Rayo de fuego hacia delante que atraviesa e incendia. |
+| `flameblast` | Llamarada | cone | 9 s | fire | power=4, radius=210, spread=70, burn=6 | Abanico de llamas delante de ti que incendia. |
+| `wildcharge` | Embestida | dash | 5 s | wind | power=5, radius=240, invuln=0.25 | Embiste hacia delante dañando a todo lo que atraviesa. |
+| `warcry` | Grito de guerra | frenzy | 16 s | stim | power=1.5, duration=5, heal=0.1 | 5 s: +50% cadencia y te curas un poco. |
+| `icebeam` | Haz de hielo | beam | 6 s | ice | power=3.5, radius=440, width=26, slow=0.5, stun=0.4 | Haz helado que atraviesa, ralentiza y congela un instante. |
+| `sloworb` | Nova helada | nova | 10 s | ice | power=1.5, radius=240, slow=0.4, duration=3.5 | Campo que daña y ralentiza un 60% a los enemigos. |
+| `holybeam` | Haz sagrado | beam | 5 s | holy | power=4.5, radius=460, width=30 | Haz de luz hacia delante que atraviesa a los enemigos. |
+| `healorb` | Gran curación | heal | 14 s | holy | power=0, heal=0.35, shield=20 | Recuperas 35% de vida y ganas escudo. |
+| `voidbeam` | Rayo del vacío | beam | 6 s | gravity | power=4, radius=460, width=26, mark=5 | Rayo oscuro que atraviesa y marca (+30% daño recibido). |
+| `voideye` | Ojo del vacío | nova | 12 s | paranoia | power=2, radius=220, stun=1, mark=4 | Ojo que aturde 1 s y marca a los enemigos cercanos. |
+| `fanfire` | Ráfaga | frenzy | 12 s | stim | power=1.8, duration=4 | 4 s disparando un 80% más rápido. |
+| `roll` | Rodar | dash | 5 s | wind | power=2, radius=180, invuln=0.3 | Rueda hacia delante, invulnerable un instante. |
+| `earthwall` | Muro de tierra | beam | 8 s | stim | power=3, radius=300, width=64, stun=1 | Onda de tierra hacia delante que daña y aturde 1 s. |
+| `stoneskin` | Piel de roca | heal | 16 s | stim | power=0, shield=50 | Gran escudo de piedra. |
+| `raisespirits` | Invocar espíritus | seekers | 8 s | soul | power=5, count=4 | 4 espíritus que persiguen y atraviesan a los enemigos. |
+| `drainlife` | Drenar vida | nova | 12 s | soul | power=3, radius=190, heal=0.15 | Roba vida a los enemigos cercanos y te cura. |
+| `lightningbeam` | Rayo | beam | 5 s | electric | power=4, radius=460, width=24, stun=0.5 | Rayo hacia delante que atraviesa y aturde 0.5 s. |
+| `staticfield` | Campo eléctrico | sprint | 14 s | electric | power=1.5, duration=5, radius=90 | 5 s rodeado de rayos que golpean a los enemigos cercanos. |
+| `whirlwind` | Torbellino | nova | 6 s | boom | power=4, radius=160 | Gira con el hacha dañando a todo a tu alrededor. |
+| `leap` | Salto | blink | 9 s | stim | power=3, radius=240, count=130, stun=0.8 | Saltas hacia delante y aturdes 0.8 s al caer. |
+| `wave` | Ola | beam | 7 s | water | power=3.5, radius=320, width=70, slow=0.5 | Ola ancha hacia delante que daña y ralentiza un 50%. |
+| `tidecure` | Curación de la marea | heal | 15 s | water | power=0, heal=0.25, shield=20 | Recuperas 25% de vida y ganas escudo. |
+| `tailwind` | Ráfaga del desierto | dash | 4.5 s | wind | power=3, radius=200, invuln=0.25 | Impulso rápido e invulnerable que daña a lo que atraviesa. |
+| `blastpack` | Bomba de arena | nova | 6 s | boom | power=4, radius=150 | Detonación inmediata a tu alrededor. |
+| `dragonbreath` | Aliento de fuego | cone | 6 s | fire | power=5, radius=230, spread=80, burn=8 | Llamarada en abanico delante de ti que incendia. |
+| `wingflight` | Vuelo | blink | 9 s | fire | power=3, radius=260, count=130 | Vuelas hacia delante y estallas en llamas al aterrizar. |
+| `decoy` | Señuelo | nova | 9 s | paranoia | power=2, radius=200, stun=1 | Señuelo que estalla y aturde 1 s a los enemigos cercanos. |
+| `phase` | Desvanecer | blink | 8 s | shadow | power=3, radius=240, count=110 | Te teletransportas y dañas al aparecer. |
+| `miniturret` | Torreta | turret | 10 s | turret | power=1.6, count=1, duration=12 | Torreta que dispara a los enemigos durante 12 s (los robots pueden destruirla). |
+| `bombdrone` | Dron bombardero | strike | 8 s | grenade | power=5, count=2, radius=100, delay=0.6 | 2 bombas que estallan sobre los enemigos. |
+| `arcanestorm` | Tormenta arcana | beam | carga de definitiva | scan | power=6, count=8, radius=520, width=30 | 8 haces arcanos en todas direcciones. |
+| `arrowrain` | Lluvia de flechas | strike | carga de definitiva | poison | power=6, count=14, radius=100, delay=0.6 | 14 flechas caen del cielo sobre los enemigos. |
+| `steeljudgement` | Juicio del acero | strike | carga de definitiva | orbital | power=8, count=10, radius=120, delay=0.7 | 10 espadas de luz caen sobre los enemigos. |
+| `bladestorm` | Frenesí letal | storm | carga de definitiva | blades | power=2.4, duration=7 | 7 s de lluvia de dagas perforantes de alto daño. |
+| `livingforest` | Bosque viviente | nova | carga de definitiva | poison | power=6, radius=360, slow=0.4, duration=5, heal=0.3 | Gran bosque venenoso: daño, ralentización y curación. |
+| `orbitalstorm` | Lluvia de meteoritos | strike | carga de definitiva | orbital | power=8, count=20, radius=140, delay=0.9 | 20 meteoritos devastadores. |
+| `rage` | Furia | frenzy | carga de definitiva | stim | power=2.2, duration=9, heal=0.3, invuln=2 | 9 s de furia: +120% cadencia, curación e invulnerable 2 s. |
+| `blizzard` | Ventisca | nova | carga de definitiva | ice | power=6, radius=380, stun=2, slow=0.4, duration=5 | Ventisca enorme que daña, aturde 2 s y ralentiza. |
+| `divinelight` | Luz divina | nova | carga de definitiva | holy | power=4, radius=380, stun=2, heal=1, shield=60, invuln=2 | Cura el 100%, gran escudo, invulnerable 2 s y aturde en área. |
+| `nightmare` | Pesadilla | nova | carga de definitiva | shadow | power=6, radius=380, stun=1.5, mark=6 | Oscuridad que daña, aturde 1.5 s y marca en un gran radio. |
+| `leadrain` | Lluvia de balas | strike | carga de definitiva | boom | power=5, count=16, radius=80, delay=0.4 | 16 ráfagas que barren a los enemigos. |
+| `earthquake` | Terremoto | nova | carga de definitiva | boom | power=6, radius=360, stun=2 | Terremoto enorme que daña y aturde 2 s. |
+| `undeadarmy` | Ejército de no muertos | seekers | carga de definitiva | soul | power=6, count=14 | 14 espíritus que arrasan con todo. |
+| `thunderstorm` | Tormenta eléctrica | strike | carga de definitiva | electric | power=7, count=14, radius=110, delay=0.5 | 14 rayos caen sobre los enemigos. |
+| `devastate` | Tajo devastador | strike | carga de definitiva | boom | power=10, count=6, radius=160, delay=0.5 | 6 hachazos enormes sobre los enemigos. |
+| `tsunami` | Maremoto | nova | carga de definitiva | water | power=7, radius=400, slow=0.4, duration=4 | Gran ola a tu alrededor que daña y ralentiza. |
+| `sandstorm` | Tormenta de arena | nova | carga de definitiva | stim | power=5, radius=380, stun=1, slow=0.4, duration=5 | Tormenta que daña, aturde 1 s y ralentiza en un gran radio. |
+| `rematch` | Furia del dragón | nova | carga de definitiva | fire | power=9, radius=360, burn=14, heal=0.6, invuln=1.5 | Explosión de fuego masiva, curación y 1.5 s de invulnerabilidad. |
+| `mirrorself` | Doble ilusorio | frenzy | carga de definitiva | soul | power=1.7, duration=8, invuln=3 | 8 s: invulnerable 3 s y +70% cadencia. |
+| `robotsquad` | Escuadrón de robots | turret | carga de definitiva | turret | power=2, count=3, duration=14 | 3 torretas reforzadas durante 14 s. |
 
 ## Agentes exclusivos (mercado nocturno)
 
@@ -147,26 +130,21 @@ Los agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `vortice` | Vórtice | Duelista | 100 | 212 | 11 | 38000 | Torbellino: speed +25, dmg +0.08 | tailwind / blastpack / bladestorm |
 | `quimera` | Quimera | Iniciador | 125 | 185 | 10 | 45000 | Regeneración: regen +1.5, xp +0.1 | hunterdrone / healorb / rematch |
 
-## Armas
+## Poderes
 
-| id | Nombre | Rareza | Daño | Recarga (s) | Proyectiles | Perfora | Alcance | Crítico | Explota | Evolución (Nv 5) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| `classic` | Classic | Común | 10 | 0.42 | 1 | 0 | 380 | 0 | 0 | Classic Élite: +1 bala, +30% daño, atraviesa 1 enemigo |
-| `vandal` | Vandal | Poco común | 24 | 0.8 | 1 | 0 | 440 | 0.05 | 0 | Vandal Tiranía: Atraviesa 2 enemigos más, +25% daño |
-| `phantom` | Phantom | Poco común | 8 | 0.27 | 1 | 0 | 400 | 0 | 0 | Phantom Espectral: Dispara 2 balas por ráfaga |
-| `spectre` | Spectre | Poco común | 5 | 0.14 | 1 | 0 | 330 | 0 | 0 | Spectre Enjambre: Proyectiles adicionales |
-| `operator` | Operator | Épica | 70 | 1.7 | 1 | 99 | 640 | 0.1 | 0 | Operator Ejecutor: Recarga 30% más rápida y explota al impactar |
-| `sheriff` | Sheriff | Poco común | 24 | 0.85 | 1 | 0 | 420 | 0.3 | 0 | Sheriff Dorado: +25% crítico y dispara 2 balas |
-| `judge` | Judge | Poco común | 6 | 1 | 6 | 0 | 230 | 0 | 0 | Judge Aniquilador: +3 perdigones por disparo |
-| `odin` | Odin | Épica | 5 | 0.09 | 1 | 0 | 360 | 0 | 0 | Odin Furia: Atraviesa 1 enemigo y +40% daño |
-| `ares_inferno` | Ares Infernal | Legendaria · exclusiva | 7 | 0.07 | 1 | 0 | 380 | 0.05 | 0 | Ares Volcánico: Atraviesa 1 enemigo, +50% daño y balas explosivas |
-| `marshal_vacio` | Marshal del Vacío | Legendaria · exclusiva | 58 | 0.95 | 1 | 99 | 720 | 0.35 | 0 | Marshal Singularidad: Recarga 25% más rápida y estalla al impactar |
-| `bucky_tormenta` | Bucky Tormenta | Legendaria · exclusiva | 9 | 0.75 | 8 | 1 | 260 | 0.05 | 0 | Bucky Huracán: +4 perdigones con descarga explosiva |
-| `guardian_aurora` | Guardian Aurora | Legendaria · exclusiva | 30 | 0.55 | 1 | 2 | 520 | 0.15 | 0 | Guardian Boreal: +40% daño y atraviesa 2 enemigos más |
-| `frenzy_cosmos` | Frenzy Cósmico | Legendaria · exclusiva | 7 | 0.12 | 2 | 0 | 360 | 0.1 | 0 | Frenzy Supernova: +2 balas por disparo y +20% crítico |
-| `bulldog_draco` | Bulldog Dracónico | Legendaria · exclusiva | 14 | 0.22 | 1 | 1 | 440 | 0.1 | 0.2 | Bulldog Ancestral: +1 bala, +30% daño y explosiones mayores |
-
-Armas exclusivas: precio base en el mercado → Ares Infernal ◈12000, Marshal del Vacío ◈14000, Bucky Tormenta ◈10000, Guardian Aurora ◈11000, Frenzy Cósmico ◈9000, Bulldog Dracónico ◈13000.
+| id | Nombre | Rareza | Daño | Recarga (s) | Proyectiles | Perfora | Alcance | Crítico | Extra | Evolución (Nv 5) | Héroes que empiezan con él |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `arcano` | 🔮 Proyectil arcano | Común | 12 | 0.42 | 1 | 0 | 400 | 0.05 | — | Cometa arcano: +1 proyectil, +30% daño y atraviesa 1 enemigo | zephyr |
+| `flecha` | 🏹 Flecha élfica | Poco común | 20 | 0.75 | 1 | 2 | 520 | 0.1 | — | Flecha del bosque: Dispara 3 flechas y atraviesan 2 enemigos más | lyra |
+| `fuego` | 🔥 Bola de fuego | Común | 12 | 0.6 | 1 | 0 | 380 | 0 | quema 6/s | Infierno: +1 bola, +25% daño y estallan al impactar | ember, raven, draco |
+| `rayo` | ⚡ Rayo | Poco común | 8 | 0.34 | 1 | 0 | 380 | 0.05 | encadena | Tormenta eléctrica: Dispara 2 rayos y +30% daño | volt, tink |
+| `hoja` | 🍃 Hojas afiladas | Común | 9 | 0.6 | 3 | 0 | 340 | 0 | — | Vendaval de hojas: +3 hojas por lanzamiento | sylvan, quimera |
+| `viento` | 🌪️ Cuchilla de viento | Poco común | 5 | 0.16 | 1 | 1 | 340 | 0.05 | — | Huracán: Atraviesa 1 enemigo más y +40% daño | vex, zahir, vortice |
+| `sombra` | 👻 Esfera sombría | Poco común | 18 | 0.65 | 1 | 0 | 460 | 0.1 | persigue | Legión de almas: +2 almas por lanzamiento y +20% crítico | nox, morgan, sora, eclipse |
+| `hielo` | ❄️ Fragmento de hielo | Común | 13 | 0.5 | 1 | 1 | 420 | 0.05 | — | Ventisca: +2 fragmentos y atraviesan 1 enemigo más | frost |
+| `luz` | ✨ Lanza de luz | Épica | 26 | 0.95 | 1 | 99 | 600 | 0.2 | — | Juicio divino: Recarga 30% más rápida y estalla al impactar | kael, seraph |
+| `roca` | 🪨 Roca | Poco común | 24 | 1 | 1 | 0 | 340 | 0 | explota 0.35 | Alud: +2 rocas y explosiones mayores | brutus, talos, grim |
+| `agua` | 💧 Chorro de agua | Común | 7 | 0.42 | 2 | 1 | 380 | 0 | — | Maremoto: +2 chorros y +25% daño | aqua |
 
 ## Enemigos
 
@@ -217,11 +195,11 @@ Aparecen de forma normal: `grunt`, `runner`, `tank`, `shooter`, `exploder`, `mor
 
 | id | Nombre | Común | Poco común | Épica | Legendaria | Peso | Máx. | Efecto (valor legendario) |
 |---|---|---|---|---|---|---|---|---|
-| `dmg` | Munición perforante | 0.12 | 0.18 | 0.27 | 0.4 | 10 | ∞ | +40% de daño |
-| `aspd` | Gatillo ligero | 0.1 | 0.15 | 0.22 | 0.32 | 10 | ∞ | +32% de velocidad de ataque |
+| `dmg` | Poder concentrado | 0.12 | 0.18 | 0.27 | 0.4 | 10 | ∞ | +40% de daño |
+| `aspd` | Lanzamiento veloz | 0.1 | 0.15 | 0.22 | 0.32 | 10 | ∞ | +32% de velocidad de ataque |
 | `move` | Botas de sprint | 0.08 | 0.12 | 0.18 | 0.26 | 7 | 6 | +26% de velocidad de movimiento |
-| `range` | Mira de largo alcance | 0.15 | 0.22 | 0.32 | 0.5 | 6 | 6 | +50% de alcance de proyectiles |
-| `proj` | Cargador doble | — | 1 | 1 | 2 | 5 | 5 | +2 proyectiles adicionales en todas las armas |
+| `range` | Visión lejana | 0.15 | 0.22 | 0.32 | 0.5 | 6 | 6 | +50% de alcance de proyectiles |
+| `proj` | Poder duplicado | — | 1 | 1 | 2 | 5 | 5 | +2 proyectiles adicionales en todos tus poderes |
 | `crit` | Ojo de halcón | 0.06 | 0.1 | 0.15 | 0.25 | 7 | ∞ | +25% de probabilidad de crítico |
 | `area` | Carga expansiva | 0.12 | 0.2 | 0.3 | 0.45 | 6 | ∞ | +45% de radio de explosión y habilidades |
 | `healing` | Matriz de curación | 0.15 | 0.25 | 0.4 | 0.6 | 5 | 5 | +60% de eficacia de curación |
@@ -230,13 +208,13 @@ Aparecen de forma normal: `grunt`, `runner`, `tank`, `shooter`, `exploder`, `mor
 | `maxhp` | Blindaje reforzado | 10 | 18 | 30 | 50 | 7 | ∞ | +50 de vida máxima |
 | `xp` | Datos tácticos | 0.1 | 0.16 | 0.25 | 0.4 | 6 | 6 | +40% de experiencia obtenida |
 | `chain` | Arco eléctrico | — | 1 | 1 | 2 | 4 | 5 | Los impactos saltan a 2 enemigos más (daño en cadena) |
-| `pierce` | Balas de tungsteno | 1 | 1 | 2 | 3 | 6 | 6 | Las balas atraviesan 3 enemigos más |
+| `pierce` | Poder perforante | 1 | 1 | 2 | 3 | 6 | 6 | Tus poderes atraviesan 3 enemigos más |
 | `drone` | Dron auxiliar | — | — | 1 | 2 | 3 | 5 | +2 drones que orbita y dispara |
 | `shield` | Escudo regenerativo | 10 | 18 | 30 | 50 | 5 | ∞ | +50 de escudo que se regenera fuera de combate |
 | `killexp` | Eliminación explosiva | 0.4 | 0.6 | 1 | 1.6 | 5 | ∞ | Los enemigos explotan al morir (+19 de daño en área) |
 | `regen` | Nanobots | 0.4 | 0.8 | 1.4 | 2.2 | 5 | ∞ | +2.2 de vida por segundo |
 | `magnet` | Imán de orbes | 0.25 | 0.4 | 0.6 | 1 | 4 | 4 | +100% de radio de recogida |
-| `burn` | Munición incendiaria | — | 3 | 6 | 12 | 4 | 4 | Los disparos incendian al enemigo (12 de daño/s) |
+| `burn` | Toque ígneo | — | 3 | 6 | 12 | 4 | 4 | Tus poderes incendian al enemigo (12 de daño/s) |
 | `ult` | Carga rápida de definitiva | 0.15 | 0.25 | 0.4 | 0.6 | 4 | 4 | +60% de carga de la definitiva |
 | `vamp` | Succión vital | 0.2 | 0.4 | 0.7 | 1.2 | 4 | 5 | Recuperas 1.2 de vida por eliminación |
 
@@ -244,7 +222,7 @@ Aparecen de forma normal: `grunt`, `runner`, `tank`, `shooter`, `exploder`, `mor
 
 | id | Nombre | Por nivel | Máx. | Descripción |
 |---|---|---|---|---|
-| `dmg` | Daño | +3% | 10 | Daño de todas tus armas y habilidades |
+| `dmg` | Daño | +3% | 10 | Daño de todos tus poderes y habilidades |
 | `hp` | Vida | +5% | 10 | Vida máxima inicial |
 | `speed` | Velocidad | +2% | 10 | Velocidad de movimiento |
 | `xp` | Experiencia | +4% | 10 | Experiencia obtenida |
@@ -275,14 +253,15 @@ Coste del nivel siguiente: `round(80 × (nivel + 1)^1.6)` → 80, 243, 464, 735,
 
 | id | Nombre | Descripción |
 |---|---|---|
-| `ascent` | Ascent | Ciudad italiana infinita: tejados de terracota, calles de adoquín, plazas con fuente y sitios A/B. |
-| `bind` | Bind | Bazar del desierto infinito: muros de adobe, patios, alfombras, sitios A/B y teletransportadores. |
-| `haven` | Haven | Monasterio de montaña infinito: templos de tejado rojo, jardines, estanques y sitios A/B/C. |
+| `reino` | Reino | Praderas verdes con castillo, aldeas de tejado azul, bosques, estanques y caminos de piedra. |
+| `glaciar` | Glaciar | Tierras heladas: castillo de hielo, lagos congelados, pinos nevados y cristales. |
+| `infierno` | Infierno | Roca volcánica cruzada por ríos de lava, fortalezas con cuernos y pinchos de piedra. |
+| `ciudad` | Ciudad | Metrópolis moderna con rascacielos, avenidas, helipuertos, parques y un puerto. |
 
 ## Mercado nocturno
 
-- 4 cartas por jugador, nueva rotación cada 24 h (medianoche UTC).
-- Las 3 primeras son armas exclusivas distintas; la última es un agente exclusivo con probabilidad 35% (si no, otra arma).
+- 3 cartas por jugador, nueva rotación cada 24 h (medianoche UTC).
+- Son los agentes exclusivos, en orden al azar.
 - Descuento aleatorio del 10 % al 35 %; el precio se redondea a múltiplos de 50.
 
 ## Controles por defecto
@@ -298,6 +277,7 @@ Coste del nivel siguiente: `round(80 × (nivel + 1)^1.6)` → 80, 243, 464, 735,
 | Definitiva | `KeyQ` |
 | Pausa | `KeyP` |
 | Relanzar mejoras | `KeyR` |
+| Mapa | `KeyM` |
 
 Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
@@ -305,6 +285,10 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
+| v1.20 | 2026-10-30 | Ahora somos ENDLESS RIFT | Nuevo |
+| v1.19 | 2026-10-30 | Poderes en vez de armas | Nuevo |
+| v1.18 | 2026-10-30 | Un mundo nuevo | Nuevo |
+| v1.17 | 2026-10-30 | 20 héroes nuevos | Nuevo |
 | v1.16 | 2026-10-29 | Tienda: estilos y mascotas | Nuevo |
 | v1.15 | 2026-10-29 | Misiones diarias y racha | Nuevo |
 | v1.14 | 2026-10-29 | Agentes disponibles | Mejora |

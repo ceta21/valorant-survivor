@@ -1,4 +1,4 @@
-# Documentación de VALORANT SURVIVORS
+# Documentación de ENDLESS RIFT
 
 Especificación completa del juego: cómo funciona, cómo está construido, la base de datos y cómo
 mantenerlo. Es la "memoria" del proyecto: **se actualiza con cada cambio** (ver
@@ -19,7 +19,7 @@ mantenerlo. Es la "memoria" del proyecto: **se actualiza con cada cambio** (ver
 
 ## Resumen en una línea
 
-Survivor de oleadas en 2D pixel art con temática VALORANT, hecho con React + TypeScript + Canvas,
+Survivor de oleadas en 2D pixel art ("grietas infinitas de las que emergen hordas de enemigos"), hecho con React + TypeScript + Canvas,
 publicado en Vercel, con cuentas, ranking y salas cooperativas en Supabase.
 
 - Juego publicado: https://valorant-survivor.vercel.app/

@@ -8,8 +8,8 @@ import { MAPS } from '../src/data/maps';
 
 const meta = { dmg: 0, hp: 0, speed: 0, xp: 0 };
 const levelups = [0, 0];
-const e = new GameEngine(AGENT_BY_ID.jett, MAPS[0], meta, { onLevelUp: (_c, i) => { levelups[i]++; }, onEnd: () => {}, sfx: () => {} }, undefined, 'classic', {
-  setups: [{ agent: AGENT_BY_ID.jett, meta, startWeapon: 'classic', name: 'Ana' }, { agent: AGENT_BY_ID.phoenix, meta, startWeapon: 'classic', name: 'Bruno' }],
+const e = new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, { onLevelUp: (_c, i) => { levelups[i]++; }, onEnd: () => {}, sfx: () => {} }, undefined, {
+  setups: [{ agent: AGENT_BY_ID.zephyr, meta, name: 'Ana' }, { agent: AGENT_BY_ID.ember, meta, name: 'Bruno' }],
   local: 0,
 });
 e.setView(1100, 640);
@@ -30,7 +30,7 @@ for (let i = 0; i < 60 * 200 && e.state !== 'lost'; i++) {
 }
 console.log(log.slice(0, 6).join('\n'));
 console.log('estado', e.state, 'nivel', e.level, 'subidas por jugador', levelups, 'caídas', downs, 'vueltas', revives, 'bajas', e.kills);
-console.log('armas', e.players.map(p => p.weapons.map(w => w.id + w.lvl).join(',')).join(' | '), 'ult', e.players.map(p => Math.round(p.ult)));
+console.log('poderes', e.players.map(p => p.weapons.map(w => w.id + w.lvl).join(',')).join(' | '), 'ult', e.players.map(p => Math.round(p.ult)));
 mkdirSync('shots', { recursive: true });
 const low = createCanvas(550, 320), out = createCanvas(1100, 640), o = out.getContext('2d') as any;
 o.imageSmoothingEnabled = false;
@@ -40,8 +40,8 @@ o.drawImage(low, 0, 0, 1100, 640);
 writeFileSync('shots/coop.png', out.toBuffer('image/png'));
 
 // abandonar con una mejora pendiente no debe bloquear la partida
-const e2 = new GameEngine(AGENT_BY_ID.jett, MAPS[0], meta, { onLevelUp: () => {}, onEnd: () => {}, sfx: () => {} }, undefined, 'classic', {
-  setups: [{ agent: AGENT_BY_ID.jett, meta, startWeapon: 'classic', name: 'A' }, { agent: AGENT_BY_ID.sage, meta, startWeapon: 'classic', name: 'B' }], local: 0,
+const e2 = new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, { onLevelUp: () => {}, onEnd: () => {}, sfx: () => {} }, undefined, {
+  setups: [{ agent: AGENT_BY_ID.zephyr, meta, name: 'A' }, { agent: AGENT_BY_ID.seraph, meta, name: 'B' }], local: 0,
 });
 e2.addXp(500);
 e2.chooseUpgrade(0, 0); while (e2.me.pending > 0) e2.chooseUpgrade(0, 0);
@@ -50,8 +50,8 @@ e2.leave(1);
 console.log('abandono con mejora pendiente:', stuck, '→', e2.state);
 
 // el anfitrión y el invitado deben generar el mismo mundo con la misma semilla
-const mk = (local: number) => new GameEngine(AGENT_BY_ID.jett, MAPS[1], meta, { onLevelUp: () => {}, onEnd: () => {}, sfx: () => {} }, undefined, 'classic', {
-  setups: [{ agent: AGENT_BY_ID.jett, meta, startWeapon: 'classic', name: 'A' }, { agent: AGENT_BY_ID.sage, meta, startWeapon: 'classic', name: 'B' }], local, seed: 12345,
+const mk = (local: number) => new GameEngine(AGENT_BY_ID.zephyr, MAPS[1], meta, { onLevelUp: () => {}, onEnd: () => {}, sfx: () => {} }, undefined, {
+  setups: [{ agent: AGENT_BY_ID.zephyr, meta, name: 'A' }, { agent: AGENT_BY_ID.seraph, meta, name: 'B' }], local, seed: 12345,
 });
 const [wa, wb] = [mk(0).world, mk(1).world];
 let same = true;

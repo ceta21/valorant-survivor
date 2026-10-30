@@ -1,14 +1,11 @@
-// Mercado nocturno: cada jugador recibe cada día 4 ofertas al azar (deterministas para su cuenta,
-// así que recargar la página no cambia la tienda) con descuentos sobre precios muy altos.
-import { EXCLUSIVE_WEAPONS } from './weapons';
+// Mercado nocturno: cada jugador recibe cada día los agentes exclusivos boca abajo, en orden al azar y con
+// descuentos distintos (deterministas para su cuenta, así que recargar la página no cambia la tienda).
 import { EXCLUSIVE_AGENTS } from './agents';
 
 export const MARKET_PERIOD_MS = 24 * 60 * 60 * 1000;
-export const MARKET_SLOTS = 4;
-/** Probabilidad de que la última carta sea un agente exclusivo en lugar de un arma. */
-export const AGENT_CHANCE = 0.35;
+export const MARKET_SLOTS = EXCLUSIVE_AGENTS.length;
 
-export interface Offer { kind: 'weapon' | 'agent'; id: string; base: number; discount: number; price: number }
+export interface Offer { kind: 'agent'; id: string; base: number; discount: number; price: number }
 
 export const marketPeriod = (now = Date.now()) => Math.floor(now / MARKET_PERIOD_MS);
 export const msToNextRotation = (now = Date.now()) => MARKET_PERIOD_MS - (now % MARKET_PERIOD_MS);
@@ -22,15 +19,12 @@ function rng(key: string) {
 /** Ofertas del día para un jugador (seed = id de cuenta, o una semilla de sesión para invitados). */
 export function marketOffers(seed: string, period = marketPeriod()): Offer[] {
   const r = rng(`${seed}:${period}`);
-  const pool = [...EXCLUSIVE_WEAPONS];
-  const pick = <T,>(arr: T[]) => arr.splice(Math.floor(r() * arr.length), 1)[0];
-  const offer = (kind: Offer['kind'], id: string, base: number): Offer => {
-    const discount = 10 + Math.floor(r() * 26);            // 10 % – 35 %
-    return { kind, id, base, discount, price: Math.round((base * (100 - discount)) / 100 / 50) * 50 };
-  };
+  const pool = [...EXCLUSIVE_AGENTS];
   const out: Offer[] = [];
-  for (let i = 0; i < MARKET_SLOTS - 1; i++) { const w = pick(pool); out.push(offer('weapon', w.id, w.price ?? 10000)); }
-  if (r() < AGENT_CHANCE) { const a = EXCLUSIVE_AGENTS[Math.floor(r() * EXCLUSIVE_AGENTS.length)]; out.push(offer('agent', a.id, a.cost)); }
-  else { const w = pick(pool); out.push(offer('weapon', w.id, w.price ?? 10000)); }
+  while (pool.length) {
+    const a = pool.splice(Math.floor(r() * pool.length), 1)[0];
+    const discount = 10 + Math.floor(r() * 26);            // 10 % – 35 %
+    out.push({ kind: 'agent', id: a.id, base: a.cost, discount, price: Math.round((a.cost * (100 - discount)) / 100 / 50) * 50 });
+  }
   return out;
 }

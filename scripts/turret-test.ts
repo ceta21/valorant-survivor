@@ -7,7 +7,7 @@ import { AGENT_BY_ID } from '../src/data/agents';
 import { MAPS } from '../src/data/maps';
 
 const noop = { onLevelUp() {}, onEnd() {}, sfx() {} };
-const e = new GameEngine(AGENT_BY_ID.killjoy, MAPS[0], { dmg: 0, hp: 0, speed: 0, xp: 0 }, noop);
+const e = new GameEngine(AGENT_BY_ID.tink, MAPS[0], { dmg: 0, hp: 0, speed: 0, xp: 0 }, noop);
 e.setView(1100, 640);
 for (let i = 0; i < 60 * 150; i++) { if (e.state === 'levelup') e.chooseUpgrade(0); e.player.hp = e.stats.maxHp; e.update(1 / 60); }
 

@@ -18,7 +18,7 @@ export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; lock
           <rect width="4" height="4" fill="#fff" opacity="0.06" /><rect x="8" y="8" width="4" height="4" fill="#fff" opacity="0.06" />
         </pattern>
       </defs>
-      <rect width="200" height="240" fill="#0f1923" />
+      <rect width="200" height="240" fill="#110c1e" />
       {[0.55, 0.42, 0.3, 0.2, 0.12, 0.06].map((o, i) => <rect key={i} y={i * 40} width="200" height="40" fill={c} opacity={o} />)}
       <rect width="200" height="240" fill={`url(#st-${id})`} />
       <g transform="translate(100 110) scale(6.2) translate(-12 -12)" opacity="0.14" fill="none" stroke={a} strokeWidth="1.2" strokeLinejoin="miter"><path d={agent.emblem} /></g>
@@ -32,7 +32,7 @@ export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; lock
       <g transform="translate(150 16) scale(1.4)" fill="none" stroke={a} strokeWidth="1.6" strokeLinejoin="miter" strokeLinecap="square"><path d={agent.emblem} /></g>
       {locked && (
         <g transform="translate(70 84) scale(6)">
-          {LOCK.flatMap((row, y) => [...row].map((ch, x) => ch === '#' ? <rect key={`${x},${y}`} x={x} y={y} width={1} height={1} fill="#ff4655" /> : null))}
+          {LOCK.flatMap((row, y) => [...row].map((ch, x) => ch === '#' ? <rect key={`${x},${y}`} x={x} y={y} width={1} height={1} fill="#c9a8ff" /> : null))}
         </g>
       )}
     </svg>

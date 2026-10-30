@@ -37,6 +37,16 @@ function shot(agentId: string, mapId: string, seconds: number, name: string, ext
   writeFileSync(`shots/${name}.png`, canvas.toBuffer('image/png'));
   console.log(name, 'ok', 'enemies', e.enemies.length, 'lvl', e.level);
 }
-shot('jett', 'ascent', 75, 'ascent');
-shot('raze', 'bind', 170, 'bind_boss');
-shot('phoenix', 'haven', 140, 'haven');
+// poderes y habilidades de varios héroes en cada zona (las 4 habilidades se lanzan cada 1/3 s)
+shot('ember', 'reino', 40, 'poder_fuego');
+shot('volt', 'glaciar', 40, 'poder_rayo');
+shot('talos', 'infierno', 40, 'poder_roca');
+shot('aqua', 'ciudad', 40, 'poder_agua');
+// fila con un proyectil de cada poder (tamaño real en pantalla)
+import { POWERS } from '../src/data/powers';
+shot('zephyr', 'reino', 1, 'poderes_todos', e => {
+  e.enemies.length = 0;
+  Object.values(POWERS).forEach((w, i) => {
+    e.spawnProj(e.player.x - 250 + i * 50, e.player.y - 60, 0, 1, 1, w.size, 999, 0, false, w.color, { look: w.look });
+  });
+});

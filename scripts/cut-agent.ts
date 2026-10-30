@@ -1,16 +1,21 @@
 // Recorta los fotogramas de un agente de una hoja de sprites (imagen con fondo liso) y los guarda con sus
 // colores exactos en public/agents/<id>.png (+ medidas en src/data/agentImages/<id>.json). El juego los dibuja tal cual.
 // Uso: npx tsx scripts/cut-agent.ts <id>
-// Lee art/<id>.png y los centros de sus fotogramas de art/frames.json: {"front":[[x,y],...],"back":[...],"side":[...]}.
+// Lee art/<id>.png (o art/<src>.png) y los centros de sus fotogramas de art/frames.json: {"front":[[x,y],...],"back":[...],"side":[...]}.
 // "side" debe mirar a la DERECHA (la izquierda es el espejo).
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 
-const id = process.argv[2], src = `art/${id}.png`;
+const id = process.argv[2];
 /** Rectángulo a borrar en la celda del fotograma [x0, y0, x1, y1, modo] (inclusive). Modo "c": se quita
  *  (el arma que sobresale); "f": se rellena con lo que la rodea (el arma por delante del cuerpo). */
 type Erase = [number, number, number, number, 'c' | 'f' | 'F'];   // "F": como "f" pero solo con lo de debajo
-const spec: Record<'front' | 'back' | 'side', [number, number][]> & { tol?: number; erase?: Partial<Record<'front' | 'back' | 'side', Erase[][]>> } = JSON.parse(readFileSync('art/frames.json', 'utf8'))[id] ?? {};
+const spec: Record<'front' | 'back' | 'side', [number, number][]> & {
+  tol?: number; erase?: Partial<Record<'front' | 'back' | 'side', Erase[][]>>;
+  /** Hoja de la que sale (art/<src>.png) si no es art/<id>.png, y medio ancho/alto de la celda de cada dibujo. */
+  src?: string; cell?: [number, number];
+} = JSON.parse(readFileSync('art/frames.json', 'utf8'))[id] ?? {};
+const src = `art/${spec.src ?? id}.png`;
 /** Tolerancia del color de fondo (más alta si la imagen tiene el fondo con textura). */
 const TOL = spec.tol ?? 12;
 const im = await loadImage(src);
@@ -39,7 +44,7 @@ function component(sx: number, sy: number) {
 }
 /** Junta todas las manchas del fotograma (cuerpo, arma, pies sueltos…): las que caen en la celda
  *  de ±RX × ±RY alrededor del punto. Las motas de ruido muy pequeñas se ignoran. */
-const RX = 24, RY = 31;
+const [RX, RY] = spec.cell ?? [24, 31];
 let lost = 0;
 function blob(x0: number, y0: number): Frame {
   const best: number[][] = [], done = new Set<number>();

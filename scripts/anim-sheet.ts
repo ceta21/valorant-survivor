@@ -32,9 +32,9 @@ function snap(agentId: string, gun: string, state: string, col: number, row: num
   const cx = Math.round(e.player.x - rd.camX) , cy = Math.round(e.player.y - rd.camY);
   sg.drawImage(cv, cx - CW / 2, cy - CH / 2 - 10, CW, CH, col * CW, row * CH, CW, CH);
 }
-guns.forEach((gn, i) => snap('raze', gn, 'idle', i, 0));
-states.forEach((st, i) => snap('jett', 'vandal', st, i, 1));
-snap('neon', 'judge', 'walk1', 6, 1); snap('killjoy', 'operator', 'cast', 7, 1);
+guns.forEach((gn, i) => snap('grim', gn, 'idle', i, 0));
+states.forEach((st, i) => snap('zephyr', 'vandal', st, i, 1));
+snap('volt', 'judge', 'walk1', 6, 1); snap('tink', 'operator', 'cast', 7, 1);
 writeFileSync('shots/anim.png', sheet.toBuffer('image/png'));
 // mapas completos
 for (const m of MAPS) {

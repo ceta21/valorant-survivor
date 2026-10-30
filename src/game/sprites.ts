@@ -41,40 +41,16 @@ function shade(hex: string, k: number) {
 
 /* ------------------------------------------------------------------ aspecto de cada agente */
 const LOOKS: Record<string, Look> = {
-  brimstone: { skin: '#c98a64', hair: '#6b4a32', style: 'beret', hat: '#e0592a', beard: '#7a4a2e', top: '#3a4048', top2: '#5a6470', trim: '#e0592a', pants: '#454c56', boots: '#22262c', gloves: '#22262c', acc: ['beard'] },
-  phoenix: { skin: '#7a4a30', hair: '#1e1410', style: 'crest', hat: '#ff7a3d', top: '#efe9dc', top2: '#ff7a3d', sleeve: '#efe9dc', trim: '#ff7a3d', pants: '#2a2a33', boots: '#17171c', gloves: '#2a2a33' },
-  jett: { skin: '#f3d2b8', hair: '#eef4fa', style: 'jett', top: '#2a3a5a', top2: '#e6eef7', sleeve: '#e6eef7', trim: '#8fd9ff', pants: '#2c3e5c', boots: '#e6eef7', acc: ['scarf'] },
-  sova: { skin: '#efcfb0', hair: '#e6d29a', style: 'tied', top: '#2e4a7a', top2: '#c9d8ff', trim: '#4fd0ff', pants: '#2e3a4c', boots: '#1b2230', gloves: '#3a2a20', acc: ['cybereye'] },
-  viper: { skin: '#e8c8a8', hair: '#1e1e22', style: 'long', top: '#1f3a24', top2: '#2f5a34', trim: '#5dff9a', pants: '#18291b', boots: '#0e1a10', gloves: '#0e1a10', acc: ['respirator'] },
-  sage: { skin: '#e8c4a0', hair: '#14161c', style: 'longpony', top: '#e9f6f2', top2: '#2fb8a0', sleeve: '#e9f6f2', trim: '#4de0c0', pants: '#1f6f66', boots: '#1a3f3b' },
-  reyna: { skin: '#b97a58', hair: '#2a1036', style: 'long', top: '#3a1450', top2: '#7a2a9a', trim: '#d946ef', pants: '#1d0f26', boots: '#120a18', eyes: '#ff5cff' },
-  killjoy: { skin: '#f3d3b6', hair: '#2a2016', style: 'beanie', hat: '#2fa84a', top: '#ffd23a', top2: '#2f3440', trim: '#2fa84a', pants: '#2f3440', boots: '#1a1d24', acc: ['glasses'] },
-  cypher: { skin: '#b8845e', hair: '#2a2016', style: 'fedora', hat: '#ece6d6', top: '#d8cfb8', top2: '#3a3a40', trim: '#4fd0ff', pants: '#3a3a40', boots: '#22222a', gloves: '#22222a', acc: ['mask'] },
-  omen: { skin: '#0c0e1e', hair: '#2b2f6a', style: 'hood', hat: '#2b2f6a', top: '#1f2250', top2: '#2b2f6a', trim: '#6b7cff', pants: '#141733', boots: '#0c0e22', eyes: '#9ab0ff', dark: true },
-  fade: { skin: '#8a5a40', hair: '#141018', style: 'long', top: '#1e2438', top2: '#3a2a4a', trim: '#e8445a', pants: '#1a1e2e', boots: '#101420', gloves: '#101420' },
-  breach: { skin: '#d9a07a', hair: '#c8642a', style: 'short', beard: '#c8642a', top: '#4a4a36', top2: '#6b5a3a', sleeve: '#e07a2a', trim: '#ffb02e', pants: '#3a3a30', boots: '#22221c', gloves: '#e07a2a', acc: ['beard'] },
-  skye: { skin: '#efc6a0', hair: '#c89a5a', style: 'braid', top: '#3a6a2e', top2: '#c8a86a', trim: '#9aff6a', pants: '#2e4a26', boots: '#4a3a22' },
-  yoru: { skin: '#efd2b8', hair: '#1c2a6a', style: 'spiky', top: '#203a8a', top2: '#101828', trim: '#4fa8ff', pants: '#141c30', boots: '#0c1220', gloves: '#101828' },
-  astra: { skin: '#6a4028', hair: '#2a1a14', style: 'afro', top: '#3a1a5a', top2: '#ffd24a', trim: '#ffd24a', pants: '#2a1240', boots: '#1a0a28', acc: ['goldface'] },
-  kayo: { skin: '#5a6a80', hair: '#7a8aa0', style: 'helmet', hat: '#7a8aa0', visor: '#2fe6ff', top: '#3a4a62', top2: '#2fe6ff', trim: '#2fe6ff', pants: '#2a3448', boots: '#1a2232', gloves: '#5a6a80', eyes: '#2fe6ff', dark: true },
-  chamber: { skin: '#e8c6a6', hair: '#2a1e16', style: 'slick', top: '#16161c', top2: '#f2efe6', trim: '#d8b04a', pants: '#16161c', boots: '#0c0c10' },
-  neon: { skin: '#c88a62', hair: '#2f5aff', style: 'pigtails', top: '#1c2a6a', top2: '#2fe6ff', trim: '#fff04a', pants: '#1c2a46', boots: '#2fe6ff', acc: ['bolt'] },
-  raze: { skin: '#b8825a', hair: '#5a3418', style: 'bun', top: '#ff8a2e', top2: '#ffd24a', trim: '#2f9aff', pants: '#3a3a44', boots: '#222228', acc: ['goggles'] },
-  harbor: { skin: '#9a6a48', hair: '#141010', style: 'short', beard: '#141010', top: '#1f5a5a', top2: '#c8a86a', trim: '#4ff0e0', pants: '#22303a', boots: '#141c22', acc: ['beard'] },
-  iso: { skin: '#e2b48e', hair: '#181018', style: 'topknot', top: '#2a1a3a', top2: '#7a4ad8', trim: '#b98cff', pants: '#1a1226', boots: '#0e0a16', gloves: '#1a1226' },
-  deadlock: { skin: '#f0d8c4', hair: '#f2f2f2', style: 'short', top: '#e6e9ee', top2: '#3a4048', trim: '#9ab0c8', pants: '#3a4048', boots: '#22262c', gloves: '#3a4048' },
-  gekko: { skin: '#c8906a', hair: '#c8ff3a', style: 'spiky', top: '#5a2a8a', top2: '#ffd24a', trim: '#5dff9a', pants: '#2a2a3a', boots: '#1a1a26' },
-  tejo: { skin: '#c8906a', hair: '#8a8a8a', style: 'cap', hat: '#5a4a32', beard: '#8a8a8a', top: '#7a5a32', top2: '#c8b48a', trim: '#ffb02e', pants: '#3a3a30', boots: '#22221c', gloves: '#3a2a20', acc: ['mustache'] },
-  // exclusivos del mercado nocturno
+  // exclusivos del mercado nocturno (los héroes usan su hoja de sprites)
   eclipse: { skin: '#d8b49a', hair: '#1b1530', style: 'long', top: '#2a1f4a', top2: '#9b7bff', trim: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['goldface'] },
   vortice: { skin: '#c98d6a', hair: '#ff3d81', style: 'pigtails', top: '#1f1f2a', top2: '#ff3d81', trim: '#ffffff', pants: '#2a2a36', boots: '#ff3d81', acc: ['goggles'] },
   quimera: { skin: '#8a5a3a', hair: '#e8f1f8', style: 'crest', hat: '#5dff9a', beard: '#e8f1f8', top: '#24413a', top2: '#5dff9a', trim: '#ffe14a', pants: '#1a2a26', boots: '#0f1a18', acc: ['beard'] },
 };
-export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.jett).skin;
+export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.eclipse).skin;
 
 /* ------------------------------------------------------------------ dibujo */
 export function buildSprite(id: string, pose: Pose = IDLE, dir: Dir = 'front'): Grid {
-  const L = LOOKS[id] ?? LOOKS.jett;
+  const L = LOOKS[id] ?? LOOKS.eclipse;
   const g: Grid = Array.from({ length: SH }, () => Array<string | null>(SW).fill(null));
   const px = (x: number, y: number, c: string | null) => { if (x >= 0 && x < SW && y >= 0 && y < SH) g[y][x] = c; };
   const rect = (x: number, y: number, w: number, h: number, c: string | null) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(x + i, y + j, c); };

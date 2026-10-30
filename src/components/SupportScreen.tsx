@@ -15,7 +15,7 @@ export function SupportScreen({ back }: { back: () => void }) {
       <section className="support-box">
         <span className="hub-kicker">{t('Creador del juego')}</span>
         <h3>Gabriel Vigo Rodríguez</h3>
-        <p>{t('VALORANT SURVIVORS es un proyecto creado por Gabriel Vigo Rodríguez. Si te gusta el juego, la mejor forma de apoyarlo es seguirme en LinkedIn y compartirlo con tus amigos.')}</p>
+        <p>{t('ENDLESS RIFT es un proyecto creado por Gabriel Vigo Rodríguez. Si te gusta el juego, la mejor forma de apoyarlo es seguirme en LinkedIn y compartirlo con tus amigos.')}</p>
         <a className="btn btn-xl btn-linkedin" href={LINKEDIN} target="_blank" rel="noopener noreferrer" onClick={() => audio.play('click')}>
           <b>in · {t('Ver mi perfil de LinkedIn')}</b>
         </a>

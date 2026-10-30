@@ -1,16 +1,11 @@
-// Tienda: estilos de armas, estilos de agentes y mascotas. Los estilos son solo estéticos; las mascotas
+// Tienda: estilos de agentes y mascotas. Los estilos son solo estéticos; las mascotas
 // acompañan al jugador en la partida y, si se compra su poder, atacan con su elemento.
 
-/** Colores de un estilo de arma (partes del dibujo: metal, oscuro, madera, brillo y detalle). */
-export interface WeaponSkin { id: string; name: string; price: number; colors: { M: string; D: string; W: string; L: string; A: string } }
-export const WEAPON_SKINS: WeaponSkin[] = [
-  { id: 'ws_oro', name: 'Oro imperial', price: 4000, colors: { M: '#e8b84a', D: '#8a5a14', W: '#5a2a10', L: '#fff1b0', A: '#ff4655' } },
-  { id: 'ws_dragon', name: 'Dragón carmesí', price: 5000, colors: { M: '#c4262e', D: '#3a0a10', W: '#1a1a1a', L: '#ff9a7a', A: '#ffd24a' } },
-  { id: 'ws_glaciar', name: 'Glaciar', price: 3500, colors: { M: '#a8e4ff', D: '#2a5a7a', W: '#e6f6ff', L: '#ffffff', A: '#4fd0ff' } },
-  { id: 'ws_toxico', name: 'Neón tóxico', price: 3500, colors: { M: '#3a3a44', D: '#16161c', W: '#2a2a32', L: '#9aff6a', A: '#5dff9a' } },
-  { id: 'ws_vacio', name: 'Vacío', price: 4500, colors: { M: '#3a1a5a', D: '#120822', W: '#24103a', L: '#b98cff', A: '#ff3dd0' } },
-  { id: 'ws_selva', name: 'Selva', price: 3000, colors: { M: '#5a6a3a', D: '#2a3420', W: '#6a4a2a', L: '#a8b878', A: '#ffb020' } },
-];
+/** Lo que costaban las armas exclusivas y los estilos de arma (ya no hay armas): se devuelve al cargar el guardado. */
+export const LEGACY_WEAPON_PRICES: Record<string, number> = {
+  ws_oro: 4000, ws_dragon: 5000, ws_glaciar: 3500, ws_toxico: 3500, ws_vacio: 4500, ws_selva: 3000,
+  ares_inferno: 12000, marshal_vacio: 14000, bucky_tormenta: 10000, guardian_aurora: 11000, frenzy_cosmos: 9000, bulldog_draco: 13000,
+};
 
 /** Estilo de agente: recolorea la ropa y la armadura (respeta la piel y el contorno). Solo estético. */
 export interface AgentSkin { id: string; name: string; desc: string; price: number; ramp: string[] }
@@ -53,15 +48,12 @@ export const PET_POWER_PRICES = [5000, 8000, 12000];
 /** Segundos que tarda una mascota caída en volver. */
 export const PET_RESPAWN = 60;
 
-export const WEAPON_SKIN_BY_ID = Object.fromEntries(WEAPON_SKINS.map(s => [s.id, s])) as Record<string, WeaponSkin>;
 export const AGENT_SKIN_BY_ID = Object.fromEntries(AGENT_SKINS.map(s => [s.id, s])) as Record<string, AgentSkin>;
 export const PET_BY_ID = Object.fromEntries(PETS.map(p => [p.id, p])) as Record<string, PetDef>;
 
 /** Lo comprado y lo que lleva puesto el jugador. */
 export interface ShopSave {
   owned: string[];
-  /** Estilo de arma equipado ('' = el original). */
-  weapon: string;
   /** Estilo equipado en cada agente. */
   agent: Record<string, string>;
   /** Mascota que acompaña ('' = ninguna). */
@@ -69,10 +61,10 @@ export interface ShopSave {
   /** Nivel del poder de cada mascota (0 = solo acompaña). */
   power: Record<string, number>;
 }
-export const emptyShop = (): ShopSave => ({ owned: [], weapon: '', agent: {}, pet: '', power: {} });
+export const emptyShop = (): ShopSave => ({ owned: [], agent: {}, pet: '', power: {} });
 
 /** Aspecto que se lleva a la partida. */
-export interface Looks { weapon?: string; agent?: string; pet?: string; petLv?: number }
+export interface Looks { agent?: string; pet?: string; petLv?: number }
 export function looksFor(s: ShopSave, agentId: string): Looks {
-  return { weapon: s.weapon || undefined, agent: s.agent[agentId] || undefined, pet: s.pet || undefined, petLv: s.pet ? s.power[s.pet] ?? 0 : 0 };
+  return { agent: s.agent[agentId] || undefined, pet: s.pet || undefined, petLv: s.pet ? s.power[s.pet] ?? 0 : 0 };
 }

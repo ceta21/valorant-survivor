@@ -126,6 +126,24 @@ const SPRITES: Record<string, string[]> = {
     '.33.33.',
     '33...33',
   ],
+  rock: [
+    '..kkkk..',
+    '.k3344k.',
+    'k334443k',
+    'k233343k',
+    'k223332k',
+    '.k2222k.',
+    '..kkkk..',
+  ],
+  star: [
+    '...k...',
+    '..k4k..',
+    'kkk4kkk',
+    'k44444k',
+    '.k434k.',
+    'k4k.k4k',
+    'kk...kk',
+  ],
   crystal: [
     '..4..',
     '.434.',
@@ -241,6 +259,53 @@ export function pixelBolt(g: Ctx, x0: number, y0: number, x1: number, y1: number
   pts.push([x1, y1]);
   for (let i = 1; i < pts.length; i++) pixelLine(g, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], P[2], px, 2);
   for (let i = 1; i < pts.length; i++) pixelLine(g, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1], P[4], px, 1);
+}
+
+/**
+ * Rayo recto por bloques (Haz arcano, Rayo de fuego, Rayo…): sale de (x,y) con ángulo ang y largo L.
+ * Núcleo casi blanco, bordes del color de la paleta que chisporrotean y chispas sueltas alrededor.
+ * k: 0→1. Crece de golpe al principio y se va estrechando hasta desaparecer.
+ */
+export function pixelRay(g: Ctx, x: number, y: number, ang: number, L: number, W: number, k: number, pal: string, time: number, px: number) {
+  const P = PAL[pal] ?? PAL.fire, cell = px * 2, c = Math.cos(ang), s = Math.sin(ang);
+  const reach = L * Math.min(1, k / 0.12);                       // se extiende en el primer 12%
+  const half = (W / 2) * (k < 0.12 ? 1 : 1 - ((k - 0.12) / 0.88) ** 1.6) + cell * 0.5;
+  const tick = Math.floor(time * 30), steps = Math.ceil(reach / cell), rows = Math.ceil(half / cell) + 1;
+  for (let i = 0; i <= steps; i++) {
+    const along = i * cell, taper = Math.min(1, along / (cell * 5)) * Math.min(1, (reach - along) / (cell * 3) + 0.3);
+    for (let j = -rows; j <= rows; j++) {
+      const off = j * cell, n = hash(i, j + 50, tick);
+      const edge = half * taper * (0.85 + n * 0.3);
+      if (Math.abs(off) > edge) continue;
+      const heat = 1 - Math.abs(off) / (edge + 0.01) + (n - 0.5) * 0.35 - k * 0.3;
+      g.fillStyle = P[Math.max(0, Math.min(P.length - 1, Math.floor(heat * P.length + 0.5)))];
+      g.fillRect(Math.round((x + c * along - s * off) / cell) * cell - cell / 2, Math.round((y + s * along + c * off) / cell) * cell - cell / 2, cell, cell);
+    }
+    // chispas que saltan de los bordes
+    if (i % 3 === 0 && hash(i, 7, tick) > 0.55) {
+      const side = hash(i, 9, tick) > 0.5 ? 1 : -1, off = side * (half * taper + cell * (1 + hash(i, 3, tick) * 3));
+      g.fillStyle = P[3 + (hash(i, 5, tick) > 0.5 ? 1 : 0)] ?? P[P.length - 1];
+      g.fillRect(Math.round((x + c * along - s * off) / px) * px, Math.round((y + s * along + c * off) / px) * px, px, px);
+    }
+  }
+}
+
+/** Abanico de llamas por bloques (Aliento de fuego, Llamarada) con apertura spread (rad) y alcance R. */
+export function pixelCone(g: Ctx, x: number, y: number, ang: number, R: number, spread: number, k: number, pal: string, seed: number, time: number, px: number) {
+  const P = PAL[pal] ?? PAL.fire, cell = px * 2, tick = Math.floor(time * 24);
+  const front = R * (1 - (1 - Math.min(1, k * 1.6)) ** 2), thick = R * (0.55 - k * 0.35);
+  const i0 = Math.floor((x - R) / cell), i1 = Math.ceil((x + R) / cell), j0 = Math.floor((y - R) / cell), j1 = Math.ceil((y + R) / cell);
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    const cx = i * cell + cell / 2 - x, cy = j * cell + cell / 2 - y, d = Math.hypot(cx, cy);
+    if (d > front || d < front - thick || d < cell) continue;
+    let da = Math.atan2(cy, cx) - ang; da = Math.atan2(Math.sin(da), Math.cos(da));
+    const n = hash(i, j, seed + tick);
+    if (Math.abs(da) > (spread / 2) * (0.8 + n * 0.3)) continue;
+    if (n < 0.1 + k * 0.7) continue;
+    const heat = (1 - (front - d) / thick) * (1 - k * 0.6) + (1 - Math.abs(da) / (spread / 2)) * 0.35 + (n - 0.5) * 0.3;
+    g.fillStyle = P[Math.max(0, Math.min(P.length - 1, Math.floor(heat * P.length)))];
+    g.fillRect(i * cell, j * cell, cell, cell);
+  }
 }
 
 /** Columna de luz que cae del cielo (ataque orbital, resurrección, Rematch). */

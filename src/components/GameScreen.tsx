@@ -17,9 +17,11 @@ import { applySnapshot, makeSnapshot, mirrorTick, Snap } from '../game/netSync';
 import { t, nf } from '../i18n';
 import type { Looks } from '../data/shop';
 import { KeyMap } from '../game/controls';
+import { keyLabel } from '../game/controls';
+import { BigMap } from './BigMap';
 
 interface Props {
-  agent: AgentDef; map: MapDef; difficulty: DifficultyDef; startWeapon: string; meta: MetaLevels; settings: Settings;
+  agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
   /** Estilos de la tienda y mascota (en solitario; en cooperativo van en coop.setups). */
   looks?: Looks;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
@@ -64,7 +66,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings, looks, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
+export function GameScreen({ agent, map, difficulty, meta, settings, looks, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -77,16 +79,31 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
   const [choices, setChoices] = useState<UpgradeChoice[] | null>(null);
   const [result, setResult] = useState<{ r: RunResult; ach: string[] } | null>(null);
   const [paused, setPaused] = useState(false);
+  // mapa grande: en solitario detiene la partida mientras está abierto
+  const [showMap, setShowMap] = useState(false);
+  const mapRef = useRef(false); mapRef.current = showMap;
+  const mapPausedRef = useRef(false);
+  const toggleMap = useCallback(() => {
+    const e = engineRef.current;
+    if (!e || e.state === 'won' || e.state === 'lost') return;
+    const open = !mapRef.current;
+    if (!coop) {
+      if (open && e.state === 'playing') { e.togglePause(); mapPausedRef.current = true; }
+      else if (!open && mapPausedRef.current && e.state === 'paused') { e.togglePause(); mapPausedRef.current = false; }
+    }
+    setShowMap(open);
+  }, [coop]);
 
   // en cooperativo la partida no se detiene: el menú se abre encima mientras se sigue jugando
   const togglePause = useCallback(() => {
+    if (mapRef.current) { toggleMap(); return; }   // Esc con el mapa abierto: lo cierra
     const e = engineRef.current;
     if (!e || e.state === 'won' || e.state === 'lost') return;
     if (coop) { setPaused(p => !p); return; }
     if (e.state === 'levelup') return;
     e.togglePause();
     setPaused(e.state === 'paused');
-  }, [coop]);
+  }, [coop, toggleMap]);
   const castRef = useRef<(slot: 'special' | 'secondary' | 'ultimate') => void>(() => {});
 
   useEffect(() => { if (rendererRef.current) rendererRef.current.shake = settings.shake; }, [settings.shake]);
@@ -104,7 +121,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
         if (link) link.send({ type: 'end', r: engine.resultFor(1) });
       },
       sfx: n => audio.play(n),
-    }, difficulty, startWeapon, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks);
+    }, difficulty, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks);
     if (link && !isGuest) engine.netOut = [];
     if (import.meta.env.DEV) (window as any).__vs = engine;   // solo en desarrollo, para depurar
     const cast = (slot: 'special' | 'secondary' | 'ultimate') => {
@@ -149,7 +166,7 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;
-    const input = new Input(engine, togglePause, cast, keys);
+    const input = new Input(engine, togglePause, cast, keys, () => toggleMap());
     inputRef.current = input;
 
     // pixel-art: se dibuja a baja resolución y el navegador lo amplía sin suavizar,
@@ -246,7 +263,8 @@ export function GameScreen({ agent, map, difficulty, startWeapon, meta, settings
   return (
     <div className="game" ref={wrap}>
       <canvas ref={canvasRef} className="game-canvas" />
-      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} />}
+      {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} onMap={toggleMap} />}
+      {showMap && engine && !result && <BigMap engine={engine} close={toggleMap} keyName={keyLabel(keys.map)} />}
       {coop && hud?.state === 'levelup' && !choices && !result && (
         <div className="coop-wait-banner">{t('Esperando a que tu compañero elija su mejora…')}</div>
       )}

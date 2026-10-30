@@ -46,13 +46,12 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `settings` | Volumen de música y efectos, silencios, sacudida de pantalla, pausa automática |
 | `lastAgent`, `lastMap`, `lastDifficulty` | Última selección |
 | `playerName` | Nombre usado como invitado en el ranking |
-| `exclusives` | Armas y agentes exclusivos comprados |
+| `exclusives` | Agentes exclusivos comprados |
 | `kits` | Habilidades elegidas para cada agente exclusivo |
-| `loadout` | Arma inicial |
 | `market` | Rotación del mercado y cartas ya descubiertas |
 | `newsSeen` | Última versión de Novedades vista (para la etiqueta "Nuevo") |
 | `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por agente/mapa, en Difícil+) y las misiones diarias cobradas |
-| `shop` | Tienda: lo comprado (`owned`), estilo de arma, estilo de cada agente, mascota que acompaña y nivel del poder de cada mascota |
+| `shop` | Tienda: lo comprado (`owned`), estilo de cada agente, mascota que acompaña y nivel del poder de cada mascota |
 | `login` | Racha de conexión: último día, días seguidos, mejor racha, último premio diario cobrado e hitos cobrados |
 
 - `normalizeSave()` completa cualquier guardado con los valores por defecto, así que añadir campos nuevos no

@@ -15,10 +15,10 @@ const meta = { dmg: 0, hp: 0, speed: 0, xp: 0 };
 const step = (e: GameEngine, s: number) => { for (let i = 0; i < 60 * s; i++) { if (e.state === 'levelup') e.chooseUpgrade(0); e.player.hp = e.stats.maxHp; e.update(1 / 60); } };
 
 // sin mascota
-ok(new GameEngine(AGENT_BY_ID.jett, MAPS[0], meta, noop).me.pet === null, 'sin mascota equipada no hay mascota');
+ok(new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, noop).me.pet === null, 'sin mascota equipada no hay mascota');
 
 // con mascota pero sin poder: solo acompaña
-const a = new GameEngine(AGENT_BY_ID.jett, MAPS[0], meta, noop, undefined, 'classic', undefined, { pet: 'pet_brasin', petLv: 0 });
+const a = new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, noop, undefined, undefined, { pet: 'pet_brasin', petLv: 0 });
 a.setView(1100, 640);
 a.inputMove.x = 1; step(a, 3); a.inputMove.x = 0; step(a, 1);
 const pa = a.me.pet!;
@@ -35,7 +35,7 @@ ok(!pa.dead && pa.hp > 0, `vuelve a los ${PET_RESPAWN} s`);
 
 // cada mascota con poder ataca a los robots
 for (const def of PETS) {
-  const e = new GameEngine(AGENT_BY_ID.jett, MAPS[0], meta, noop, undefined, 'classic', undefined, { pet: def.id, petLv: 3 });
+  const e = new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, noop, undefined, undefined, { pet: def.id, petLv: 3 });
   e.setView(1100, 640);
   const p = e.player;
   for (let i = 0; i < 12; i++) e.spawnEnemy('tank', p.x + 160 + (i % 4) * 30, p.y - 60 + Math.floor(i / 4) * 40);

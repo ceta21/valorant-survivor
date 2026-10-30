@@ -1,19 +1,22 @@
 import { GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
-import { WEAPONS } from '../data/weapons';
+import { POWERS } from '../data/powers';
 import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
 import { renderChunk, CPX } from './MapArt';
 import { CS } from './World';
-import { gunCanvas, gunSize } from './weaponSprites';
 import { petCanvas, PW, PH } from './petSprites';
+import { MAPS } from '../data/maps';
+import { t } from '../i18n';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
-import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelField, pixelLine, snapAng, sprite } from './vfx';
+import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelCone, pixelField, pixelLine, pixelRay, snapAng, sprite } from './vfx';
 
 type Ctx = CanvasRenderingContext2D;
 type MakeCanvas = (w: number, h: number) => any;
 
 /** Unidades de mundo por píxel de juego (los sprites de personaje quedan 1:1). */
 export const PX = 2;
+/** Escala de los proyectiles y objetos lanzados (poderes, bombas, cohetes): se ven el doble de grandes. */
+const BIG = PX * 2;
 const PIXEL_FONT = '"Press Start 2P", monospace';
 const OUTLINE = [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1]];
 
@@ -138,14 +141,24 @@ export class Renderer {
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
 
-    // teletransportadores (Bind)
-    for (const pair of e.world.portalsNear(p.x, p.y, 1)) for (const pt of pair) {
-      if (!vis(pt.x, pt.y, 60)) continue;
-      const ph = e.time * 3;
-      g.fillStyle = 'rgba(176,92,255,0.16)'; g.beginPath(); g.arc(pt.x, pt.y, 34, 0, 7); g.fill();
-      g.strokeStyle = '#b05cff'; g.lineWidth = 3; g.beginPath(); g.arc(pt.x, pt.y, 30, 0, 7); g.stroke();
-      g.strokeStyle = '#e2c4ff'; g.lineWidth = 2;
-      for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(pt.x, pt.y, 8 + i * 8, ph + i, ph + i + 3.2); g.stroke(); }
+    // portales entre zonas: remolino de píxeles del color de la zona a la que llevan
+    for (const pt of e.world.portals) {
+      if (!vis(pt.x, pt.y, 70)) continue;
+      const col = MAPS[pt.to].colors.accent, ph = e.time;
+      g.globalCompositeOperation = 'lighter';
+      const gr = g.createRadialGradient(pt.x, pt.y, 4, pt.x, pt.y, 60);
+      gr.addColorStop(0, hexA(col, 0.45)); gr.addColorStop(1, hexA(col, 0));
+      g.fillStyle = gr; g.beginPath(); g.arc(pt.x, pt.y, 60, 0, 7); g.fill();
+      g.globalCompositeOperation = 'source-over';
+      // anillo de piedra con runas y remolino de energía dentro
+      pixelCircle(g, pt.x, pt.y, 56, '#14102a', PX, 99);
+      pixelCircle(g, pt.x, pt.y, 52, '#6a6e80', PX, 99);
+      pixelCircle(g, pt.x, pt.y, 52, col, PX, 1, ph * 0.5);
+      pixelCircle(g, pt.x, pt.y, 42, '#1a1030', PX, 99);
+      pixelCircle(g, pt.x, pt.y, 38, col, PX, 3, ph * 1.5);
+      pixelCircle(g, pt.x, pt.y, 28, '#ffffff', PX, 2, -ph * 2.2);
+      pixelCircle(g, pt.x, pt.y, 18, col, PX, 2, ph * 3);
+      pixelCircle(g, pt.x, pt.y, 8, '#ffffff', PX, 1, -ph * 4);
     }
     // gemas: cristales pixel art con halo que late y un destello de vez en cuando
     g.imageSmoothingEnabled = false;
@@ -187,16 +200,16 @@ export class Renderer {
         // vuelo en parábola desde donde se lanzó
         const h = Math.sin(k * Math.PI) * (s.fx === 'rocket' ? 120 : 70);
         const fx = s.ox + (s.x - s.ox) * k, fy = s.oy + (s.y - s.oy) * k - h;
-        g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((s.ox + (s.x - s.ox) * k) / PX) * PX - 6, Math.round((s.oy + (s.y - s.oy) * k) / PX) * PX, 12, 4);
-        if (s.fx === 'grenade') drawSprite(g, sprite('grenade', 'boom', this.makeCanvas), fx, fy, PX, Math.floor(k * 8) * (Math.PI / 2));
+        g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((s.ox + (s.x - s.ox) * k) / PX) * PX - 12, Math.round((s.oy + (s.y - s.oy) * k) / PX) * PX, 24, 6);
+        if (s.fx === 'grenade') drawSprite(g, sprite('grenade', 'boom', this.makeCanvas), fx, fy, BIG, Math.floor(k * 8) * (Math.PI / 2));
         else {
           const k2 = Math.min(1, k + 0.02), h2 = Math.sin(k2 * Math.PI) * 120;
           const ang = Math.atan2(s.oy + (s.y - s.oy) * k2 - h2 - fy, s.ox + (s.x - s.ox) * k2 - fx);
           for (let i = 1; i <= 3; i++) {
             g.fillStyle = PAL.fire[4 - i];
-            g.fillRect(Math.round((fx - Math.cos(ang) * (18 + i * 5)) / PX) * PX - 2, Math.round((fy - Math.sin(ang) * (18 + i * 5)) / PX) * PX - 2, 4, 4);
+            g.fillRect(Math.round((fx - Math.cos(ang) * (30 + i * 9)) / PX) * PX - 4, Math.round((fy - Math.sin(ang) * (30 + i * 9)) / PX) * PX - 4, 8, 8);
           }
-          drawSprite(g, sprite('rocket', 'fire', this.makeCanvas), fx, fy, PX, ang);
+          drawSprite(g, sprite('rocket', 'fire', this.makeCanvas), fx, fy, BIG, ang);
         }
       } else {
         g.globalAlpha = 0.5 + k * 0.5;
@@ -275,25 +288,31 @@ export class Renderer {
     for (const b of e.projs) {
       if (b.dead || !vis(b.x, b.y) || b.look) continue;
       const sp = Math.hypot(b.vx, b.vy) || 1;
-      const len = 9;
-      g.strokeStyle = hexA(b.color, 0.45); g.lineWidth = b.r * 2.4; g.lineCap = 'round';
+      const len = 18;
+      g.strokeStyle = hexA(b.color, 0.45); g.lineWidth = b.r * 4; g.lineCap = 'round';
       g.beginPath(); g.moveTo(b.x - (b.vx / sp) * len, b.y - (b.vy / sp) * len); g.lineTo(b.x, b.y); g.stroke();
-      g.strokeStyle = b.crit ? '#ffe9a0' : '#ffffff'; g.lineWidth = b.r * 0.9;
+      g.strokeStyle = b.crit ? '#ffe9a0' : '#ffffff'; g.lineWidth = b.r * 1.6;
       g.beginPath(); g.moveTo(b.x - (b.vx / sp) * len * 0.6, b.y - (b.vy / sp) * len * 0.6); g.lineTo(b.x, b.y); g.stroke();
     }
     g.globalCompositeOperation = 'source-over';
     // dagas (Jett), flechas (Sova) y disparos de mascotas: sprites orientados con estela de píxeles
-    const LOOK: Record<string, [string, string]> = { dagger: ['dagger', 'wind'], arrow: ['arrow', 'scan'], flame: ['flame', 'fire'], bolt: ['bolt', 'electric'], leaf: ['crystal', 'poison'] };
+    const LOOK: Record<string, [string, string]> = { dagger: ['dagger', 'wind'], arrow: ['arrow', 'scan'], flame: ['flame', 'fire'], bolt: ['bolt', 'electric'], leaf: ['crystal', 'poison'], wisp: ['flame', 'soul'],
+      ice: ['crystal', 'ice'], water: ['flame', 'water'], rock: ['rock', 'stim'], star: ['star', 'scan'] };
+    const SPIN = new Set(['flame', 'wisp', 'water', 'rock', 'star']);   // sin orientación (bolas, rocas, estrellas)
     for (const b of e.projs) {
       if (b.dead || !b.look || !vis(b.x, b.y)) continue;
       const ang = Math.atan2(b.vy, b.vx), c = Math.cos(ang), s = Math.sin(ang);
       const [sprName, pal] = LOOK[b.look] ?? LOOK.dagger;
       const trail = PAL[pal];
-      for (let i = 1; i <= 3; i++) {
-        g.fillStyle = trail[4 - i];
-        g.fillRect(Math.round((b.x - c * (10 + i * 6)) / PX) * PX - 1, Math.round((b.y - s * (10 + i * 6)) / PX) * PX - 1, PX, PX);
+      g.globalCompositeOperation = 'lighter';
+      g.fillStyle = hexA(trail[2], 0.22); g.beginPath(); g.arc(b.x, b.y, 16 + b.r, 0, 7); g.fill();
+      g.globalCompositeOperation = 'source-over';
+      for (let i = 1; i <= 4; i++) {
+        g.fillStyle = trail[Math.max(0, 4 - i)];
+        const sz = (5 - i) * PX;
+        g.fillRect(Math.round((b.x - c * (14 + i * 9)) / PX) * PX - sz / 2, Math.round((b.y - s * (14 + i * 9)) / PX) * PX - sz / 2, sz, sz);
       }
-      drawSprite(g, sprite(sprName, b.look === 'arrow' && b.color === '#ffffff' ? 'holy' : pal, this.makeCanvas), b.x, b.y, PX, b.look === 'flame' ? 0 : ang);
+      drawSprite(g, sprite(sprName, b.look === 'arrow' && b.color === '#ffffff' ? 'holy' : pal, this.makeCanvas), b.x, b.y, BIG, SPIN.has(b.look) ? (b.look === 'star' || b.look === 'rock' ? e.time * 8 : 0) : ang);
     }
     // efectos de habilidad (explosiones, anillos, llamas, haces de luz)
     for (const v of e.vfx) {
@@ -301,8 +320,8 @@ export class Renderer {
       const fb = (e.players[v.owner ?? e.local] ?? e.me).body;
       const vx = v.follow ? fb.x + v.x : v.x, vy = v.follow ? fb.y + v.y : v.y;
       if (!vis(vx, vy, v.r)) continue;
-      if (v.kind === 'blast') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX);
-      else if (v.kind === 'ring') pixelBlast(g, vx, vy, v.r, k, v.pal, v.seed, PX, true);
+      if (v.kind === 'blast') pixelBlast(g, vx, vy, v.r * 1.2, k, v.pal, v.seed, PX);
+      else if (v.kind === 'ring') pixelBlast(g, vx, vy, v.r * 1.15, k, v.pal, v.seed, PX, true);
       else if (v.kind === 'gust') {
         // ráfagas de viento que salen detrás de Jett en la dirección del impulso
         const c = Math.cos(v.ang), s = Math.sin(v.ang);
@@ -312,7 +331,9 @@ export class Renderer {
           pixelLine(g, ox - c * off, oy - s * off, ox - c * (off + len), oy - s * (off + len), PAL.wind[i === 0 ? 4 : 2], PX, i === 0 ? 2 : 1);
         }
       }
-      else if (v.kind === 'beam') { g.globalAlpha = 1 - k * k; pixelBeam(g, vx, vy, v.r, k, v.pal, e.time, PX); g.globalAlpha = 1; }
+      else if (v.kind === 'beam') { g.globalAlpha = 1 - k * k; pixelBeam(g, vx, vy, v.r * 1.5, k, v.pal, e.time, PX); g.globalAlpha = 1; }
+      else if (v.kind === 'ray') pixelRay(g, vx, vy - 8, v.ang, v.r, (v.w ?? 24) * 1.6, k, v.pal, e.time, PX);
+      else if (v.kind === 'cone') pixelCone(g, vx, vy - 6, v.ang, v.r * 1.15, (v.w ?? 1.2) * 1.15, k, v.pal, v.seed, e.time, PX);
       else if (v.kind === 'flames') {
         // anillo de llamas animadas que se expande y se consume (seed = número de llamas)
         const n = v.seed, img = sprite('flame', v.pal, this.makeCanvas);
@@ -320,7 +341,7 @@ export class Renderer {
           const a = (i / n) * Math.PI * 2, d = v.r * (0.35 + 0.65 * Math.min(1, k * 2.5));
           const fl = Math.floor(e.time * 12 + i) % 3;
           if (k > 0.6 && (i + Math.floor(e.time * 20)) % 3 === 0) continue;
-          drawSprite(g, img, Math.round((vx + Math.cos(a) * d) / PX) * PX, Math.round((vy + Math.sin(a) * d * 0.8) / PX) * PX - fl * PX, PX * (k < 0.7 ? 2 : 1), 0, fl === 1);
+          drawSprite(g, img, Math.round((vx + Math.cos(a) * d) / PX) * PX, Math.round((vy + Math.sin(a) * d * 0.8) / PX) * PX - fl * PX, PX * (k < 0.7 ? 3 : 2), 0, fl === 1);
         }
       }
     }
@@ -397,6 +418,17 @@ export class Renderer {
     g.globalCompositeOperation = 'source-over';
     g.restore();
 
+    // nombre de la zona a la que lleva cada portal
+    g.textAlign = 'center';
+    g.font = `${Math.max(8, Math.round(z * 12 / 8) * 8)}px ${PIXEL_FONT}`;
+    for (const pt of e.world.portals) {
+      if (!vis(pt.x, pt.y, 70)) continue;
+      const label = '→ ' + t(MAPS[pt.to].name), nx = Math.round((pt.x - cx) * z), ny = Math.round((pt.y - 70 - cy) * z);
+      g.fillStyle = '#000';
+      for (const [ox, oy] of OUTLINE) g.fillText(label, nx + ox, ny + oy);
+      g.fillStyle = MAPS[pt.to].colors.accent;
+      g.fillText(label, nx, ny);
+    }
     // nombres en cooperativo (solo de los compañeros)
     if (e.players.length > 1) {
       g.textAlign = 'center';
@@ -485,7 +517,6 @@ export class Renderer {
     const mvx = dashing ? p.dashVx : e.inputMove.x, mvy = dashing ? p.dashVy : e.inputMove.y;
     const dir: Dir = !(moving || dashing) ? 'front' : Math.abs(mvy) > Math.abs(mvx) * 1.1 ? (mvy < 0 ? 'back' : 'front') : 'side';
     const flip = dir === 'side' && mvx < 0;
-    const gunFlip = Math.cos(p.face) < 0;   // el arma apunta al enemigo, aunque el cuerpo mire a otro lado
     const bob = casting ? -3 : moving ? (frame % 2) * 2 : Math.sin(t * 3) * 0.8;
     let lean = moving ? Math.max(-1, Math.min(1, e.inputMove.x)) * (sprint ? 0.16 : 0.07) : 0;
     let sx = 1, sy = moving || casting ? 1 : 1 + Math.sin(t * 3) * 0.018;
@@ -516,33 +547,16 @@ export class Renderer {
       g.beginPath(); g.arc(p.x, baseY - dh * 0.5, 14 + castK * 46, 0, 7); g.stroke();
       g.globalCompositeOperation = 'source-over';
     }
-    // de espaldas o apuntando hacia arriba, el arma queda detrás del cuerpo
-    const aimUp = Math.sin(p.face) < -0.4 || dir === 'back';
-    const drawGun = () => {
-      if (casting || dashing) return;
-      const gs = gunSize(e.held), gc = gunCanvas(e.held, WEAPONS[e.held].color, this.makeCanvas, 3, looks.weapon ?? '');
-      const gw = gs.w * 1.5, gh = gs.h * 1.5;
-      const recoil = Math.max(0, 1 - (t - e.lastShotT) / 0.09) * 4;
-      g.save(); g.globalAlpha = blink ? 0.4 : 1;
-      g.translate(p.x, baseY - dh * 0.42 - (moving ? (frame % 2) * 1 : 0));
-      let ang = p.face;
-      if (gunFlip) { g.scale(-1, 1); ang = Math.PI - ang; }
-      g.rotate(ang);
-      g.imageSmoothingEnabled = false;
-      g.drawImage(gc, 2 - recoil, -gh * 0.45, gw, gh);
-      g.fillStyle = agentSkin(a.id); g.fillRect(4 - recoil, -2, 4, 4); g.fillRect(gw * 0.5 - recoil, -2, 4, 4);
-      if (t - e.lastShotT < 0.06) {
-        g.globalCompositeOperation = 'lighter';
-        const tx = gw + 2 - recoil;
-        g.fillStyle = 'rgba(255,230,150,0.95)'; g.beginPath(); g.moveTo(tx, 0); g.lineTo(tx + 9, -3); g.lineTo(tx + 5, 0); g.lineTo(tx + 9, 3); g.closePath(); g.fill();
-        g.fillStyle = 'rgba(255,255,255,0.9)'; g.beginPath(); g.arc(tx + 1, 0, 3, 0, 7); g.fill();
-        g.globalCompositeOperation = 'source-over';
-      }
-      g.restore();
-    };
-    if (aimUp) drawGun();
     drawBody(0, 0, blink ? 0.4 : 1);
-    if (!aimUp) drawGun();
+    // al lanzar el poder: destello de su color en la mano, hacia el enemigo
+    const since = t - e.lastShotT, pw = POWERS[e.held];
+    if (pw && since < 0.14 && !casting && !dashing) {
+      const k = 1 - since / 0.14, hx = p.x + Math.cos(p.face) * 14, hy = baseY - dh * 0.42 + Math.sin(p.face) * 8;
+      g.globalCompositeOperation = 'lighter';
+      g.fillStyle = hexA(pw.color, 0.35 * k); g.beginPath(); g.arc(hx, hy, 9 + 4 * k, 0, 7); g.fill();
+      g.fillStyle = hexA('#ffffff', 0.8 * k); g.fillRect(Math.round(hx) - 2, Math.round(hy) - 2, 4, 4);
+      g.globalCompositeOperation = 'source-over';
+    }
     this.drawBuffs(g, e, true);
   }
 

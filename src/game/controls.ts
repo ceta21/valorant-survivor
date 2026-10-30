@@ -2,12 +2,12 @@
 // distribución del teclado). Las flechas mueven y Esc pausa siempre, además de lo asignado.
 import { t } from '../i18n';
 
-export type Action = 'up' | 'down' | 'left' | 'right' | 'special' | 'secondary' | 'ultimate' | 'pause' | 'reroll';
+export type Action = 'up' | 'down' | 'left' | 'right' | 'special' | 'secondary' | 'ultimate' | 'pause' | 'reroll' | 'map';
 export type KeyMap = Record<Action, string>;
 
 export const DEFAULT_KEYS: KeyMap = {
   up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD',
-  special: 'Space', secondary: 'KeyE', ultimate: 'KeyQ', pause: 'KeyP', reroll: 'KeyR',
+  special: 'Space', secondary: 'KeyE', ultimate: 'KeyQ', pause: 'KeyP', reroll: 'KeyR', map: 'KeyM',
 };
 export const ACTIONS: { id: Action; label: string; group: 'move' | 'ability' | 'other' }[] = [
   { id: 'up', label: 'Arriba', group: 'move' },
@@ -19,6 +19,7 @@ export const ACTIONS: { id: Action; label: string; group: 'move' | 'ability' | '
   { id: 'ultimate', label: 'Definitiva', group: 'ability' },
   { id: 'pause', label: 'Pausa', group: 'other' },
   { id: 'reroll', label: 'Relanzar mejoras', group: 'other' },
+  { id: 'map', label: 'Mapa', group: 'other' },
 ];
 /** Teclas que no se pueden asignar (las usa el propio juego). */
 export const RESERVED = ['Escape', 'Digit1', 'Digit2', 'Digit3', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Tab', 'F5', 'F11', 'F12'];

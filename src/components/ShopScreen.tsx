@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { SaveData } from '../utils/storage';
-import { AGENT_SKINS, PETS, WEAPON_SKINS } from '../data/shop';
+import { AGENT_SKINS, PETS } from '../data/shop';
 import { ALL_AGENTS, isAvailable, playableAgent } from '../data/agents';
-import { AgentArt, ELEMENT, GunArt, PetArt } from './ShopArt';
+import { AgentArt, ELEMENT, PetArt } from './ShopArt';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
 
@@ -11,11 +11,11 @@ interface Props {
   back: () => void;
   buy: (id: string, price: number) => void;
 }
-type Tab = 'weapons' | 'agents' | 'pets';
+type Tab = 'agents' | 'pets';
 
-/** Tienda: solo se compra. Los estilos de agente y de arma se ponen en Agentes; las mascotas, en Mascotas. */
+/** Tienda: solo se compra. Los estilos de agente se ponen en Agentes; las mascotas, en Mascotas. */
 export function ShopScreen({ save, back, buy }: Props) {
-  const [tab, setTab] = useState<Tab>('weapons');
+  const [tab, setTab] = useState<Tab>('agents');
   const [sure, setSure] = useState('');   // compra pendiente de confirmar
   const owned = save.shop.owned;
   // agente sobre el que se ven los estilos (cualquiera que se pueda jugar; empieza en el último elegido)
@@ -41,25 +41,10 @@ export function ShopScreen({ save, back, buy }: Props) {
         <span className="credits">◈ {nf(save.credits)}</span>
       </header>
       <nav className="shop-tabs" role="tablist">
-        {([['weapons', t('Estilos de armas')], ['agents', t('Estilos de agentes')], ['pets', t('Mascotas')]] as [Tab, string][]).map(([k, label]) => (
+        {([['agents', t('Estilos de agentes')], ['pets', t('Mascotas')]] as [Tab, string][]).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={`btn btn-sm ${tab === k ? 'btn-red' : ''}`} onClick={click(() => { setTab(k); setSure(''); })}><b>{label}</b></button>
         ))}
       </nav>
-
-      {tab === 'weapons' && (
-        <>
-          <p className="lead">{t('Cambian el color de todas tus armas. Solo estético. Póntelos en Agentes.')}</p>
-          <div className="shop-grid">
-            {WEAPON_SKINS.map(w => (
-              <article key={w.id} className={`shop-card ${owned.includes(w.id) ? 'owned' : ''}`} style={{ ['--sc' as any]: w.colors.A }}>
-                <GunArt weapon="vandal" skin={w.id} />
-                <b>{t(w.name)}</b>
-                {buyButton(w.id, w.price, t('en Agentes'))}
-              </article>
-            ))}
-          </div>
-        </>
-      )}
 
       {tab === 'agents' && (
         <>

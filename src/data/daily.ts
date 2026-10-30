@@ -86,7 +86,7 @@ const TEMPLATES: Template[] = [
     return { text: n === 1 ? t('Juega una partida con {agent}', { agent }) : t('Juega {n} partidas con {agent}', { n, agent }), value: d => d.agents[a] ?? 0 };
   } },
   { id: 'map', goals: [1, 2, 3], make: (n, pick) => {
-    const m = pick(MAPS).id, map = MAP_BY_ID[m].name;
+    const m = pick(MAPS).id, map = t(MAP_BY_ID[m].name);
     return { text: n === 1 ? t('Juega una partida en {map}', { map }) : t('Juega {n} partidas en {map}', { n, map }), value: d => d.maps[m] ?? 0 };
   } },
   { id: 'hard', goals: [1, 1, 2], make: n => ({ text: n === 1 ? t('Juega una partida en Difícil o Pesadilla') : t('Juega {n} partidas en Difícil o Pesadilla', { n }), value: d => d.hard }) },
@@ -108,7 +108,7 @@ export function dailyMissions(day: string, agents: string[]): DailyMission[] {
   while (chosen.length < 3) { const tp = pick(pool); if (!chosen.includes(tp)) chosen.push(tp); }
   return chosen.map((tp, tier) => {
     const goal = tp.goals[tier];
-    const m = tp.make(goal, pick, usable.length ? usable : ['jett']);
+    const m = tp.make(goal, pick, usable.length ? usable : ['zephyr']);
     return { id: tp.id, goal, reward: DAILY_REWARDS[tier], text: m.text, value: m.value };
   });
 }

@@ -13,7 +13,7 @@ export class Input {
 
   private map: KeyMap;
 
-  constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void, keys: KeyMap = DEFAULT_KEYS) {
+  constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void, keys: KeyMap = DEFAULT_KEYS, onMap?: () => void) {
     this.engine = engine;
     this.map = keys;
     this.onPause = onPause;
@@ -28,6 +28,7 @@ export class Input {
       else if (k === m.secondary) this.castFn('secondary');
       else if (k === m.ultimate) this.castFn('ultimate');
       else if (k === 'Escape' || k === m.pause) this.onPause();
+      else if (k === m.map) onMap?.();
     };
     const up = (ev: KeyboardEvent) => { this.keys.delete(ev.code); };
     const blur = () => this.keys.clear();

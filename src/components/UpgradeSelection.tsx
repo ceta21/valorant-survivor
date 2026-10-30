@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { UpgradeChoice, RARITY_COLORS, RARITY_NAMES } from '../game/types';
 import { UPGRADE_BY_ID } from '../data/upgrades';
-import { WEAPONS } from '../data/weapons';
+import { POWERS } from '../data/powers';
 import { t, upgradeText } from '../i18n';
 import { keyLabel } from '../game/controls';
 
@@ -11,9 +11,9 @@ function describe(c: UpgradeChoice): { name: string; desc: string } {
     const u = UPGRADE_BY_ID[c.id];
     return u ? { name: t(u.name), desc: upgradeText(u.id, c.value, u.text) } : { name: t(c.name), desc: t(c.desc) };
   }
-  const w = WEAPONS[c.weaponId ?? ''];
+  const w = POWERS[c.powerId ?? ''];
   if (!w) return { name: t(c.name), desc: t(c.desc) };
-  if (c.kind === 'weapon-new') return { name: t(w.name), desc: t('Nueva arma: {d}', { d: t(w.desc) }) };
+  if (c.kind === 'power-new') return { name: t(w.name), desc: t('Nuevo poder: {d}', { d: t(w.desc) }) };
   return c.value >= 5
     ? { name: t(w.evolved.name), desc: t('EVOLUCIÓN: {d}', { d: t(w.evolved.desc) }) }
     : { name: `${t(w.name)} ${t('Nv.')}${c.value}`, desc: t('{w}: +22% daño y -6% de recarga', { w: t(w.name) }) };

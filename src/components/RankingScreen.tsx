@@ -59,9 +59,9 @@ export function RankingScreen({ back }: { back: () => void }) {
                     <td className="pos">{i + 1}</td>
                     <td><b>{r.name}</b>{r.player_id ? <em className="pid"> #{r.player_id}</em> : <em className="pid guest"> {t('invitado')}</em>}</td>
                     <td className="time">{fmt(r.time)}</td>
-                    <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{t(AGENT_BY_ID[r.agent]?.name ?? r.agent)}</td>
+                    <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{AGENT_BY_ID[r.agent] ? t(AGENT_BY_ID[r.agent].name) : t('Héroe retirado')}</td>
                     <td style={{ color: d?.color }}>{d ? t(d.name) : r.difficulty}</td>
-                    <td className="opt">{MAP_BY_ID[r.map]?.name ?? r.map}</td>
+                    <td className="opt">{MAP_BY_ID[r.map] ? t(MAP_BY_ID[r.map].name) : '—'}</td>
                     <td className="opt">{nf(r.kills)}</td>
                     <td className="opt">{r.level}</td>
                     <td className="opt">{r.boss_kills}</td>

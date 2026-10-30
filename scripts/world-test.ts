@@ -1,56 +1,91 @@
+// Prueba del mundo: 4 zonas en 2×2 separadas por abismos, portales entre zonas, determinismo y que todo
+// el suelo de cada zona esté conectado (no quedan rincones encerrados entre obstáculos).
+// Uso: npm run test:world
 import { GameEngine } from '../src/game/GameEngine';
-import { World, CS } from '../src/game/World';
+import { World, CS, ZN, ZS, WORLD_CHUNKS, zoneAt, Cell } from '../src/game/World';
 import { AGENTS } from '../src/data/agents';
 import { MAPS, MAP_BY_ID } from '../src/data/maps';
 let fails = 0; const ok = (c: boolean, msg: string) => { console.log((c ? 'OK   ' : 'FALLO'), msg); if (!c) fails++; };
+const noop = { onLevelUp() {}, onEnd() {}, sfx() {} }, meta = { dmg: 0, hp: 0, speed: 0, xp: 0 };
 
 // 1. determinismo: misma semilla => mismo mundo; semillas distintas => distinto
-const a = new World(MAP_BY_ID.ascent, 7), b = new World(MAP_BY_ID.ascent, 7), c = new World(MAP_BY_ID.ascent, 8);
-const sig = (w: World) => JSON.stringify([w.chunk(3, -2).obstacles, w.chunk(-5, 9).obstacles]);
-ok(sig(a) === sig(b), 'mismo seed => mismo mundo (determinista, al regenerar chunks podados no cambia nada)');
+const a = new World(MAP_BY_ID.reino, 7), b = new World(MAP_BY_ID.reino, 7), c = new World(MAP_BY_ID.reino, 8);
+const sig = (w: World) => JSON.stringify([w.chunk(3, 2).obstacles, w.chunk(12, 11).obstacles]);
+ok(sig(a) === sig(b), 'mismo seed => mismo mundo');
 ok(sig(a) !== sig(c), 'seed distinta => mundo distinto');
+ok(sig(a) === sig(new World(MAP_BY_ID.ciudad, 7)), 'la zona de inicio no cambia el mundo (en pareja los dos ven lo mismo)');
 
-// 2. sin obstáculos ni solapes absurdos y sin salirse del chunk
-for (const m of MAPS) {
-  const w = new World(m, 99); let bad = 0, total = 0, empty = 0, maxN = 0;
-  for (let j = -15; j <= 15; j++) for (let i = -15; i <= 15; i++) {
-    const ch = w.chunk(i, j); total += ch.obstacles.length; maxN = Math.max(maxN, ch.obstacles.length); if (!ch.obstacles.length) empty++;
-    for (const o of ch.obstacles) if (o.x < i * CS + 12 || o.y < j * CS + 12 || o.x + o.w > (i + 1) * CS - 12 || o.y + o.h > (j + 1) * CS - 12) bad++;
+// 2. zonas y abismo
+ok(MAPS.every((m, i) => zoneAt(m.zone[0] * ZS, m.zone[1] * ZS) === i), 'cada zona está en su sitio de la cuadrícula 2×2');
+ok(zoneAt(ZN, 0) === -1 && zoneAt(0, ZN) === -1 && zoneAt(-1, 3) === -1 && zoneAt(WORLD_CHUNKS, 3) === -1, 'entre zonas y alrededor del mundo hay abismo');
+ok(a.hit(ZN * CS + CS / 2, CS * 3, 4), 'el abismo no se puede pisar');
+
+// 3. terreno: cada zona tiene sus elementos (hierba y agua en el Reino, hielo en el Glaciar, lava en el Infierno…)
+{
+  const w = new World(MAP_BY_ID.reino, 99);
+  const count = (z: number) => { const [zx, zy] = MAPS[z].zone, n: Record<number, number> = {};
+    for (let j = 0; j < ZN; j++) for (let i = 0; i < ZN; i++) for (const t of w.chunk(zx * ZS + i, zy * ZS + j).cells) n[t] = (n[t] ?? 0) + 1;
+    return n; };
+  const need: [string, number[]][] = [['reino', [Cell.Grass, Cell.Water, Cell.Path]], ['glaciar', [Cell.Ice, Cell.Rock]], ['infierno', [Cell.Lava, Cell.Rock, Cell.Bridge]], ['ciudad', [Cell.Road, Cell.Sea, Cell.Grass]]];
+  for (const [id, cells] of need) { const n = count(MAPS.findIndex(m => m.id === id)); ok(cells.every(c => (n[c] ?? 0) > 50), `${id}: tiene su terreno propio (${cells.map(c => n[c] ?? 0).join(', ')} celdas)`); }
+  const keeps = new Set<string>();
+  for (let j = 0; j < WORLD_CHUNKS; j++) for (let i = 0; i < WORLD_CHUNKS; i++) for (const o of w.chunk(i, j).obstacles) if (o.s?.endsWith('keep')) keeps.add(o.s);
+  ok(keeps.size === 3, `hay castillos en Reino, Glaciar e Infierno (${[...keeps].join(', ')})`);
+}
+{
+  const e = new GameEngine(AGENTS[0], MAP_BY_ID.reino, meta, noop);
+  const find = (t: number) => { for (let y = 0; y < ZN * CS; y += 16) for (let x = 0; x < ZN * CS; x += 16) if (e.world.terrainAt(x, y) === t && e.world.terrainAt(x + 40, y) === t && e.world.terrainAt(x - 40, y) === t && !e.world.hit(x, y, 14)) return [x, y]; return null; };
+  const wat = find(Cell.Water)!;
+  e.inputMove = { x: 1, y: 0 }; e.player.x = wat[0] - 20; e.player.y = wat[1]; e.update(1 / 60);
+  const vWater = (e.player.x - (wat[0] - 20)) * 60;
+  const grs = find(Cell.Grass)!; e.player.x = grs[0] - 20; e.player.y = grs[1]; e.update(1 / 60);
+  const vGrass = (e.player.x - (grs[0] - 20)) * 60;
+  ok(vWater < vGrass * 0.7 && vWater > 0, `el agua frena (${Math.round(vWater)} frente a ${Math.round(vGrass)} en hierba)`);
+  const [zx, zy] = MAP_BY_ID.infierno.zone, e2 = new GameEngine(AGENTS[0], MAP_BY_ID.infierno, meta, noop);
+  let lava: number[] | null = null;
+  for (let y = zy * ZS * CS; y < (zy * ZS + ZN) * CS && !lava; y += 16) for (let x = zx * ZS * CS; x < (zx * ZS + ZN) * CS; x += 16) if (e2.world.terrainAt(x, y) === Cell.Lava) { lava = [x, y]; break; }
+  e2.inputMove = { x: 0, y: 0 }; e2.player.invuln = 0; e2.player.iframes = 0; e2.player.x = lava![0]; e2.player.y = lava![1];
+  const hp0 = e2.player.hp; for (let i = 0; i < 60; i++) { e2.player.x = lava![0]; e2.player.y = lava![1]; e2.update(1 / 60); }
+  ok(e2.player.hp < hp0, `la lava quema (${Math.round(hp0)} → ${Math.round(e2.player.hp)} de vida en 1 s)`);
+}
+
+// 4. todo el suelo de cada zona conectado (rejilla de 40 unidades, cuerpo de radio 12; agua, lava y hielo se pisan)
+{
+  const w = new World(MAP_BY_ID.reino, 4242), STEP = 40;
+  for (let z = 0; z < MAPS.length; z++) {
+    const [zx, zy] = MAPS[z].zone, x0 = zx * ZS * CS, y0 = zy * ZS * CS, N = (ZN * CS) / STEP;
+    const free = (i: number, j: number) => !w.hit(x0 + i * STEP + STEP / 2, y0 + j * STEP + STEP / 2, 12);
+    const seen = new Uint8Array(N * N); let total = 0, start = -1;
+    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (free(i, j)) { total++; if (start < 0) start = j * N + i; }
+    const st = [start]; seen[start] = 1; let reach = 1;
+    while (st.length) { const k = st.pop()!, i = k % N, j = (k / N) | 0;
+      for (const [u, v] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) if (u >= 0 && v >= 0 && u < N && v < N && !seen[v * N + u] && free(u, v)) { seen[v * N + u] = 1; reach++; st.push(v * N + u); } }
+    ok(reach / total > 0.97, `${MAPS[z].id}: el ${Math.round((reach / total) * 1000) / 10}% del suelo libre es accesible desde cualquier punto`);
   }
-  ok(bad === 0, `${m.id}: ${total} obstáculos en 961 chunks (máx ${maxN}/chunk, ${empty} chunks vacíos), ninguno fuera de su chunk`);
 }
-// 3. spawn libre y centro de calles libre (portales)
+
+// 5. aparición en cada zona y portales
 for (const m of MAPS) {
-  const e = new GameEngine(AGENTS[0], m, { dmg: 0, hp: 0, speed: 0, xp: 0 }, { onLevelUp() {}, onEnd() {}, sfx() {} });
-  ok(!e.world.hit(e.player.x, e.player.y, e.player.r), `${m.id}: el jugador no aparece dentro de un obstáculo`);
-  let blockedCorners = 0; for (let j = -20; j <= 20; j++) for (let i = -20; i <= 20; i++) if (e.world.hit(i * CS, j * CS, 40)) blockedCorners++;
-  ok(blockedCorners === 0, `${m.id}: los cruces de calle (portales) siempre están libres`);
+  const e = new GameEngine(AGENTS[0], m, meta, noop);
+  ok(e.world.zoneOfPoint(e.player.x, e.player.y) === MAPS.indexOf(m) && !e.world.hit(e.player.x, e.player.y, e.player.r), `${m.id}: apareces en tu zona y no dentro de un obstáculo`);
 }
-// 4. coordenadas extremas
 {
-  const e = new GameEngine(AGENTS[0], MAP_BY_ID.haven, { dmg: 0, hp: 0, speed: 0, xp: 0 }, { onLevelUp() {}, onEnd() {}, sfx() {} });
-  e.player.x = 8_000_000; e.player.y = -12_000_000;
-  for (let i = 0; i < 600; i++) { e.inputMove.x = 1; e.inputMove.y = 0.4; e.player.hp = e.stats.maxHp; if (e.state === 'levelup') e.chooseUpgrade(0); e.update(1 / 60); }
-  ok(Number.isFinite(e.player.x) && Number.isFinite(e.player.y) && e.enemies.length > 5 && e.kills >= 0, `a 8 000 000 unidades: sigue funcionando (enemigos=${e.enemies.length}, bajas=${e.kills})`);
-  ok(!e.world.hit(e.player.x, e.player.y, e.player.r - 1) || true, 'colisiones lejanas ok');
-}
-// 5. teletransportador de Bind
-{
-  const e = new GameEngine(AGENTS[0], MAP_BY_ID.bind, { dmg: 0, hp: 0, speed: 0, xp: 0 }, { onLevelUp() {}, onEnd() {}, sfx() {} });
-  let pair: any = null;
-  for (let r = 0; r < 4 && !pair; r++) { const ps = e.world.portalsNear(0, 0, r); if (ps.length) pair = ps[0]; }
-  ok(!!pair, 'Bind genera teletransportadores cerca del origen');
-  if (pair) {
-    e.player.x = pair[0].x + 10; e.player.y = pair[0].y; e.update(1 / 60);
-    const d = Math.hypot(e.player.x - pair[1].x, e.player.y - pair[1].y);
-    ok(d < 80, `pisar el portal A te lleva al portal B (distancia al destino ${Math.round(d)})`);
-    ok(!e.world.hit(e.player.x, e.player.y, e.player.r - 1), 'y no apareces dentro de un obstáculo');
+  const e = new GameEngine(AGENTS[0], MAP_BY_ID.reino, meta, noop);
+  ok(e.world.portals.length === 12, '12 portales: 3 en cada zona, uno hacia cada otra zona');
+  ok(MAPS.every((_, z) => new Set(e.world.portals.filter(p => p.zone === z).map(p => p.to)).size === 3), 'desde cada zona se llega a las otras 3');
+  for (const from of e.world.portals) {
+    const to = e.world.portalPair(from);
+    e.portalCd = 0; e.player.x = from.x + 10; e.player.y = from.y; e.update(1 / 60);
+    const z = e.world.zoneOfPoint(e.player.x, e.player.y);
+    if (z !== from.to || Math.hypot(e.player.x - to.x, e.player.y - to.y) > 120 || e.world.hit(e.player.x, e.player.y, e.player.r - 1)) { ok(false, `portal ${MAPS[from.zone].id} → ${MAPS[from.to].id} no lleva bien`); }
   }
+  ok(true, 'cada portal te lleva junto a su pareja en la otra zona, sin quedar dentro de un obstáculo');
 }
-// 6. poda de chunks no cambia el mundo ni crece sin límite
+
+// 6. poda de chunks no cambia el mundo
 {
-  const w = new World(MAP_BY_ID.bind, 5); const before = JSON.stringify(w.chunk(2, 2).obstacles);
-  for (let i = 0; i < 400; i++) w.chunk(i, 0); w.prune(5000 * 0 + 400 * CS, 0);
-  ok(w.chunk(2, 2) && JSON.stringify(w.chunk(2, 2).obstacles) === before, 'tras podar y regenerar, el chunk es idéntico');
+  const w = new World(MAP_BY_ID.glaciar, 5); const before = JSON.stringify(w.chunk(2, 2).obstacles);
+  for (let i = 0; i < 400; i++) w.chunk(i % WORLD_CHUNKS, (i / WORLD_CHUNKS) | 0); w.prune(16 * CS, 16 * CS, 2);
+  ok(JSON.stringify(w.chunk(2, 2).obstacles) === before, 'tras podar y regenerar, el chunk es idéntico');
 }
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo correcto'); process.exit(fails ? 1 : 0);

@@ -21,7 +21,7 @@ interface Props {
 export const Emo = ({ e }: { e: string }) => <span className="emo" aria-hidden="true">{e}</span>;
 
 export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout, keys }: Props) {
-  const agent = AGENT_BY_ID[playableAgent(save.lastAgent)] ?? AGENT_BY_ID.jett;
+  const agent = AGENT_BY_ID[playableAgent(save.lastAgent)] ?? AGENT_BY_ID.zephyr;
   const click = (s: Screen) => () => { audio.play('click'); go(s); };
   const hover = () => audio.play('hover');
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;

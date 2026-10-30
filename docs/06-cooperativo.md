@@ -12,7 +12,7 @@ Partida para **2 jugadores** contra las mismas oleadas. Código: `src/net/coopLi
 3. Cada uno elige agente (de los que tiene, incluidos exclusivos y su kit). El **anfitrión** elige mapa y
    dificultad. El invitado pulsa "Estoy listo" y el anfitrión "Empezar partida".
 4. El anfitrión envía `start` con: mapa, dificultad, **semilla del mundo** y la configuración de cada jugador
-   (agente, kit, arma inicial, mejoras permanentes, nombre).
+   (agente, kit, mejoras permanentes, nombre).
 
 Arriba a la derecha se ve el estado: **Conexión directa** (P2P), **Conexión por servidor** (respaldo) o
 "Conectando…".
@@ -34,7 +34,7 @@ Arriba a la derecha se ve el estado: **Conexión directa** (P2P), **Conexión po
   proyectiles en línea recta y **predice su propio movimiento** para que responda al instante (si se separa
   más de 90 unidades de lo que dice el anfitrión, se corrige de golpe; si no, poco a poco).
 - La foto incluye: tiempo, nivel, XP, bajas, aviso grande (con su clave traducible), jugadores (posición, vida,
-  buffs, recargas, armas, torretas con su vida, mascota, mejoras pendientes), enemigos, proyectiles, gemas, golpes de
+  buffs, recargas, poderes, torretas con su vida, mascota, mejoras pendientes), enemigos, proyectiles, gemas, golpes de
   área, obuses y efectos; más los eventos visuales sueltos (chispas, números de daño, ondas, sonidos).
 - Mensajes del invitado al anfitrión: `in` (dirección de movimiento, ~20/s), `cast` (habilidad), `pick`
   (mejora elegida), `reroll`.
