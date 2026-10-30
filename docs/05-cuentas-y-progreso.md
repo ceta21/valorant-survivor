@@ -99,6 +99,8 @@ No dependen de la cuenta; se guardan en `localStorage` (`valorant-survivors-pref
 ## Cuenta de administrador
 
 `supabase/admin.sql` convierte una cuenta ya registrada en administradora: `is_admin = true`,
-◈ 9.999.999, todos los agentes, todo el mercado (con kits por defecto), mejoras al máximo y todos los logros.
+◈ 9.999.999, todos los agentes, los agentes exclusivos (con kits por defecto), mejoras al máximo y todos los logros.
 Respeta ajustes y estadísticas. En el menú se muestra la etiqueta **ADMIN**. No da permisos especiales dentro
 del juego. Ejecutarlo con el juego cerrado para que una pestaña abierta no sobrescriba el progreso.
+Tras un cambio que retire agentes (como el paso a los 20 héroes originales) hay que volver a ejecutarlo: al cargar,
+los agentes retirados se quitan y se devuelven sus créditos, así que la cuenta se queda con los 3 héroes gratis.

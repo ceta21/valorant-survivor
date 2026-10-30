@@ -1,5 +1,5 @@
 -- Convierte una cuenta YA REGISTRADA en administrador y le da todo lo del juego:
--- 9.999.999 créditos, los 20 héroes, todas las armas y agentes exclusivos del mercado nocturno,
+-- 9.999.999 créditos, los 20 héroes, los agentes exclusivos del mercado nocturno,
 -- todas las mejoras permanentes al máximo y todos los logros.
 --
 -- 1) Regístrate en el juego con el nombre que quieras para el admin.
@@ -20,7 +20,7 @@ begin
     save = coalesce(save, '{}'::jsonb) || jsonb_build_object(
       'credits', 9999999,
       'unlocked', jsonb_build_array('zephyr','lyra','kael','vex','sylvan','ember','brutus','frost','seraph','nox','raven','talos','morgan','volt','grim','aqua','zahir','draco','sora','tink'),
-      'exclusives', jsonb_build_array('ares_inferno','marshal_vacio','bucky_tormenta','guardian_aurora','frenzy_cosmos','bulldog_draco','eclipse','vortice','quimera'),
+      'exclusives', jsonb_build_array('eclipse','vortice','quimera'),
       'meta', jsonb_build_object('dmg', 10, 'hp', 10, 'speed', 10, 'xp', 10),
       'achievements', jsonb_build_array('a_first','a_kills_1000','a_kills_10000','a_time_600','a_level_25','a_win_3','a_boss_1','a_run_500'),
       -- habilidades por defecto de los agentes exclusivos (respeta las que ya hayas elegido)
