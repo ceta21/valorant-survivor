@@ -14,6 +14,7 @@ export const NEWS: NewsEntry[] = [
     id: '2.0', date: '2026-10-31', title: '¡Lanzamiento de ENDLESS RIFT!', tag: 'Nuevo', color: '#9b5cff',
     items: [
       '¡Bienvenido a ENDLESS RIFT! Grietas infinitas de las que emergen hordas de enemigos: ¿cuánto aguantarás?',
+      'Tu primera partida te guía con consejos cortos, y el juego se adapta al móvil en horizontal.',
       '20 héroes, cada uno con su poder que dispara solo y 3 habilidades propias.',
       'Un mundo con 4 zonas (Reino, Glaciar, Infierno y Ciudad) unidas por portales; el agua frena y la lava quema.',
       'Sube de nivel, aprende poderes nuevos y hazlos evolucionar; rompe cajas para conseguir premios.',

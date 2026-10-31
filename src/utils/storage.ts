@@ -7,6 +7,8 @@ import { LEGACY_AGENT_COSTS } from '../data/agents';
 import { mapOrDefault } from '../data/maps';
 export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
+  /** Ya se vieron los consejos de la primera partida. */
+  tutorialDone: boolean;
 }
 export interface MetaLevels { dmg: number; hp: number; speed: number; xp: number }
 export interface SaveStats {
@@ -51,7 +53,7 @@ export const defaultSave = (): SaveData => ({
   records: {},
   claimed: [],
   achievements: [],
-  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true },
+  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true, tutorialDone: false },
   lastAgent: 'zephyr',
   lastMap: 'reino',
   lastDifficulty: 'normal',
@@ -85,7 +87,7 @@ export function normalizeSave(p: any): SaveData {
     lastMap: mapOrDefault(p.lastMap ?? d.lastMap),   // los mapas antiguos (Ascent, Bind, Haven) pasan a la zona por defecto
     meta: { ...d.meta, ...(p.meta || {}) },
     stats: { ...d.stats, ...(p.stats || {}) },
-    settings: { ...d.settings, ...(p.settings || {}) },
+    settings: { ...d.settings, ...(p.settings || {}), tutorialDone: p.settings?.tutorialDone ?? ((p.stats?.games ?? 0) > 0) },
     records: p.records || {},
     unlocked: Array.isArray(p.unlocked) && p.unlocked.length ? p.unlocked : d.unlocked,
     claimed: p.claimed || [],

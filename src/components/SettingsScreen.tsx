@@ -22,6 +22,7 @@ export function SettingsScreen({ settings, change, back, reset, prefs, changePre
         <h3 className="settings-h">{t('Sonido y pantalla')}</h3>
         <AudioControls settings={settings} change={change} />
         <label className="row"><span>{t('Sacudida de pantalla')}</span><input type="checkbox" checked={settings.shake} onChange={e => change({ shake: e.target.checked })} /></label>
+        <label className="row"><span>{t('Consejos de la primera partida')}</span><input type="checkbox" checked={!settings.tutorialDone} onChange={e => change({ tutorialDone: !e.target.checked })} /></label>
         <label className="row"><span>{t('Pausa automática al salir de la pestaña')}</span><input type="checkbox" checked={settings.autoPause} onChange={e => change({ autoPause: e.target.checked })} /></label>
 
         <h3 className="settings-h">{t('Idioma')}</h3>

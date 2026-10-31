@@ -6,6 +6,7 @@ import { AgentDef, MapDef, RunResult, UpgradeChoice } from '../game/types';
 import { MetaLevels, Settings } from '../utils/storage';
 import { audio } from '../utils/audio';
 import { GameHUD, Hud } from './GameHUD';
+import { Coach } from './Coach';
 import { UpgradeSelection } from './UpgradeSelection';
 import { AudioControls } from './SettingsScreen';
 import { DifficultyDef } from '../data/difficulty';
@@ -264,6 +265,9 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, acco
     <div className="game" ref={wrap}>
       <canvas ref={canvasRef} className="game-canvas" />
       {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} onMap={toggleMap} />}
+      {!coop && !settings.tutorialDone && engine && hud && !result && (
+        <Coach engine={engine} keys={keys} touch={matchMedia('(pointer: coarse)').matches} finish={() => changeSettings({ tutorialDone: true })} />
+      )}
       {showMap && engine && !result && <BigMap engine={engine} close={toggleMap} keyName={keyLabel(keys.map)} />}
       {coop && hud?.state === 'levelup' && !choices && !result && (
         <div className="coop-wait-banner">{t('Esperando a que tu compañero elija su mejora…')}</div>

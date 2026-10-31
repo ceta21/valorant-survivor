@@ -39,6 +39,12 @@ estás y la tecla del mapa. Pulsarlo abre el mapa grande. La barra del jefe deja
 de cada zona, los portales con su destino, tú (parpadeando), tu pareja y los jefes. Se cierra con la misma tecla, Esc
 o pulsando fuera. En solitario detiene la partida mientras está abierto; en cooperativo no.
 
+**Primera partida guiada** (`Coach.tsx`, solo en solitario y mientras `settings.tutorialDone` sea falso): 5 consejos
+de uno en uno que pasan al hacer lo que piden: moverse (140 unidades), el poder automático (5 s), recoger un cristal,
+usar una habilidad (o 12 s) y, cuando hay una caja cerca, romper cajas (7 s). "Saltar" los quita. Al acabar se
+guarda `tutorialDone`; quien ya había jugado antes lo tiene hecho, y en Configuración se pueden volver a activar. En
+móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único temporizador (el HUD redibuja 10 veces/s).
+
 ## Estilo pixel art
 
 - Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes).
@@ -52,6 +58,9 @@ o pulsando fuera. En solitario detiene la partida mientras está abierto; en coo
 - Todo el estilo está en `src/styles/index.css` (variables de color en `:root`).
 
 ## Adaptación a pantallas
+
+- Pantallas bajas (`max-height: 500px`, móvil en horizontal): inicio de sesión y menú compactos (menú en 3 columnas)
+  para que quepan sin desplazarse, y los consejos arriba para no tapar al héroe.
 
 - Si el contenido no cabe en alto, **se hace scroll en vez de cortarse** (centrado "seguro" con márgenes automáticos).
 - Pantallas bajas (≤ 820 px de alto): menú compacto para caber sin scroll en 1366×768 y 1280×720.
