@@ -14,8 +14,8 @@ Modos y funciones principales:
 - **Solitario** con 4 dificultades y modo infinito tras el jefe final.
 - **Cooperativo para 2 jugadores** con código de sala.
 - **Cuentas** (usuario + contraseña, ID de jugador) o **modo invitado**.
-- **Ranking global** filtrable por agente y dificultad.
-- **Mercado nocturno** diario con los agentes exclusivos.
+- **Ranking global** filtrable por héroe y dificultad.
+- **Mercado nocturno** diario con estilos de héroe y mascotas de la Tienda rebajados.
 - Mejoras permanentes, misiones, logros, estadísticas, novedades.
 - **Español e inglés**, controles reasignables, adaptado a móvil y escritorio.
 
@@ -39,9 +39,9 @@ valorant-survivors/
 ├─ index.html              fuentes de Google (Press Start 2P, Pixelify Sans) y raíz de React
 ├─ src/
 │  ├─ main.tsx, App.tsx    arranque y navegación entre pantallas, estado global (guardado, cuenta, preferencias)
-│  ├─ components/          pantallas y piezas de interfaz (menú, agentes, partida, HUD, mercado, sala…)
+│  ├─ components/          pantallas y piezas de interfaz (menú, héroes, partida, HUD, mercado, sala…)
 │  ├─ game/                motor y render: GameEngine, Renderer, World, MapArt, sprites, vfx, netSync, Input…
-│  ├─ data/                datos del juego: agentes, poderes, enemigos, mejoras, mapas, dificultad, mercado, novedades
+│  ├─ data/                datos del juego: héroes, poderes, enemigos, mejoras, mapas, dificultad, mercado, novedades
 │  ├─ net/coopLink.ts      conexión del cooperativo (sala + WebRTC)
 │  ├─ utils/               supabase, cuentas, ranking, guardado/preferencias, audio
 │  ├─ i18n/                idiomas: t() y diccionario inglés (en.ts)
@@ -67,7 +67,7 @@ valorant-survivors/
 La lista completa de versiones está en [Novedades](10-datos-del-juego.md#historial-de-versiones-novedades)
 (`src/data/news.ts`). Orden en que se construyó:
 
-1. Juego base (agentes, armas, enemigos, mapas infinitos).
+1. Juego base (héroes, armas, enemigos, mapas infinitos).
 2. Estilo pixel art 2D en todo el juego.
 3. Dificultades, modo infinito y ranking global.
 4. Efectos de habilidades en pixel art.

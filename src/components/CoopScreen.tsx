@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, Kit, withKit, isAvailable } from '../data/agents';
+import { AGENTS, AGENT_BY_ID, isAvailable } from '../data/agents';
 import { Looks, looksFor } from '../data/shop';
 import { MAPS } from '../data/maps';
 import { DIFFICULTIES } from '../data/difficulty';
@@ -10,7 +10,7 @@ import { audio } from '../utils/audio';
 import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
-export interface CoopSetup { agentId: string; kit?: Kit; meta: MetaLevels; name: string; looks?: Looks }
+export interface CoopSetup { agentId: string; meta: MetaLevels; name: string; looks?: Looks }
 /** seed: semilla del mundo, para que anfitrión e invitado vean el mismo mapa. */
 export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[]; seed: number }
 interface LobbyState extends CoopSetup { ready: boolean; mapId?: string; difficulty?: string }
@@ -25,14 +25,14 @@ interface Props {
 
 const MODE_TEXT = { connecting: 'Conectando…', p2p: 'Conexión directa', relay: 'Conexión por servidor' } as const;
 
-/** Sala del modo cooperativo: crear o unirse con un código, elegir agente y empezar. */
+/** Sala del modo cooperativo: crear o unirse con un código, elegir héroe y empezar. */
 export function CoopScreen({ save, name, back, onStart }: Props) {
   const [link, setLink] = useState<CoopLink | null>(null);
   const [, force] = useState(0);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const roster = useMemo(() => [...AGENTS.filter(a => save.unlocked.includes(a.id)), ...EXCLUSIVE_AGENTS.filter(a => save.exclusives.includes(a.id))].filter(a => isAvailable(a.id)), [save]);
+  const roster = useMemo(() => AGENTS.filter(a => save.unlocked.includes(a.id) && isAvailable(a.id)), [save]);
   const [agentId, setAgentId] = useState(roster.some(a => a.id === save.lastAgent) ? save.lastAgent : roster[0]?.id ?? 'zephyr');
   const [mapId, setMapId] = useState(save.lastMap);
   const [difficulty, setDifficulty] = useState(save.lastDifficulty);
@@ -40,7 +40,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const [peerState, setPeerState] = useState<LobbyState | null>(null);
   const started = useRef(false);
 
-  const mine: LobbyState = { agentId, kit: save.kits[agentId], meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
+  const mine: LobbyState = { agentId, meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
 
   // al salir de la pantalla sin empezar, se cierra la sala
   useEffect(() => () => { if (!started.current) link?.close(); }, [link]);
@@ -82,7 +82,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const start = () => {
     if (!link || !peerState) return;
     audio.play('click');
-    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, kit: s.kit, meta: s.meta, name: s.name, looks: s.looks });
+    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, meta: s.meta, name: s.name, looks: s.looks });
     const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)], seed: Math.floor(Math.random() * 2147483647) };
     link.send({ type: 'start', start: st });
     started.current = true;
@@ -119,7 +119,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   }
 
   const isHost = link.role === 'host';
-  const agent = withKit(AGENT_BY_ID[agentId] ?? AGENTS[0], save.kits[agentId]);
+  const agent = AGENT_BY_ID[agentId] ?? AGENTS[0];
   const peerAgent = peerState ? AGENT_BY_ID[peerState.agentId] : null;
   const shownMap = isHost ? mapId : peerState?.mapId ?? mapId;
   const shownDiff = isHost ? difficulty : peerState?.difficulty ?? difficulty;
@@ -136,7 +136,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
           <div className="coop-portrait"><AgentPortrait agent={agent} /></div>
           <b>{name}</b>
           <select value={agentId} onChange={e => { audio.play('click'); setAgentId(e.target.value); setReady(false); }}>
-            {roster.map(a => <option key={a.id} value={a.id}>{t(a.name)}{a.exclusive ? ' ★' : ''}</option>)}
+            {roster.map(a => <option key={a.id} value={a.id}>{t(a.name)}</option>)}
           </select>
           {!isHost && (
             <button className={`btn ${ready ? '' : 'btn-red'}`} onClick={() => { audio.play('click'); setReady(r => !r); }}><b>{ready ? t('No estoy listo') : t('Estoy listo')}</b></button>

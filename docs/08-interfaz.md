@@ -9,15 +9,15 @@
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar, Jugar en pareja y Apoyo a todo el ancho; el resto en dos columnas), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
-| Tienda | `ShopScreen` | Pestañas de estilos de agentes (con selector del agente en el que verlos) y mascotas; solo comprar (con confirmación) |
+| Tienda | `ShopScreen` | Pestañas de estilos de héroes (con selector del héroe en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
 | Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
-| Agentes | `AgentSelection` | Elegir agente (con su poder), kit (exclusivos), zona, dificultad; desbloquear agentes (los no disponibles, con candado y "Próximamente"); estilo del agente comprado en la Tienda |
-| Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir agente, listo, empezar |
+| Héroes | `AgentSelection` | Elegir héroe (con su poder), zona, dificultad; desbloquear héroes (los no disponibles, con candado y "Próximamente"); estilo del héroe comprado en la Tienda |
+| Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir héroe, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
 | Mercado nocturno | `MarketScreen` | Cartas del día |
-| Ranking global | `RankingScreen` | Tabla filtrable por agente y dificultad |
+| Ranking global | `RankingScreen` | Tabla filtrable por héroe y dificultad |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
 | Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar) y logros |
 | Configuración | `SettingsScreen` | Sonido y pantalla, **Idioma**, **Controles**, borrar progreso |
@@ -66,7 +66,7 @@ o pulsando fuera. En solitario detiene la partida mientras está abierto; en coo
 - Español (por defecto) e inglés. Se cambia en **Configuración → Idioma** y se aplica al momento.
 - `t('texto')` en `src/i18n/index.ts`; el inglés en `src/i18n/en.ts` (clave = texto en español, con `{parámetros}`).
   Las descripciones de mejoras de partida tienen funciones propias (`EN_UPGRADE`).
-- Los datos (agentes, poderes, enemigos, novedades…) se escriben en español y se pasan por `t()` al mostrarse.
+- Los datos (héroes, poderes, enemigos, novedades…) se escriben en español y se pasan por `t()` al mostrarse.
 - Los avisos del motor llevan una clave y parámetros (`banner.key`, `banner.p`) para traducirse en cada
   pantalla, también en cooperativo.
 - `npm run test:i18n` lista los textos sin traducir.
@@ -78,5 +78,5 @@ o pulsando fuera. En solitario detiene la partida mientras está abierto; en coo
 - Se cambian en **Configuración → Controles**: pulsar el botón de la acción y luego la tecla. Si ya estaba usada,
   se **intercambian**. Teclas reservadas: Esc, 1/2/3, flechas, Tab, F5, F11, F12.
 - Siempre activas: flechas para mover y Esc para pausar. Botón "Restaurar controles".
-- Las teclas elegidas se muestran en el HUD, la ficha del agente, la ayuda del menú y el botón de relanzar.
+- Las teclas elegidas se muestran en el HUD, la ficha del héroe, la ayuda del menú y el botón de relanzar.
 - Móvil: arrastrar el dedo sobre el juego para moverse; tocar los botones de habilidad del HUD.

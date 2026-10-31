@@ -18,15 +18,16 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 
 | Comando | Qué comprueba |
 |---|---|
-| `npm run test:sim` | Simula partidas de todos los agentes en solitario |
+| `npm run test:sim` | Simula partidas de todos los héroes en solitario |
 | `npm run test:coop` | Motor con 2 jugadores: caídas, vuelta en la oleada, mejoras, abandono, mismo mundo con la misma semilla |
 | `npm run test:turrets` | Torretas de Tink: cuántas salen y si los robots las destruyen |
 | `npm run test:daily` | Diario: racha de conexión, misiones del día y su progreso |
 | `npm run test:pets` | Mascotas: te siguen, caen, vuelven al minuto y atacan con su poder (captura en `shots/pets.png`) |
 | `npm run test:i18n` | Que todos los textos tengan traducción al inglés |
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
-| `npm run test:abilities` | Hoja con cada agente usando cada habilidad (`shots/abilities.png`) |
+| `npm run test:abilities` | Hoja con cada héroe usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
+| `npm run test:kinds` | Habilidades nuevas: la órbita gira y golpea, los orbes rebotan entre enemigos, la espiral dispara en todas direcciones, el bumerán vuelve y el rastro daña y ralentiza |
 | `npm run test:crates` | Cajas: aparecen cerca y sin pasar del máximo, se rompen con proyectiles y explosiones, sueltan premio cada premio (curación, imán, bomba, monedas) funciona, el premio cae al suelo y se recoge pisándolo, y el poder dispara a la caja si está más cerca que el enemigo |
 | `npm run test:world` | Mundo: zonas y abismos, determinismo, terreno de cada zona y castillos, que el agua frene y la lava queme, que todo el suelo esté conectado y que cada portal lleve a su pareja |
 | `npx tsx scripts/maps-overview.ts` | Capturas del monumento principal de cada zona en `shots/overview_<zona>.png` |
@@ -48,11 +49,11 @@ Notas:
 
 ## Cómo añadir contenido
 
-**Agente**: añadirlo en `src/data/agents.ts` (estadísticas, rasgo, 2–3 habilidades con su `fx`), su aspecto en
+**Héroe**: añadirlo en `src/data/agents.ts` (estadísticas, rasgo, 2–3 habilidades con su `fx`), su aspecto en
 `LOOKS` de `src/game/sprites.ts`, añadir su id al `check` de `scores.agent` (SQL nuevo) y traducir sus textos en
 `en.ts`.
 
-**Aspecto de un agente a partir de su hoja de sprites**:
+**Aspecto de un héroe a partir de su hoja de sprites**:
 1. Guardar la imagen en `art/<id>.png` (fondo liso). Si varios personajes salen de la misma hoja (como
    `art/heroes.png`), poner `"src": "heroes"` en su entrada de `art/frames.json`.
 2. `npx tsx scripts/cut-agent.ts <id> --find` lista dónde está cada fotograma.
@@ -86,7 +87,7 @@ y su nombre en `en.ts`.
 Esta carpeta es la memoria del proyecto. **Cada cambio del juego debe actualizarla**:
 
 1. Cambios de reglas, fórmulas o funcionamiento → editar el documento del tema (02–08).
-2. Cambios de datos (agentes, poderes, enemigos, mejoras, precios, novedades…) → `npm run docs:data`.
+2. Cambios de datos (héroes, poderes, enemigos, mejoras, precios, novedades…) → `npm run docs:data`.
 3. Cambios de base de datos → `04-base-de-datos.md` y el SQL correspondiente en `supabase/`.
 4. Nuevos comandos o pruebas → este documento.
 5. Añadir la novedad en `src/data/news.ts` (aparece también en la tabla de versiones de `10-datos-del-juego.md`).

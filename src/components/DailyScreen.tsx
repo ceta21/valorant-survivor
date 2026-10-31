@@ -22,7 +22,7 @@ export function DailyScreen({ save, back, claimMission, claimLogin, claimStreak 
   const [, tick] = useState(0);
   useEffect(() => { const id = setInterval(() => tick(n => n + 1), 30000); return () => clearInterval(id); }, []);
   const day = dayKey(), d = todayProgress(save.daily, day);
-  const missions = dailyMissions(day, [...save.unlocked, ...save.exclusives]);
+  const missions = dailyMissions(day, save.unlocked);
   const l = save.login, streak = l.last === day ? l.streak : 0;
   const prev = [...STREAK_REWARDS].reverse().find(m => m.day <= streak)?.day ?? 0;
   const next = STREAK_REWARDS.find(m => m.day > streak);

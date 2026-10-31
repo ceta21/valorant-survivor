@@ -15,7 +15,7 @@ ranking local.
 |---|---|---|
 | `supabase/schema.sql` | Tabla `scores` (ranking) y sus políticas | Sí |
 | `supabase/accounts.sql` | Tabla `profiles`, trigger de registro, función `username_available`, columnas `user_id`/`player_id` en `scores` y trigger que rellena el nombre | Sí |
-| `supabase/market.sql` | Permite en el ranking los agentes exclusivos (`eclipse`, `vortice`, `quimera`) | Sí |
+| `supabase/market.sql` | Permitía en el ranking los héroes exclusivos (`eclipse`, `vortice`, `quimera`, ya retirados; sus marcas siguen siendo válidas) | Sí |
 | `supabase/agents.sql` | (Antiguo) permitía los 14 agentes de la versión 1.13 | Sí |
 | `supabase/heroes.sql` | Permite en el ranking los 20 héroes originales y las zonas (`reino`, `glaciar`, `infierno`, `ciudad`); mantiene los ids antiguos | Pendiente |
 | `supabase/admin.sql` | Columna `is_admin` y convierte una cuenta en administrador con todo desbloqueado (cambiar `TU_USUARIO`) | Sí |

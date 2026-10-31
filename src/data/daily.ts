@@ -10,7 +10,7 @@ export interface DailyProgress {
   day: string;
   games: number; wins: number; kills: number; bossKills: number; damage: number;
   bestTime: number; bestLevel: number; bestKills: number;
-  /** Partidas por agente, por mapa y en Difícil/Pesadilla. */
+  /** Partidas por héroe, por mapa y en Difícil/Pesadilla. */
   agents: Record<string, number>; maps: Record<string, number>; hard: number;
   /** Misiones de hoy ya cobradas (por id de plantilla). */
   claimed: string[];
@@ -99,7 +99,7 @@ function rng(seed: string) {
   return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
 }
 
-/** Las 3 misiones del día: una fácil, una media y una difícil. `agents` = agentes que el jugador puede usar. */
+/** Las 3 misiones del día: una fácil, una media y una difícil. `agents` = héroes que el jugador puede usar. */
 export function dailyMissions(day: string, agents: string[]): DailyMission[] {
   const r = rng('daily-' + day), pick = <T,>(a: T[]) => a[Math.floor(r() * a.length)];
   const usable = agents.filter(isAvailable);

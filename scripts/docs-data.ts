@@ -1,8 +1,8 @@
 // Genera docs/10-datos-del-juego.md con las tablas de datos sacadas directamente del código
-// (agentes, habilidades, armas, enemigos, mejoras, dificultades, misiones…).
+// (héroes, habilidades, armas, enemigos, mejoras, dificultades, misiones…).
 // Se ejecuta con `npm run docs:data` cada vez que cambian los datos del juego.
 import { writeFileSync, mkdirSync } from 'node:fs';
-import { AGENTS, EXCLUSIVE_AGENTS, ULTIMATES, ABILITIES } from '../src/data/agents';
+import { AGENTS, ULTIMATES, ABILITIES } from '../src/data/agents';
 import { POWERS, HERO_POWER } from '../src/data/powers';
 import { ENEMIES, SPAWNABLE, BOSS_SCHEDULE, WAVE_TIMES, FINAL_TIME, ENDLESS_BOSS_START, ENDLESS_BOSS_MIN, ENDLESS_BOSSES, ENDLESS_MAX_BOSSES } from '../src/data/enemies';
 import { MAPS } from '../src/data/maps';
@@ -32,20 +32,17 @@ out.push(`# 10 · Datos del juego (generado)
 > Última generación: ${new Date().toISOString().slice(0, 10)} · versión de Novedades: v${NEWS[0]?.id ?? '?'}
 `);
 
-out.push(`## Agentes base\n`);
+out.push(`## Héroes base\n`);
 out.push(table(['id', 'Nombre', 'Rol', 'Vida', 'Velocidad', 'Daño', 'Coste', 'Rasgo', 'Modificadores'],
   AGENTS.map(a => [`\`${a.id}\``, a.name, a.role, a.hp, a.speed, a.damage, a.cost || 'gratis', a.trait.label, mods(a.trait.mods)])));
-out.push(`\nLos agentes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el principio.\n`);
+out.push(`\nLos héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el principio.\n`);
 
-out.push(`## Habilidades por agente\n`);
-out.push(table(['Agente', 'Espacio (especial)', 'E (secundaria)', 'Q (definitiva)'], AGENTS.map(a => [a.name, ab(a.special), ab(a.secondary), ab(a.ultimate)])));
+out.push(`## Habilidades por héroe\n`);
+out.push(table(['Héroe', 'Espacio (especial)', 'E (secundaria)', 'Q (definitiva)'], AGENTS.map(a => [a.name, ab(a.special), ab(a.secondary), ab(a.ultimate)])));
 out.push(`\n### Parámetros de cada habilidad\n`);
 out.push(table(['id', 'Nombre', 'Tipo', 'Recarga', 'Efecto visual', 'Parámetros', 'Descripción'],
   [...ABILITIES, ...ULTIMATES].map(a => [`\`${a.id}\``, a.name, a.kind, a.cd ? `${a.cd} s` : 'carga de definitiva', a.fx ?? '—', abParams(a), a.desc])));
 
-out.push(`\n## Agentes exclusivos (mercado nocturno)\n`);
-out.push(table(['id', 'Nombre', 'Rol', 'Vida', 'Velocidad', 'Daño', 'Precio base', 'Rasgo', 'Kit por defecto'],
-  EXCLUSIVE_AGENTS.map(a => [`\`${a.id}\``, a.name, a.role, a.hp, a.speed, a.damage, a.cost, `${a.trait.label}: ${mods(a.trait.mods)}`, `${a.special.id} / ${a.secondary?.id} / ${a.ultimate.id}`])));
 
 out.push(`\n## Poderes\n`);
 out.push(table(['id', 'Nombre', 'Rareza', 'Daño', 'Recarga (s)', 'Proyectiles', 'Perfora', 'Alcance', 'Crítico', 'Extra', 'Evolución (Nv 5)', 'Héroes que empiezan con él'],
@@ -89,7 +86,7 @@ out.push(table(['id', 'Nombre', 'Descripción'], MAPS.map(m => [`\`${m.id}\``, m
 
 out.push(`\n## Mercado nocturno\n`);
 out.push(`- ${MARKET_SLOTS} cartas por jugador, nueva rotación cada ${MARKET_PERIOD_MS / 3600000} h (medianoche UTC).
-- Son los agentes exclusivos, en orden al azar.
+- Son los héroes exclusivos, en orden al azar.
 - Descuento aleatorio del 10 % al 35 %; el precio se redondea a múltiplos de 50.
 `);
 

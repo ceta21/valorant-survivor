@@ -1,14 +1,14 @@
 # 02 · Jugabilidad
 
-Los valores exactos (vida de cada agente, daño de cada poder, etc.) están en
+Los valores exactos (vida de cada héroe, daño de cada poder, etc.) están en
 [10 · Datos del juego](10-datos-del-juego.md). Aquí se explican las reglas y las fórmulas.
 Código principal: `src/game/GameEngine.ts`.
 
 ## Flujo de una partida
 
-1. En **Jugar** se elige agente, zona de inicio y dificultad.
-   Se puede jugar con los 20 héroes y los exclusivos del mercado (`AVAILABLE_AGENTS` en `src/data/agents.ts`);
-   si algún agente se saca de esa lista, sale con candado y el rótulo **Próximamente** y no se puede comprar ni
+1. En **Jugar** se elige héroe, zona de inicio y dificultad.
+   Se puede jugar con los 20 héroes (`AVAILABLE_AGENTS` en `src/data/agents.ts`);
+   si algún héroe se saca de esa lista, sale con candado y el rótulo **Próximamente** y no se puede comprar ni
    elegir (tampoco en cooperativo).
 2. La partida empieza con el aviso "¡SOBREVIVE!" y el **poder** del héroe a nivel 1 (`HERO_POWER` en
    `src/data/powers.ts`). No hay armas.
@@ -24,8 +24,8 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
 
 ## Jugador
 
-- Estadísticas iniciales: vida y velocidad del agente, daño = `daño del agente / 10`, crítico 5 %,
-  multiplicador crítico ×1,6, regeneración 0,5 vida/s, más el rasgo del agente y las mejoras permanentes.
+- Estadísticas iniciales: vida y velocidad del héroe, daño = `daño del héroe / 10`, crítico 5 %,
+  multiplicador crítico ×1,6, regeneración 0,5 vida/s, más el rasgo del héroe y las mejoras permanentes.
 - Al recibir daño: 0,55 s de invulnerabilidad (parpadeo). El escudo absorbe el daño antes que la vida y
   se regenera a 4/s tras 5 s sin recibir golpes (hasta su máximo).
 - Movimiento en 8 direcciones por un mundo grande y cerrado de 4 zonas (Reino, Glaciar, Infierno, Ciudad) separadas
@@ -48,7 +48,7 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
 
 ## Habilidades
 
-Cada agente tiene una habilidad **especial** (Espacio), opcionalmente una **secundaria** (E) y una
+Cada héroe tiene una habilidad **especial** (Espacio), opcionalmente una **secundaria** (E) y una
 **definitiva** (Q). Las dos primeras tienen recarga (reducible con "Circuitos de recarga", máx. −60 %).
 La definitiva se carga de 0 a 100: empieza en 25, sube 0,6/s × carga, 1,1 por baja normal × carga y
 20 por jefe.
@@ -67,8 +67,13 @@ Tipos de habilidad (`kind`):
 | `frenzy` | Cadencia aumentada y robo de vida por baja durante unos segundos (Brutus, Raven, Sora). |
 | `storm` | Lluvia de dagas al enemigo más cercano cada 0,07 s (Vex). |
 | `heal` | Curación y escudo (Seraph, Sylvan, Aqua…). |
-| `beam` | **Rayo** recto hacia el enemigo más cercano (o hacia donde vas) que atraviesa a todos los que toca: largo `radius` × √alcance, ancho `width` × área; aplica aturdir / quemar / frenar / marcar. `count` > 1 = rayos en estrella (Zephyr, Ember, Frost, Seraph, Nox, Volt, Lyra, Talos, Aqua). Se dibuja con `pixelRay()`. |
+| `beam` | **Rayo** recto hacia el enemigo más cercano (o hacia donde vas) que atraviesa a todos los que toca: largo `radius` × √alcance, ancho `width` × área; aplica aturdir / quemar / frenar / marcar. `count` > 1 = rayos en estrella (Zephyr, Lyra, Volt). Se dibuja con `pixelRay()`. |
 | `cone` | **Abanico** delante de ti de apertura `spread` (grados) y alcance `radius` (aliento de Draco, llamarada de Ember). Se dibuja con `pixelCone()`. |
+| `orbit` | **Órbita**: `count` proyectiles del elemento (con estela en curva) giran alrededor del héroe a `radius` × área durante `duration` s; golpean (y empujan) a cada enemigo como mucho una vez cada 0,45 s y rompen cajas (Aqua burbujas, Talos rocas, Brutus hachas, Draco fuego). Las de delante se pintan encima del héroe. |
+| `bounce` | **Rebote**: `count` proyectiles del elemento hacia el enemigo más cercano que, al golpear, saltan al enemigo más cercano aún no tocado (`bounces` saltos, hasta 320 de distancia) (Zephyr, Seraph, Morgan). |
+| `spiral` | **Espiral**: durante `duration` s lanza cada 0,08 s un proyectil del elemento por brazo (`count` brazos) girando 0,42 rad cada vez (Ember fuego, Nox morada, Sora rosa). |
+| `boomerang` | **Bumerán**: `count` discos que llegan a `radius` × √alcance, vuelven al héroe y desaparecen al llegar; atraviesan todo a la ida y otra vez a la vuelta y no los paran los obstáculos (Vex, Grim). |
+| `trail` | **Rastro**: durante `duration` s, al moverte deja cada 0,16 s un charco de radio 46 × área que dura 2,6 s y daña cada 0,4 s (y frena con `slow`) a quien lo pisa (Sylvan espinas, Frost hielo, Zahir arena). |
 
 Efectos de estado: **quemadura** (daño por segundo), **ralentización**, **aturdimiento** (los jefes no se
 aturden) y **marca** (+30 % de daño recibido).
@@ -83,7 +88,7 @@ aturden) y **marca** (+30 % de daño recibido).
 
 ### Mascotas
 
-Se compran en la Tienda (ver más abajo); en el apartado **Mascotas** (`PetsScreen`, debajo de Agentes en el menú)
+Se compran en la Tienda (ver más abajo); en el apartado **Mascotas** (`PetsScreen`, debajo de Héroes en el menú)
 se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su poder. Código: `updatePet()` y
 `petAttack()` en `GameEngine`, dibujo en `src/game/petSprites.ts`.
 
@@ -171,16 +176,16 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
 ## Progresión fuera de la partida
 
 - **Créditos (◈)**: se ganan jugando y cobrando misiones.
-- **Agentes**: 20 héroes originales; Zephyr, Lyra y Kael gratis y el resto se desbloquean con créditos. Los
-  agentes de versiones anteriores ya no existen: al cargar un guardado se quitan y se devuelve lo que costaron
+- **Héroes**: 20 héroes originales; Zephyr, Lyra y Kael gratis y el resto se desbloquean con créditos. Los
+  héroes de versiones anteriores ya no existen: al cargar un guardado se quitan y se devuelve lo que costaron
   (`LEGACY_AGENT_COSTS`); sus marcas del ranking salen como "Héroe retirado".
 - **Mejoras permanentes**: daño, vida, velocidad y experiencia, 10 niveles cada una (ver coste en [10](10-datos-del-juego.md#mejoras-permanentes)).
 - **Mercado nocturno**: ver [07](07-mercado-nocturno.md).
 - **Tienda** (`src/data/shop.ts`, `ShopScreen`): **solo compra** (con confirmación). Lo comprado se pone en otro sitio:
-  estilos de agente en la ficha de cada agente (**Agentes**); mascotas y su poder en **Mascotas**.
-  - Estilos de agentes (◈ 8.000–12.000): recolorean ropa y armadura del agente al que se pongan, respetando piel y
-    contorno (`applySkin()` en `sprites.ts`). Cada agente lleva el suyo. Solo estéticos.
-  - Ya no hay armas: al cargar un guardado, las armas exclusivas y los estilos de arma comprados antes se quitan y
-    se devuelve su precio base (`LEGACY_WEAPON_PRICES`).
+  estilos de héroe en la ficha de cada héroe (**Héroes**); mascotas y su poder en **Mascotas**.
+  - Estilos de héroes (◈ 8.000–12.000): recolorean ropa y armadura del héroe al que se pongan, respetando piel y
+    contorno (`applySkin()` en `sprites.ts`). Cada héroe lleva el suyo. Solo estéticos.
+  - Ya no hay armas ni héroes exclusivos (Eclipse, Vórtice y Quimera): al cargar un guardado, las armas exclusivas,
+    los estilos de arma y esos héroes comprados antes se quitan y se devuelve su precio base (`LEGACY_PRICES`).
   - Mascotas (◈ 12.000–16.000). Su poder se compra en Mascotas: ◈ 5.000 / 8.000 / 12.000 por nivel.
   - Lo comprado y lo equipado va en `save.shop` y se lleva a la partida como `Looks` (también en cooperativo).

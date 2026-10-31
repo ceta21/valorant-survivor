@@ -7,7 +7,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { RankingScreen } from './components/RankingScreen';
 import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
-import { AGENTS, AGENT_BY_ID, EXCLUSIVE_AGENTS, withKit, isAvailable } from './data/agents';
+import { AGENTS, AGENT_BY_ID, isAvailable } from './data/agents';
 import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
@@ -82,19 +82,17 @@ export default function App() {
   /** Empieza una partida cooperativa con lo acordado en la sala. */
   const startCoop = useCallback((link: CoopLink, st: CoopStart, local: number) => {
     const setups: PlayerSetup[] = st.setups.map(c => ({
-      agent: withKit(AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.zephyr, c.kit), meta: c.meta, name: c.name, looks: c.looks,
+      agent: AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.zephyr, meta: c.meta, name: c.name, looks: c.looks,
     }));
     setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local, seed: st.seed } }));
     setScreen('game');
   }, []);
   const leaveGame = () => { run.coop?.link.close(); setRun(r => ({ ...r, coop: undefined })); setScreen('menu'); };
 
-  // en local (npm run dev) se pueden elegir todos los agentes, también los exclusivos, para probarlos; no toca el guardado
-  const pickSave = import.meta.env?.DEV
-    ? { ...save, unlocked: AGENTS.map(a => a.id), exclusives: [...new Set([...save.exclusives, ...EXCLUSIVE_AGENTS.map(a => a.id)])] }
-    : save;
+  // en local (npm run dev) se pueden elegir todos los héroes para probarlos; no toca el guardado
+  const pickSave = import.meta.env?.DEV ? { ...save, unlocked: AGENTS.map(a => a.id) } : save;
   const start = (agentId: string, mapId: string, difficulty: string) => {
-    if (!isAvailable(agentId)) return;   // agente "Próximamente"
+    if (!isAvailable(agentId)) return;   // héroe "Próximamente"
     update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
     setRun(r => ({ agentId, mapId, difficulty, key: r.key + 1 }));
     setScreen('game');
@@ -112,7 +110,7 @@ export default function App() {
 
   const claimDaily = (id: string) => update(s => {
     const day = dayKey(), d = todayProgress(s.daily, day);
-    const m = dailyMissions(day, [...s.unlocked, ...s.exclusives]).find(x => x.id === id);
+    const m = dailyMissions(day, s.unlocked).find(x => x.id === id);
     if (!m || d.claimed.includes(id) || m.value(d) < m.goal) return s;
     return { ...s, credits: s.credits + m.reward, daily: { ...d, claimed: [...d.claimed, id] } };
   });
@@ -128,7 +126,7 @@ export default function App() {
   // tienda
   const buyShop = (id: string, price: number) => update(s => {
     if (s.credits < price || s.shop.owned.includes(id)) return s;
-    // la tienda solo compra: los estilos se ponen en Agentes y las mascotas en Mascotas
+    // la tienda solo compra: los estilos se ponen en Héroes y las mascotas en Mascotas
     return { ...s, credits: s.credits - price, shop: { ...s.shop, owned: [...s.shop.owned, id] } };
   });
   const equipShop = (fn: (s: ShopSave) => ShopSave) => update(s => ({ ...s, shop: fn(s.shop) }));
@@ -162,19 +160,15 @@ export default function App() {
     const period = marketPeriod(), cur = s.market.period === period ? s.market.revealed : [];
     return cur.includes(slot) ? s : { ...s, market: { period, revealed: [...cur, slot] } };
   });
-  const buyOffer = (o: Offer) => update(s => {
-    if (s.credits < o.price || s.exclusives.includes(o.id)) return s;
-    const a = AGENT_BY_ID[o.id];
-    const kits = o.kind === 'agent' && a ? { ...s.kits, [o.id]: { special: a.special.id, secondary: a.secondary?.id ?? '', ultimate: a.ultimate.id } } : s.kits;
-    return { ...s, credits: s.credits - o.price, exclusives: [...s.exclusives, o.id], kits };
-  });
+  /** Compra una oferta del mercado nocturno: va a la Tienda como si se hubiera comprado allí (más barata). */
+  const buyOffer = (o: Offer) => update(s => s.credits < o.price || s.shop.owned.includes(o.id) ? s : { ...s, credits: s.credits - o.price, shop: { ...s.shop, owned: [...s.shop.owned, o.id] } });
 
   const go = (s: Screen) => {
     if (s === 'news') update(v => (v.newsSeen === LATEST_NEWS ? v : { ...v, newsSeen: LATEST_NEWS }));
     setScreen(s);
   };
   const baseAgent = AGENT_BY_ID[run.agentId];
-  const agent = baseAgent && withKit(baseAgent, save.kits[run.agentId]), map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
+  const agent = baseAgent, map = MAP_BY_ID[run.mapId], difficulty = DIFFICULTY_BY_ID[run.difficulty] ?? DIFFICULTY_BY_ID.normal;
 
   return (
     <div className="app">
@@ -187,7 +181,6 @@ export default function App() {
       {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} keys={prefs.keys} />}
       {screen === 'agents' && (
         <AgentSelection save={pickSave} back={() => go('menu')} start={start} keys={prefs.keys}
-          setKit={(id, kit) => update(s => ({ ...s, kits: { ...s.kits, [id]: kit } }))}
           equip={equipShop}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
       )}
@@ -211,7 +204,7 @@ export default function App() {
       {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}
       {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
       {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
-      {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} />}
+      {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} goPets={() => go('pets')} />}
       {screen === 'game' && agent && map && (
         <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}

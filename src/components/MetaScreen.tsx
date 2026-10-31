@@ -11,7 +11,7 @@ export function MetaScreen({ save, back, buy }: { save: SaveData; back: () => vo
         <h2>{t('Mejoras permanentes')}</h2>
         <span className="credits">◈ {nf(save.credits)}</span>
       </header>
-      <p className="lead">{t('Se aplican a todos los agentes en cada partida. Son pequeñas a propósito: cada punto cuenta, pero la habilidad sigue importando.')}</p>
+      <p className="lead">{t('Se aplican a todos los héroes en cada partida. Son pequeñas a propósito: cada punto cuenta, pero la habilidad sigue importando.')}</p>
       <ul className="meta-list">
         {META.map(m => {
           const lv = save.meta[m.id];

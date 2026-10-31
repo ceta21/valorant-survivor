@@ -35,7 +35,7 @@ export function PetsScreen({ save, back, goShop, equip, buyPower }: Props) {
             <article className={`shop-card ${shop.pet === '' ? 'on' : ''}`}>
               <div className="shop-art pet pets-none" aria-hidden="true">—</div>
               <b>{t('Sin mascota')}</b>
-              <small>{t('Juegas solo con tu agente.')}</small>
+              <small>{t('Juegas solo con tu héroe.')}</small>
               <button className="btn btn-sm" disabled={shop.pet === ''} onClick={click(() => equip(s => ({ ...s, pet: '' })))}><b>{shop.pet === '' ? t('Elegida') : t('Elegir')}</b></button>
             </article>
             {mine.map(p => {

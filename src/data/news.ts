@@ -11,6 +11,28 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.23', date: '2026-10-31', title: 'Ahora son héroes', tag: 'Mejora', color: '#f0c850',
+    items: [
+      'Ahora son héroes: en todo el juego hablamos de héroes en lugar de agentes.',
+      'Eclipse, Vórtice y Quimera dejan el juego; si los habías comprado, te devolvemos sus créditos.',
+      'El mercado nocturno ofrece cada día estilos de héroe y mascotas de la Tienda con descuento.',
+      'Sombras más suaves y realistas al pie de muros, árboles y rocas, y bajo los personajes.',
+      'El mapa cobra vida: el agua corre, la lava burbujea, los árboles se mecen, los fuegos parpadean y el molino gira.',
+    ],
+  },
+  {
+    id: '1.22', date: '2026-10-31', title: 'Habilidades nuevas', tag: 'Nuevo', color: '#4fb8ff',
+    items: [
+      'Habilidades nuevas y más variadas para 14 héroes: cada uno se siente distinto.',
+      'Órbita: gotas, rocas o llamas que giran a tu alrededor dejando estela (Aqua, Talos, Brutus, Draco).',
+      'Espiral: lluvias de llamas o almas moradas y rosas (Ember, Nox, Sora).',
+      'Rebote: estrellas y almas que saltan de enemigo en enemigo (Zephyr, Seraph, Morgan).',
+      'Los ataques con forma propia dejan estela y estallan en chispas de su color al impactar.',
+      'Bumerán: guadañas y hachas que van y vuelven (Vex, Grim).',
+      'Rastro: dejas un camino de espinas, hielo o arena que frena a los enemigos (Sylvan, Frost, Zahir).',
+    ],
+  },
+  {
     id: '1.21', date: '2026-10-31', title: 'Cajas con premios', tag: 'Nuevo', color: '#ffd24a',
     items: [
       'Cajas por el mapa: rómpelas con tus poderes para conseguir premios.',

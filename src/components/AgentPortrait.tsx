@@ -6,7 +6,7 @@ import { t } from '../i18n';
 // candado pixel-art (rejilla de 10x12)
 const LOCK = ['  ######  ', ' ##    ## ', ' #      # ', ' #      # ', '##########', '##########', '####  ####', '####  ####', '##### ####', '##########', '##########', '##########'];
 
-/** Retrato: personaje pixel-art original del agente sobre un fondo de bandas con su emblema. */
+/** Retrato: personaje pixel-art original del héroe sobre un fondo de bandas con su emblema. */
 export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; locked?: boolean }) {
   const img = hasImage(agent.id), sz = spriteSize(agent.id);
   const runs = useMemo(() => img ? [] : spriteRuns(agent.id), [agent.id, img]);
@@ -25,7 +25,7 @@ export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; lock
       <rect x="56" y="208" width="88" height="8" fill="#000" opacity="0.35" /><rect x="68" y="216" width="64" height="4" fill="#000" opacity="0.35" />
       <svg x="22" y="28" width="156" height="184" viewBox={`0 0 ${sz.w} ${sz.h}`} style={{ filter: locked ? 'grayscale(1) brightness(0.4)' : undefined }}>
         {img
-          // agente con hoja de sprites: su primer fotograma de frente
+          // héroe con hoja de sprites: su primer fotograma de frente
           ? <image href={agentSheetUrl(id)} width={sheetCols(id) * sz.w} height={3 * sz.h} style={{ imageRendering: 'pixelated' }} />
           : runs.map((r, i) => <rect key={i} x={r.x} y={r.y} width={r.w} height={1.02} fill={r.c} />)}
       </svg>

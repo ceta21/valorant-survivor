@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SaveData } from '../utils/storage';
 import { AGENT_SKINS, PETS } from '../data/shop';
-import { ALL_AGENTS, isAvailable, playableAgent } from '../data/agents';
+import { AGENTS, isAvailable, playableAgent } from '../data/agents';
 import { AgentArt, ELEMENT, PetArt } from './ShopArt';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
@@ -13,13 +13,13 @@ interface Props {
 }
 type Tab = 'agents' | 'pets';
 
-/** Tienda: solo se compra. Los estilos de agente se ponen en Agentes; las mascotas, en Mascotas. */
+/** Tienda: solo se compra. Los estilos de héroe se ponen en Héroes; las mascotas, en Mascotas. */
 export function ShopScreen({ save, back, buy }: Props) {
   const [tab, setTab] = useState<Tab>('agents');
   const [sure, setSure] = useState('');   // compra pendiente de confirmar
   const owned = save.shop.owned;
-  // agente sobre el que se ven los estilos (cualquiera que se pueda jugar; empieza en el último elegido)
-  const lookable = ALL_AGENTS.filter(a => isAvailable(a.id) && (!a.exclusive || save.exclusives.includes(a.id)));
+  // héroe sobre el que se ven los estilos (cualquiera que se pueda jugar; empieza en el último elegido)
+  const lookable = AGENTS.filter(a => isAvailable(a.id));
   const [agentId, setAgentId] = useState(playableAgent(save.lastAgent));
   const click = (fn: () => void) => () => { audio.play('click'); fn(); };
 
@@ -41,14 +41,14 @@ export function ShopScreen({ save, back, buy }: Props) {
         <span className="credits">◈ {nf(save.credits)}</span>
       </header>
       <nav className="shop-tabs" role="tablist">
-        {([['agents', t('Estilos de agentes')], ['pets', t('Mascotas')]] as [Tab, string][]).map(([k, label]) => (
+        {([['agents', t('Estilos de héroes')], ['pets', t('Mascotas')]] as [Tab, string][]).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={tab === k} className={`btn btn-sm ${tab === k ? 'btn-red' : ''}`} onClick={click(() => { setTab(k); setSure(''); })}><b>{label}</b></button>
         ))}
       </nav>
 
       {tab === 'agents' && (
         <>
-          <p className="lead">{t('Ropa y armadura nuevas para tus agentes. Solo estético: no da poderes ni mejoras. Póntelos en la ficha de cada agente, en Agentes.')}</p>
+          <p className="lead">{t('Ropa y armadura nuevas para tus héroes. Solo estético: no da poderes ni mejoras. Póntelos en la ficha de cada héroe, en Héroes.')}</p>
           <label className="shop-agent-pick">
             <span>{t('Ver los estilos en')}</span>
             <select value={agentId} onChange={e => { audio.play('click'); setAgentId(e.target.value); }}>
@@ -61,7 +61,7 @@ export function ShopScreen({ save, back, buy }: Props) {
                 <AgentArt id={agentId} skin={k.id} />
                 <b>{t(k.name)}</b>
                 <small>{t(k.desc)}</small>
-                {buyButton(k.id, k.price, t('en Agentes'))}
+                {buyButton(k.id, k.price, t('en Héroes'))}
               </article>
             ))}
           </div>

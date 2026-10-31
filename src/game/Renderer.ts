@@ -1,8 +1,9 @@
-import { GameEngine, Enemy } from './GameEngine';
+import { elemLook, GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { POWERS } from '../data/powers';
 import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
-import { renderChunk, CPX } from './MapArt';
+import { renderChunk, treeSprite, CPX, U } from './MapArt';
+import { Cell, CN, hash2 } from './World';
 import { CS } from './World';
 import { petCanvas, PW, PH } from './petSprites';
 import { MAPS } from '../data/maps';
@@ -92,6 +93,32 @@ export class Renderer {
     this.gemCache.set(key, c);
     return c;
   }
+  /** Estela de cometa detrás de un proyectil: halo suave y 6 cuadrados que se estrechan, oscurecen y tiemblan. */
+  private drawComet(g: Ctx, x: number, y: number, dx: number, dy: number, pal: string, r: number, t: number) {
+    const ramp = PAL[pal] ?? PAL.fire;
+    g.globalCompositeOperation = 'lighter';
+    g.fillStyle = hexA(ramp[2], 0.2); g.beginPath(); g.arc(x, y, 14 + r, 0, 7); g.fill();
+    g.globalCompositeOperation = 'source-over';
+    const nx = -dy, ny = dx;
+    for (let i = 1; i <= 6; i++) {
+      const sz = Math.max(1, 6 - i) * PX, wob = Math.sin(t * 40 + i * 1.7) * i * 0.8, d = 8 + i * 7;
+      g.fillStyle = ramp[Math.max(0, 4 - Math.ceil(i * 0.75))];
+      g.fillRect(Math.round((x + dx * d + nx * wob) / PX) * PX - sz / 2, Math.round((y + dy * d + ny * wob) / PX) * PX - sz / 2, sz, sz);
+    }
+  }
+  /** Sprite de disco con la gama de un color (oscuro → claro), guardado en caché. */
+  private tinted(kind: 'disc', color: string) {
+    const key = kind + color;
+    let c = this.gemCache.get(key);
+    if (c) return c;
+    const rows = ['...OO....', '...OLO...', 'OO.OLMO..', 'OLOOWMOOO', '.OMWWWMLO', 'OOOMWOOOO', '..OMLO.OO', '...OLO...', '....OO...'];
+    const pal: Record<string, string> = { O: shade(color, -0.75), D: shade(color, -0.35), M: color, L: shade(color, 0.45), W: '#ffffff' };
+    c = this.makeCanvas(rows[0].length, rows.length);
+    const cg = c.getContext('2d');
+    rows.forEach((r, yy) => [...r].forEach((ch, xx) => { if (pal[ch]) { cg.fillStyle = pal[ch]; cg.fillRect(xx, yy, 1, 1); } }));
+    this.gemCache.set(key, c);
+    return c;
+  }
   /** Halo del color del cristal (degradado radial ya pintado, para no recalcularlo por gema). */
   private gemGlow(tier: string) {
     const key = 'glow-' + tier;
@@ -135,6 +162,86 @@ export class Renderer {
     return c;
   }
 
+  /** Árbol con balanceo (sway −1, 0, 1), guardado en caché por zona, tamaño y fotograma. */
+  private treeCanvas(zone: string, rad: number, sway: number) {
+    const k = `tree|${zone}|${rad}|${sway}`;
+    let c = this.gemCache.get(k);
+    if (!c) { c = treeSprite(zone, rad, sway, this.makeCanvas); this.gemCache.set(k, c); }
+    return c;
+  }
+  /** Lo que se mueve en un chunk: se dibuja cada fotograma encima del chunk ya pintado (1 píxel de arte = U unidades). */
+  private drawLiveChunk(g: Ctx, e: GameEngine, cx: number, cy: number) {
+    const ch = e.world.chunk(cx, cy);
+    if (ch.zone < 0) return;
+    const t = e.time, ox = cx * CS, oy = cy * CS, zone = MAPS[ch.zone].id;
+    const px = (x: number, y: number, w: number, h: number) => g.fillRect(ox + x * U, oy + y * U, w * U, h * U);   // en píxeles de arte
+    // agua: destellos que se desplazan con la corriente; lava: brillo que late y burbujas que revientan
+    g.globalCompositeOperation = 'lighter';
+    for (let j = 0; j < CN; j++) for (let i = 0; i < CN; i++) {
+      const c = ch.cells[j * CN + i];
+      if (c !== Cell.Water && c !== Cell.Sea && c !== Cell.Lava) continue;
+      const h = hash2(cx * CN + i, cy * CN + j, 917), x = i * 8, y = j * 8;
+      if (c === Cell.Lava) {
+        g.fillStyle = `rgba(255,120,30,${(0.05 + 0.05 * Math.sin(t * 2.2 + h * 9)).toFixed(3)})`; px(x, y, 8, 8);
+        if (h > 0.72) {   // burbuja: crece 1,2 s y revienta
+          const k = (t * 0.8 + h * 7) % 1.6;
+          if (k < 1.2) { const r = 1 + Math.floor(k * 2); g.fillStyle = 'rgba(255,230,140,0.55)'; px(x + 3, y + 4 - r, r, r); }
+          else { g.fillStyle = 'rgba(255,240,180,0.6)'; px(x + 1, y + 2, 1, 1); px(x + 5, y + 2, 1, 1); px(x + 3, y, 1, 1); }
+        }
+      } else if (h > 0.35) {
+        // reflejo de 3 píxeles que avanza por la celda (la corriente va hacia la derecha y un poco hacia abajo)
+        const k = (t * (c === Cell.Sea ? 3 : 4.5) + h * 8) % 8, a = 0.18 + 0.12 * Math.sin(t * 3 + h * 6);
+        g.fillStyle = `rgba(200,240,255,${a.toFixed(3)})`; px(x + Math.floor(k), y + 2 + Math.floor(h * 4), 3, 1);
+        if (h > 0.8 && Math.sin(t * 4 + h * 20) > 0.7) { g.fillStyle = 'rgba(255,255,255,0.7)'; px(x + Math.floor(h * 6), y + 5, 1, 1); }   // destello
+      }
+    }
+    // fuente: ondas que se abren desde el centro y salpicaduras
+    for (const d of ch.deco) {
+      if (d.type !== 'fountain') continue;
+      const lx = Math.round((d.x - ox) / U), ly = Math.round((d.y - oy) / U), R = Math.round(d.rx / U) - 6;
+      for (let w = 0; w < 2; w++) {
+        const k = ((t * 0.5 + w * 0.5) % 1), rr = 6 + Math.round(k * (R - 6));
+        g.fillStyle = `rgba(220,250,255,${(0.35 * (1 - k)).toFixed(3)})`;
+        for (let a = 0; a < 24; a++) { const an = (a / 24) * Math.PI * 2; px(Math.round(lx + Math.cos(an) * rr), Math.round(ly + Math.sin(an) * rr * 0.8), 1, 1); }
+      }
+      if (Math.sin(t * 6) > 0) { g.fillStyle = 'rgba(255,255,255,0.6)'; px(lx - 3, ly - 15 - Math.round(Math.abs(Math.sin(t * 6)) * 2), 1, 1); px(lx + 3, ly - 14, 1, 1); }
+    }
+    // fuegos: hogueras, braseros y farolas parpadean
+    for (const d of ch.deco) {
+      if (d.type !== 'campfire' && d.type !== 'brazier' && d.type !== 'lamp') continue;
+      const lx = Math.round((d.x - ox) / U), ly = Math.round((d.y - oy) / U), f = Math.sin(t * 11 + d.x) + Math.sin(t * 17 + d.y);
+      if (d.type === 'lamp') { g.fillStyle = `rgba(255,200,110,${(0.35 + 0.15 * f).toFixed(3)})`; px(lx - 1, ly - 7, 2, 1); continue; }
+      const big = d.type === 'brazier' && d.rx > 40, hgt = (big ? 6 : 3) + Math.round(f), w = big ? 5 : 2;
+      g.fillStyle = 'rgba(255,138,28,0.75)'; px(lx - w, ly - hgt - (big ? 2 : 4), w * 2, hgt);
+      g.fillStyle = 'rgba(255,224,90,0.8)'; px(lx - (w >> 1), ly - hgt - (big ? 1 : 3), Math.max(1, w), Math.max(1, hgt - 2));
+      if (((t * 6 + d.x) | 0) % 3 === 0) { g.fillStyle = 'rgba(255,200,80,0.8)'; px(lx + ((t * 13 + d.y) % 5 | 0) - 2, ly - hgt - 6 - ((t * 20) % 4 | 0), 1, 1); }   // chispa
+    }
+    g.globalCompositeOperation = 'source-over';
+    // aspas del molino: giran despacio
+    for (const d of ch.deco) {
+      if (d.type !== 'windmill') continue;
+      const lx = Math.round((d.x - ox) / U), ly = Math.round((d.y - oy) / U) - 5, R = Math.round(d.rx / U) + 3;
+      for (let b = 0; b < 4; b++) {
+        const a = t * 0.9 + (b * Math.PI) / 2, c = Math.cos(a), sn = Math.sin(a);
+        for (let k = 4; k < R; k++) {
+          const x = Math.round(lx + c * k), y = Math.round(ly + sn * k);
+          g.fillStyle = '#14110f'; px(x - 1, y - 1, 3, 3);
+          g.fillStyle = k % 4 ? '#e8dcc0' : '#6a4a2a'; px(x, y, 2, 2);
+        }
+      }
+      g.fillStyle = '#14110f'; px(lx - 3, ly - 3, 7, 7); g.fillStyle = '#6a4a2a'; px(lx - 2, ly - 2, 5, 5);
+    }
+    // árboles: la copa se mece con el viento (3 fotogramas), cada uno con su ritmo
+    for (const o of ch.obstacles) {
+      if (o.k !== 'a') continue;
+      const ow = Math.max(2, Math.round(o.w / U)), oh = Math.max(2, Math.round(o.h / U));
+      const bx = Math.round((o.x - ox) / U) + (ow >> 1), by = Math.round((o.y - oy) / U) + oh - 2;
+      const sway = Math.round(Math.sin(t * 1.7 + o.x * 0.013 + o.y * 0.007) * 1.2);
+      const spr = this.treeCanvas(zone, ow >> 1, Math.max(-1, Math.min(1, sway)));
+      g.drawImage(spr, ox + (bx - (spr.width >> 1)) * U, oy + (by - (spr.height - 2)) * U, spr.width * U, spr.height * U);
+    }
+  }
+
   render(e: GameEngine) {
     e.sync();
     const g = this.ctx;
@@ -159,6 +266,8 @@ export class Renderer {
     for (let j = c0y; j <= c1y; j++) for (let i = c0x; i <= c1x; i++) {
       g.drawImage(this.chunkCanvas(e, i, j), 0, 0, CPX, CPX, i * CS, j * CS, CS + 1, CS + 1);
     }
+    // mapa vivo: agua y lava que se mueven, árboles que se balancean, fuegos que parpadean y aspas que giran
+    for (let j = c0y; j <= c1y; j++) for (let i = c0x; i <= c1x; i++) this.drawLiveChunk(g, e, i, j);
 
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
@@ -335,22 +444,23 @@ export class Renderer {
     }
     g.globalCompositeOperation = 'source-over';
     // dagas (Jett), flechas (Sova) y disparos de mascotas: sprites orientados con estela de píxeles
-    const LOOK: Record<string, [string, string]> = { dagger: ['dagger', 'wind'], arrow: ['arrow', 'scan'], flame: ['flame', 'fire'], bolt: ['bolt', 'electric'], leaf: ['crystal', 'poison'], wisp: ['flame', 'soul'],
-      ice: ['crystal', 'ice'], water: ['flame', 'water'], rock: ['rock', 'stim'], star: ['star', 'scan'] };
-    const SPIN = new Set(['flame', 'wisp', 'water', 'rock', 'star']);   // sin orientación (bolas, rocas, estrellas)
+    // discos de bumerán: giran y dejan copias que se desvanecen
     for (const b of e.projs) {
-      if (b.dead || !b.look || !vis(b.x, b.y)) continue;
-      const ang = Math.atan2(b.vy, b.vx), c = Math.cos(ang), s = Math.sin(ang);
-      const [sprName, pal] = LOOK[b.look] ?? LOOK.dagger;
-      const trail = PAL[pal];
-      g.globalCompositeOperation = 'lighter';
-      g.fillStyle = hexA(trail[2], 0.22); g.beginPath(); g.arc(b.x, b.y, 16 + b.r, 0, 7); g.fill();
-      g.globalCompositeOperation = 'source-over';
-      for (let i = 1; i <= 4; i++) {
-        g.fillStyle = trail[Math.max(0, 4 - i)];
-        const sz = (5 - i) * PX;
-        g.fillRect(Math.round((b.x - c * (14 + i * 9)) / PX) * PX - sz / 2, Math.round((b.y - s * (14 + i * 9)) / PX) * PX - sz / 2, sz, sz);
+      if (b.dead || b.look !== 'disc' || !vis(b.x, b.y)) continue;
+      const sp = Math.hypot(b.vx, b.vy) || 1, img = this.tinted('disc', b.color);
+      for (let i = 3; i >= 1; i--) {
+        g.globalAlpha = 0.18 * (4 - i);
+        drawSprite(g, img, b.x - (b.vx / sp) * i * 14, b.y - (b.vy / sp) * i * 14, PX * 3, (e.time - i * 0.03) * 14);
       }
+      g.globalAlpha = 1;
+      drawSprite(g, img, b.x, b.y, PX * 3, e.time * 14);
+    }
+    // proyectiles con aspecto propio: halo, estela que se estrecha y parpadea, y el sprite del elemento
+    for (const b of e.projs) {
+      if (b.dead || !b.look || b.look === 'disc' || !vis(b.x, b.y)) continue;
+      const ang = Math.atan2(b.vy, b.vx), [sprName, basePal] = PROJ_LOOK[b.look] ?? PROJ_LOOK.dagger;
+      const pal = b.pal && PAL[b.pal] ? b.pal : basePal;
+      this.drawComet(g, b.x, b.y, -Math.cos(ang), -Math.sin(ang), pal, b.r, e.time + b.x * 0.01);
       drawSprite(g, sprite(sprName, b.look === 'arrow' && b.color === '#ffffff' ? 'holy' : pal, this.makeCanvas), b.x, b.y, BIG, SPIN.has(b.look) ? (b.look === 'star' || b.look === 'rock' ? e.time * 8 : 0) : ang);
     }
     // efectos de habilidad (explosiones, anillos, llamas, haces de luz)
@@ -533,7 +643,8 @@ export class Renderer {
   private drawPlayer(g: Ctx, e: GameEngine) {
     const p = e.player, a = e.agent, t = e.time;
     const blink = p.iframes > 0 && Math.floor(t * 20) % 2 === 0;
-    g.fillStyle = 'rgba(0,0,0,0.4)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 14, 14, 6, 0, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.16)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 14, 20, 9, 0, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.36)'; g.beginPath(); g.ellipse(p.x + 2, p.y + 14, 13, 5, 0, 0, 7); g.fill();
     this.drawBuffs(g, e, false);
     if (p.invuln > 0) pixelCircle(g, p.x, p.y, p.r + 10, '#ffffff', PX, 2, t * 3);
     if (p.shield > 0) { g.globalAlpha = 0.7; pixelCircle(g, p.x, p.y, p.r + 6, '#7ad7ff', PX, 1); g.globalAlpha = 1; }
@@ -550,7 +661,7 @@ export class Renderer {
     else if (dashing) pose = RUN[0];
     else if (moving) { frame = Math.floor(t * (sprint ? 18 : 11)) % 4; pose = (sprint ? RUN : WALK)[frame]; }
     const sz = spriteSize(a.id), dw = sz.w * sz.px, dh = sz.h * sz.px;
-    // agentes con hoja de sprites: fotogramas propios de andar (el arma equipada se pinta igual encima)
+    // héroes con hoja de sprites: fotogramas propios de andar (el arma equipada se pinta igual encima)
     const imgFrame = moving || dashing ? Math.floor(t * (sprint || dashing ? 12 : 8)) : 0;
     // orientación según hacia dónde se mueve: de espaldas, de frente o de lado (izquierda = espejo)
     const mvx = dashing ? p.dashVx : e.inputMove.x, mvy = dashing ? p.dashVy : e.inputMove.y;
@@ -612,6 +723,25 @@ export class Renderer {
   private drawBuffs(g: Ctx, e: GameEngine, front: boolean) {
     const p = e.player, b = e.buffs, t = e.time, mk = this.makeCanvas;
     const px = Math.round(p.x / PX) * PX, py = Math.round(p.y / PX) * PX;
+    // órbita: las de delante del héroe se pintan encima y las de detrás, debajo
+    if (b.orbitT > 0) {
+      const look = elemLook(b.orbitFx), [sprName, basePal] = PROJ_LOOK[look], pal = PAL[b.orbitFx] ? b.orbitFx : basePal, img = sprite(sprName, pal, mk);
+      g.globalAlpha = b.orbitT < 1 ? b.orbitT : 1;
+      for (let i = 0; i < b.orbitN; i++) {
+        const a = b.orbitAng + (i / b.orbitN) * Math.PI * 2;
+        if ((Math.sin(a) > 0) !== front) continue;
+        const ox = p.x + Math.cos(a) * b.orbitR, oy = p.y + Math.sin(a) * b.orbitR;
+        // estela: puntos que siguen la curva por detrás (gira en sentido horario)
+        const ramp = PAL[pal];
+        for (let k = 1; k <= 6; k++) {
+          const ak = a - k * 0.13, sz = Math.max(1, 5 - Math.floor(k * 0.7)) * PX;
+          g.fillStyle = ramp[Math.max(0, 4 - Math.ceil(k * 0.7))];
+          g.fillRect(Math.round((p.x + Math.cos(ak) * b.orbitR) / PX) * PX - sz / 2, Math.round((p.y + Math.sin(ak) * b.orbitR) / PX) * PX - sz / 2, sz, sz);
+        }
+        drawSprite(g, img, Math.round(ox / PX) * PX, Math.round(oy / PX) * PX, BIG, SPIN.has(look) ? (look === 'star' || look === 'rock' ? t * 8 : 0) : a + Math.PI / 2);
+      }
+      g.globalAlpha = 1;
+    }
     // Neon: rayos que saltan a su alrededor
     if (b.sprintT > 0 && !front) {
       const R = b.sprintRad * e.stats.area, bucket = Math.floor(t * 14);
@@ -657,7 +787,8 @@ export class Renderer {
   private drawEnemy(g: Ctx, en: Enemy, e: GameEngine) {
     const d = en.def, r = en.r, x = en.x, y = en.y;
     const flash = en.flash > 0;
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(Math.round((x - r) / PX) * PX, Math.round((y + r * 0.6) / PX) * PX, Math.round(r * 2 / PX) * PX, PX * 2);
+    g.fillStyle = 'rgba(0,0,0,0.14)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 1.35, r * 0.55, 0, 0, 7); g.fill();
+    g.fillStyle = 'rgba(0,0,0,0.32)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 0.9, r * 0.32, 0, 0, 7); g.fill();
     // robot pixel-art: anda (2 fotogramas), mira hacia su objetivo, blanco al recibir golpe, gris aturdido
     const kind = enemyKind(d.id);
     const stunned = en.stunT > 0;
@@ -696,6 +827,17 @@ export class Renderer {
   }
 }
 
+/** Sprite y paleta de cada aspecto de proyectil (la paleta puede cambiarla la habilidad con pal). */
+const PROJ_LOOK: Record<string, [string, string]> = { dagger: ['dagger', 'wind'], arrow: ['arrow', 'scan'], flame: ['flame', 'fire'], bolt: ['bolt', 'electric'], leaf: ['crystal', 'poison'], wisp: ['flame', 'soul'],
+  ice: ['crystal', 'ice'], water: ['flame', 'water'], rock: ['rock', 'stim'], star: ['star', 'scan'] };
+/** Aspectos sin orientación (bolas, rocas, estrellas). */
+const SPIN = new Set(['flame', 'wisp', 'water', 'rock', 'star']);
+/** Aclara (f > 0) u oscurece (f < 0) un color #rrggbb. */
+function shade(hex: string, f: number) {
+  const n = parseInt(hex.slice(1), 16), ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const v = ch.map(c => Math.round(f >= 0 ? c + (255 - c) * f : c * (1 + f)));
+  return '#' + v.map(c => c.toString(16).padStart(2, '0')).join('');
+}
 function hexA(hex: string, a: number) {
   if (hex.startsWith('#') && hex.length === 7) {
     const r = parseInt(hex.slice(1, 3), 16), gg = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);

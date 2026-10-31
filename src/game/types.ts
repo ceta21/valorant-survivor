@@ -12,7 +12,17 @@ export type AbilityKind =
   /** Rayo recto hacia el enemigo más cercano (o hacia donde vas) que atraviesa a todos; count = nº de rayos en estrella. */
   | 'beam'
   /** Abanico delante de ti (aliento de fuego); spread = apertura en grados. */
-  | 'cone';
+  | 'cone'
+  /** count bolas que giran alrededor del héroe a radius de distancia durante duration s y golpean al tocar. */
+  | 'orbit'
+  /** count bolas que saltan de enemigo en enemigo (bounces saltos cada una). */
+  | 'bounce'
+  /** Durante duration s lanza bolas en espiral alrededor (count brazos). */
+  | 'spiral'
+  /** count discos que van hasta radius y vuelven al héroe, atravesando todo a la ida y a la vuelta. */
+  | 'boomerang'
+  /** Durante duration s deja un rastro al moverse que daña (y frena con slow) a los enemigos que lo pisan. */
+  | 'trail';
 
 export type AbilityFx =
   | 'wind' | 'blades' | 'fire' | 'hothands' | 'heal' | 'ice' | 'holy' | 'soul' | 'grenade' | 'boom' | 'rocket'
@@ -39,6 +49,8 @@ export interface AbilityDef {
   mark?: number;
   /** Ancho del rayo (beam). */
   width?: number;
+  /** Saltos de cada bola (bounce). */
+  bounces?: number;
   /** Apertura del abanico en grados (cone). */
   spread?: number;
   /** Estilo visual del efecto (ver game/vfx.ts y Renderer). */
@@ -70,8 +82,6 @@ export interface AgentDef {
   trait: { label: string; desc: string; mods: Partial<Stats> };
   cost: number;
   emblem: string;      // path SVG (viewBox 24)
-  /** Agente exclusivo del mercado nocturno: sus habilidades las elige el jugador. */
-  exclusive?: boolean;
 }
 
 export interface MapDef {
@@ -101,7 +111,9 @@ export interface EnemyDef {
 }
 
 /** Aspecto de un proyectil ('' = estela de luz del color del poder). */
-export type ProjLook = '' | 'dagger' | 'arrow' | 'flame' | 'bolt' | 'leaf' | 'wisp' | 'ice' | 'water' | 'rock' | 'star';
+export type ProjLook = '' | 'dagger' | 'arrow' | 'flame' | 'bolt' | 'leaf' | 'wisp' | 'ice' | 'water' | 'rock' | 'star'
+  /** Disco giratorio del color del proyectil (bumerán). */
+  | 'disc';
 
 /** Poder básico: lo lanza el héroe solo, sin parar, al enemigo más cercano. Sube de nivel y evoluciona al 5. */
 export interface PowerDef {

@@ -78,6 +78,5 @@ export const HERO_POWER: Record<string, string> = {
   zephyr: 'arcano', lyra: 'flecha', kael: 'luz', vex: 'viento', sylvan: 'hoja', ember: 'fuego', brutus: 'roca',
   frost: 'hielo', seraph: 'luz', nox: 'sombra', raven: 'fuego', talos: 'roca', morgan: 'sombra', volt: 'rayo',
   grim: 'roca', aqua: 'agua', zahir: 'viento', draco: 'fuego', sora: 'sombra', tink: 'rayo',
-  eclipse: 'sombra', vortice: 'viento', quimera: 'hoja',
 };
 export const heroPower = (agentId: string) => POWERS[HERO_POWER[agentId]] ?? POWERS.arcano;

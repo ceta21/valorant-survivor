@@ -38,7 +38,7 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | Campo | Contenido |
 |---|---|
 | `credits` | Créditos ◈ |
-| `unlocked` | Agentes base desbloqueados |
+| `unlocked` | Héroes base desbloqueados |
 | `meta` | Niveles de mejoras permanentes (`dmg`, `hp`, `speed`, `xp`) |
 | `stats` | Partidas, victorias, bajas, jefes, daño, tiempo total, mejores marcas |
 | `records` | Mejor tiempo / nivel / victorias por mapa |
@@ -46,12 +46,10 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `settings` | Volumen de música y efectos, silencios, sacudida de pantalla, pausa automática |
 | `lastAgent`, `lastMap`, `lastDifficulty` | Última selección |
 | `playerName` | Nombre usado como invitado en el ranking |
-| `exclusives` | Agentes exclusivos comprados |
-| `kits` | Habilidades elegidas para cada agente exclusivo |
 | `market` | Rotación del mercado y cartas ya descubiertas |
 | `newsSeen` | Última versión de Novedades vista (para la etiqueta "Nuevo") |
-| `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por agente/mapa, en Difícil+) y las misiones diarias cobradas |
-| `shop` | Tienda: lo comprado (`owned`), estilo de cada agente, mascota que acompaña y nivel del poder de cada mascota |
+| `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por héroe/mapa, en Difícil+) y las misiones diarias cobradas |
+| `shop` | Tienda: lo comprado (`owned`), estilo de cada héroe, mascota que acompaña y nivel del poder de cada mascota |
 | `login` | Racha de conexión: último día, días seguidos, mejor racha, último premio diario cobrado e hitos cobrados |
 
 - `normalizeSave()` completa cualquier guardado con los valores por defecto, así que añadir campos nuevos no
@@ -69,7 +67,7 @@ Código: `src/data/daily.ts` (datos y reglas), `src/components/DailyScreen.tsx` 
 - El **día** es el del reloj del dispositivo (`dayKey()`, AAAA-MM-DD) y cambia a medianoche.
 - **Misiones diarias**: 3 al día (fácil ◈ 60, media ◈ 120, difícil ◈ 200), elegidas con una semilla del día entre
   10 plantillas (bajas del día, bajas en una partida, sobrevivir, nivel, partidas, jefes, daño, partidas con un
-  agente que el jugador tenga, partidas en un mapa, partidas en Difícil/Pesadilla). Cuentan las partidas
+  héroe que el jugador tenga, partidas en un mapa, partidas en Difícil/Pesadilla). Cuentan las partidas
   terminadas ese día (`addRun()` en `handleEnd`, también en cooperativo). Al cambiar de día el progreso
   empieza de cero.
 - **Racha de conexión**: al entrar al juego (y cada minuto, por si pasa la medianoche) `touchLogin()` suma un
@@ -99,8 +97,8 @@ No dependen de la cuenta; se guardan en `localStorage` (`valorant-survivors-pref
 ## Cuenta de administrador
 
 `supabase/admin.sql` convierte una cuenta ya registrada en administradora: `is_admin = true`,
-◈ 9.999.999, todos los agentes, los agentes exclusivos (con kits por defecto), mejoras al máximo y todos los logros.
+◈ 9.999.999, los 20 héroes, mejoras al máximo y todos los logros.
 Respeta ajustes y estadísticas. En el menú se muestra la etiqueta **ADMIN**. No da permisos especiales dentro
 del juego. Ejecutarlo con el juego cerrado para que una pestaña abierta no sobrescriba el progreso.
-Tras un cambio que retire agentes (como el paso a los 20 héroes originales) hay que volver a ejecutarlo: al cargar,
+Tras un cambio que retire héroes (como el paso a los 20 héroes originales) hay que volver a ejecutarlo: al cargar,
 los agentes retirados se quitan y se devuelven sus créditos, así que la cuenta se queda con los 3 héroes gratis.

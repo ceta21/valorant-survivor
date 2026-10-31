@@ -20,7 +20,8 @@
     "docs:data": "tsx scripts/docs-data.ts",
     "test:daily": "tsx scripts/daily-test.ts",
     "test:pets": "tsx scripts/pet-test.ts",
-    "test:crates": "tsx scripts/crate-test.ts"
+    "test:crates": "tsx scripts/crate-test.ts",
+    "test:kinds": "tsx scripts/ability-test.ts"
   },
   "keywords": [],
   "author": "",

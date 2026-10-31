@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ABILITIES, ABILITY_OWNER, AGENTS, EXCLUSIVE_AGENTS, Kit, ULTIMATES, withKit, isAvailable, playableAgent } from '../data/agents';
+import { AGENTS, isAvailable, playableAgent } from '../data/agents';
 import { heroPower } from '../data/powers';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
@@ -16,27 +16,19 @@ interface Props {
   back: () => void;
   start: (agentId: string, mapId: string, difficulty: string) => void;
   unlock: (agentId: string) => void;
-  setKit: (agentId: string, kit: Kit) => void;
   /** Poner los estilos comprados en la tienda. */
   equip: (fn: (s: ShopSave) => ShopSave) => void;
   keys: KeyMap;
 }
 
-export function AgentSelection({ save, back, start, unlock, setKit, equip, keys }: Props) {
+export function AgentSelection({ save, back, start, unlock, equip, keys }: Props) {
   const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
   const [sel, setSel] = useState(playableAgent(save.lastAgent));
   const [mapId, setMapId] = useState(save.lastMap);
   const [diffId, setDiffId] = useState(save.lastDifficulty);
-  // los agentes exclusivos solo aparecen si se han comprado en el mercado nocturno
-  const roster = [...AGENTS, ...EXCLUSIVE_AGENTS.filter(a => save.exclusives.includes(a.id))];
-  const base = roster.find(a => a.id === sel) ?? AGENTS[0];
-  const kit = save.kits[base.id];
-  const agent = withKit(base, kit);
-  const isOpen = save.unlocked.includes(agent.id) || save.exclusives.includes(agent.id);
-  const changeKit = (slot: keyof Kit, id: string) => {
-    audio.play('click');
-    setKit(agent.id, { special: agent.special.id, secondary: agent.secondary?.id ?? '', ultimate: agent.ultimate.id, [slot]: id });
-  };
+  const roster = AGENTS;
+  const agent = roster.find(a => a.id === sel) ?? AGENTS[0];
+  const isOpen = save.unlocked.includes(agent.id);
   const soon = !isAvailable(agent.id);
   const canBuy = !isOpen && !soon && save.credits >= agent.cost;
   const rec = save.records[mapId];
@@ -44,15 +36,15 @@ export function AgentSelection({ save, back, start, unlock, setKit, equip, keys 
     <div className="screen select">
       <header className="top">
         <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
-        <h2>{t('Elige tu agente')}</h2>
+        <h2>{t('Elige tu héroe')}</h2>
         <span className="credits">◈ {nf(save.credits)}</span>
       </header>
       <div className="select-body">
-        <div className="agent-grid" role="listbox" aria-label={t('Agentes')}>
+        <div className="agent-grid" role="listbox" aria-label={t('Héroes')}>
           {roster.map(a => {
-            const open = save.unlocked.includes(a.id) || save.exclusives.includes(a.id), later = !isAvailable(a.id);
+            const open = save.unlocked.includes(a.id), later = !isAvailable(a.id);
             return (
-              <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open && !later ? '' : 'locked'} ${later ? 'soon' : ''} ${a.exclusive ? 'exclusive' : ''}`}
+              <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open && !later ? '' : 'locked'} ${later ? 'soon' : ''}`}
                 style={{ ['--ac' as any]: a.color }} onClick={() => { audio.play('click'); setSel(a.id); }} onMouseEnter={() => audio.play('hover')}>
                 <AgentPortrait agent={a} locked={!open || later} />
                 <span className="agent-card-name">{t(a.name)}</span>
@@ -79,15 +71,15 @@ export function AgentSelection({ save, back, start, unlock, setKit, equip, keys 
             <div className="trait power" style={{ ['--pc' as any]: pw.color }}><b>{pw.icon} {t('Poder')}: {t(pw.name)}</b><span>{t(pw.desc)} {t('Lo lanza solo, sin parar.')}</span></div>
           ); })()}
           {isOpen && !soon && (() => {
-            // estilos del agente comprados en la tienda (solo estéticos)
+            // estilos del héroe comprados en la tienda (solo estéticos)
             const skins = AGENT_SKINS.filter(k => save.shop.owned.includes(k.id)), cur = save.shop.agent[agent.id] ?? '';
             return (
               <div className="styles">
-                <b>{t('Estilo del agente')}</b>
-                {skins.length === 0 ? <small>{t('Compra estilos en la Tienda para cambiar la ropa y la armadura de tus agentes.')}</small> : (
+                <b>{t('Estilo del héroe')}</b>
+                {skins.length === 0 ? <small>{t('Compra estilos en la Tienda para cambiar la ropa y la armadura de tus héroes.')}</small> : (
                   <div className="style-row">
                     <AgentArt id={agent.id} skin={cur} className="style-preview" />
-                    <div className="style-chips" role="radiogroup" aria-label={t('Estilo del agente')}>
+                    <div className="style-chips" role="radiogroup" aria-label={t('Estilo del héroe')}>
                       {[{ id: '', name: 'Original' }, ...skins].map(k => (
                         <button key={k.id} role="radio" aria-checked={cur === k.id} className={`map-chip ${cur === k.id ? 'on' : ''}`}
                           onClick={() => { audio.play('click'); equip(s => ({ ...s, agent: { ...s.agent, [agent.id]: k.id } })); }}><b>{t(k.name)}</b></button>
@@ -98,19 +90,6 @@ export function AgentSelection({ save, back, start, unlock, setKit, equip, keys 
               </div>
             );
           })()}
-          {agent.exclusive && (
-            <div className="kit-editor">
-              <b>{t('Elige sus habilidades')}</b>
-              {([['special', K.special, ABILITIES], ['secondary', K.secondary, ABILITIES], ['ultimate', K.ultimate, ULTIMATES]] as const).map(([slot, key, list]) => (
-                <label key={slot}>
-                  <kbd>{key}</kbd>
-                  <select value={agent[slot]?.id ?? ''} onChange={e => changeKit(slot, e.target.value)}>
-                    {list.map(ab => <option key={ab.id} value={ab.id}>{t(ab.name)} ({ABILITY_OWNER[ab.id]})</option>)}
-                  </select>
-                </label>
-              ))}
-            </div>
-          )}
           <ul className="abilities">
             <li><kbd>{K.special}</kbd><div><b>{t(agent.special.name)}</b><span>{t(agent.special.desc)}</span></div></li>
             {agent.secondary && <li><kbd>{K.secondary}</kbd><div><b>{t(agent.secondary.name)}</b><span>{t(agent.secondary.desc)}</span></div></li>}

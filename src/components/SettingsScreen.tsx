@@ -39,7 +39,7 @@ export function SettingsScreen({ settings, change, back, reset, prefs, changePre
 
         <div className="danger">
           <h3>{t('Progreso guardado')}</h3>
-          <p>{t('Con cuenta se guarda en tu cuenta; como invitado, solo mientras la página esté abierta. Borrarlo elimina créditos, agentes, mejoras y estadísticas.')}</p>
+          <p>{t('Con cuenta se guarda en tu cuenta; como invitado, solo mientras la página esté abierta. Borrarlo elimina créditos, héroes, mejoras y estadísticas.')}</p>
           {!confirm ? (
             <button className="btn" onClick={() => setConfirm(true)}><b>{t('Borrar progreso')}</b></button>
           ) : (

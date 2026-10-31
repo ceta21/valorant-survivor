@@ -49,9 +49,9 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           {/* Jugar y Jugar en pareja ocupan todo el ancho; el resto va en dos columnas para que quepa sin scroll */}
           <button className="btn btn-red btn-xl wide" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🎮" />{t('Jugar')}</b></button>
           <button className="btn btn-coop wide" onClick={click('coop')} onMouseEnter={hover}><b><Emo e="👥" />{t('Jugar en pareja')}</b></button>
-          <button className="btn" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🦸" />{t('Agentes')}</b></button>
+          <button className="btn" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🦸" />{t('Héroes')}</b></button>
           <button className="btn" onClick={click('pets')} onMouseEnter={hover}><b><Emo e="🐾" />{t('Mascotas')}</b></button>
-          <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={hover}><b><Emo e="📅" />{t('Diario')}{hasDailyReward(save.daily, save.login, [...save.unlocked, ...save.exclusives]) && <i className="news-badge">!</i>}</b></button>
+          <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={hover}><b><Emo e="📅" />{t('Diario')}{hasDailyReward(save.daily, save.login, save.unlocked) && <i className="news-badge">!</i>}</b></button>
           <button className="btn btn-shop" onClick={click('shop')} onMouseEnter={hover}><b><Emo e="🧺" />{t('Tienda')}</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={hover}><b><Emo e="💪" />{t('Mejoras')}</b></button>
           <button className="btn btn-market" onClick={click('market')} onMouseEnter={hover}><b><Emo e="🌙" />{t('Mercado nocturno')}</b></button>
@@ -75,7 +75,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <div><dt>{t('Victorias')}</dt><dd>{save.stats.wins}</dd></div>
           <div><dt>{t('Mejor tiempo')}</dt><dd>{fmt(save.stats.bestTime)}</dd></div>
           <div><dt>{t('Eliminaciones')}</dt><dd>{nf(save.stats.kills)}</dd></div>
-          <div><dt>{t('Agentes')}</dt><dd>{save.unlocked.length}/{AGENTS.length}</dd></div>
+          <div><dt>{t('Héroes')}</dt><dd>{save.unlocked.length}/{AGENTS.length}</dd></div>
         </dl>
       </aside>
     </div>

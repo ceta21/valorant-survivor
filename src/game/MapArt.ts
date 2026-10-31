@@ -198,12 +198,48 @@ export function renderChunk(world: World, ch: ChunkData, make: MakeCanvas) {
     } else if (v < 0.3) tuft(x, y);
   }
 
+  // ---------- oclusión ambiental: el suelo se oscurece poco a poco junto a lo que tapa la luz ----------
+  // capas que se solapan: cuanto más cerca del objeto, más capas y más oscuro (en escalones, como el resto del arte)
+  const AO = 'rgba(12,6,24,0.1)', AO_STEPS = 3;
+  const sorted = ch.obstacles.filter(o => o.k !== 'v' && o.k !== 'r' && o.k !== 'h').sort((a, b) => a.y + a.h - (b.y + b.h));
+  const RR = (v: number) => Math.round(v / U);
+  // junto a mesetas de roca y al borde del abismo, y el agua más oscura junto a la orilla
+  for (let j = 0; j < CN; j++) for (let i = 0; i < CN; i++) {
+    const t = ch.cells[j * CN + i];
+    if (t === Cell.Rock || t === Cell.Void || t === Cell.Lava) continue;
+    const water = t === Cell.Water || t === Cell.Sea;
+    const blocks = (n: number) => water ? n !== Cell.Water && n !== Cell.Sea && n !== Cell.Bridge : n === Cell.Rock;
+    const x = i * CP, y = j * CP;
+    for (const [di, dj] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+      if (!blocks(cellAt(i + di, j + dj))) continue;
+      for (let k = 1; k <= AO_STEPS; k++) {
+        const th = k + (water ? 0 : 1);
+        if (di < 0) lpx(x, y, th, CP, AO); else if (di > 0) lpx(x + CP - th, y, th, CP, AO);
+        else if (dj < 0) lpx(x, y, CP, th, AO); else lpx(x, y + CP - th, CP, th, AO);
+      }
+    }
+  }
+  // alrededor de los monumentos de suelo
+  for (const d of ch.deco) {
+    if (d.type !== 'fountain' && d.type !== 'statue' && d.type !== 'windmill' && d.type !== 'stall') continue;
+    const cx = lx(d.x), cy = ly(d.y), rx = Math.round(d.rx / U), ry = Math.round(d.ry / U);
+    for (let k = AO_STEPS; k >= 1; k--) ell(cx, cy + 1, rx + k * 2 + 1, ry + k * 2, AO);
+  }
+  // al pie de edificios, muros, torres, cajas, árboles y rocas
+  for (const o of sorted) {
+    const x = lx(o.x), y = ly(o.y), w = RR(o.w), h = RR(o.h);
+    if (o.k === 'a' || o.k === 'o' || o.k === 't' || (o.k === 'p' && o.s !== 'ruin')) {
+      const cx = x + (w >> 1), base = o.k === 'a' ? y + h - 2 : y + (h >> 1) + 1, rx = (w >> 1) + 1, ry = Math.max(2, (h >> 2) + 1);
+      for (let k = AO_STEPS; k >= 1; k--) ell(cx, base, rx + k * 2, ry + k, AO);
+    } else {
+      for (let k = AO_STEPS; k >= 1; k--) lpx(x - k * 2, y - k, w + k * 4, h + k * 2 + k, AO);
+    }
+  }
+
   // ---------- decoración de los monumentos ----------
   for (const d of ch.deco) drawDeco(d);
 
   // ---------- objetos (sombra + volumen), de arriba abajo ----------
-  const sorted = ch.obstacles.filter(o => o.k !== 'v' && o.k !== 'r' && o.k !== 'h').sort((a, b) => a.y + a.h - (b.y + b.h));
-  const RR = (v: number) => Math.round(v / U);
   for (const o of sorted) if (o.k !== 'a' && o.k !== 'o') lpx(lx(o.x) + 3, ly(o.y) + 3, RR(o.w), RR(o.h), 'rgba(0,0,0,0.3)');
   for (const o of sorted) drawObstacle(o);
 
@@ -224,10 +260,7 @@ export function renderChunk(world: World, ch: ChunkData, make: MakeCanvas) {
         statue(cx, cy, '#bfc4cc');
         break;
       case 'statue': disc(cx, cy, rx, '#6a7080'); disc(cx, cy, rx - 2, d.c ?? '#bfc4cc'); disc(cx, cy, rx - 5, '#8a91a2'); statue(cx, cy, d.c ?? '#bfc4cc'); break;
-      case 'windmill':
-        for (const [ax, ay] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) for (let k = 5; k < rx + 4; k++) { lpx(cx + ax * k - 1, cy + ay * k - 6, 3, 3, OUT); }
-        for (const [ax, ay] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) for (let k = 5; k < rx + 3; k++) { lpx(cx + ax * k, cy + ay * k - 5, 2, 2, k % 4 ? '#e8dcc0' : '#6a4a2a'); }
-        disc(cx, cy - 5, 3, '#6a4a2a');
+      case 'windmill':   // las aspas las pinta el Renderer girando
         break;
       case 'campfire':
         disc(cx, cy, 5, '#5a4030'); lpx(cx - 4, cy, 8, 2, '#6a4a2a'); lpx(cx - 1, cy - 5, 3, 5, '#ff8a1c'); lpx(cx, cy - 7, 1, 3, '#ffd24a');
@@ -355,7 +388,7 @@ export function renderChunk(world: World, ch: ChunkData, make: MakeCanvas) {
         lpx(cx - 1, y - 3 + (oh >> 1), 2, 2, T.trim);
       }
     } else if (k === 'a') {
-      tree(x + (ow >> 1), y + oh - 2, ow >> 1);
+      ell(x + (ow >> 1) + 1, y + oh - 1, ow >> 1, 2, 'rgba(0,0,0,0.3)');   // solo la sombra: el árbol lo pinta el Renderer, balanceándose
     } else if (k === 'o') {
       // roca gris (como en la referencia)
       const cx = x + (ow >> 1), cy = y + (oh >> 1);
@@ -381,26 +414,46 @@ export function renderChunk(world: World, ch: ChunkData, make: MakeCanvas) {
     }
   }
 
-  /** Árbol: copa redonda (Reino, Ciudad), pino nevado (Glaciar) o árbol seco (Infierno). (cx, by) = base. */
-  function tree(cx: number, by: number, rad: number) {
-    ell(cx + 1, by + 1, rad, 2, 'rgba(0,0,0,0.3)');
-    if (id === 'glaciar') {
-      lpx(cx - 1, by - 3, 2, 4, T.trunk);
-      for (let k2 = 0; k2 < 4; k2++) { const w = rad + 1 - k2 * 2, yy = by - 4 - k2 * 4; lpx(cx - w - 1, yy - 4, w * 2 + 3, 6, OUT); lpx(cx - w, yy - 3, w * 2 + 1, 4, T.leaf); lpx(cx - w, yy - 3, w * 2 + 1, 1, T.leafL); lpx(cx, yy - 3, w + 1, 3, T.leafD); }
-      lpx(cx - 1, by - 22, 3, 3, T.leafL);
-    } else if (id === 'infierno') {
-      // árbol seco y retorcido
-      lpx(cx - 1, by - rad * 2, 3, rad * 2, OUT); lpx(cx, by - rad * 2 + 1, 1, rad * 2 - 1, T.bladeL);
-      for (const [dx, dy, len] of [[-1, -1.6, 4], [1, -1.3, 5], [-1, -0.9, 3], [1, -2, 3]] as number[][]) {
-        const sy = by + dy * rad;
-        for (let k2 = 0; k2 < len; k2++) { lpx(cx + dx * (k2 + 1) - (dx < 0 ? 0 : 0), sy - k2, 1, 1, OUT); }
-      }
-      lpx(cx - 3, by - rad * 2 - 2, 1, 3, OUT); lpx(cx + 3, by - rad * 2 - 1, 1, 3, OUT);
-    } else {
-      lpx(cx - 1, by - 4, 3, 5, T.trunk);
-      const top = by - rad - 3;
-      disc(cx, top, rad + 1, OUT); disc(cx, top, rad, T.leafD); disc(cx - 1, top - 1, rad - 2, T.leaf); disc(cx - 2, top - 3, Math.max(1, rad - 6), T.leafL);
-      if (id === 'reino' && rad > 5 && (cx + by) % 3 === 0) { lpx(cx + 2, top + 1, 1, 1, '#ff4655'); lpx(cx - 3, top + 2, 1, 1, '#ff4655'); }   // manzanas
+}
+
+/** Pincel de píxeles: rectángulo, disco y elipse en la rejilla del arte. */
+export interface Painter {
+  lpx: (x: number, y: number, w: number, h: number, c: string) => void;
+  disc: (cx: number, cy: number, rad: number, c: string) => void;
+  ell: (cx: number, cy: number, rx: number, ry: number, c: string) => void;
+}
+/** Árbol: copa redonda (Reino, Ciudad), pino nevado (Glaciar) o árbol seco (Infierno). (cx, by) = base.
+ *  sway (−1, 0, 1) desplaza la copa para el balanceo con el viento; el tronco no se mueve. */
+export function paintTree(P: Painter, id: string, cx: number, by: number, rad: number, sway = 0) {
+  const { lpx, disc } = P, T = THEMES[id] ?? THEMES.reino;
+  if (id === 'glaciar') {
+    lpx(cx - 1, by - 3, 2, 4, T.trunk);
+    for (let k2 = 0; k2 < 4; k2++) {
+      const w = rad + 1 - k2 * 2, yy = by - 4 - k2 * 4, sx = cx + Math.round((sway * k2) / 2);   // la punta se mueve más
+      lpx(sx - w - 1, yy - 4, w * 2 + 3, 6, OUT); lpx(sx - w, yy - 3, w * 2 + 1, 4, T.leaf); lpx(sx - w, yy - 3, w * 2 + 1, 1, T.leafL); lpx(sx, yy - 3, w + 1, 3, T.leafD);
     }
+    lpx(cx - 1 + sway * 2, by - 22, 3, 3, T.leafL);
+  } else if (id === 'infierno') {
+    // árbol seco y retorcido: las ramas altas se mecen
+    lpx(cx - 1, by - rad * 2, 3, rad * 2, OUT); lpx(cx, by - rad * 2 + 1, 1, rad * 2 - 1, T.bladeL);
+    for (const [dx, dy, len] of [[-1, -1.6, 4], [1, -1.3, 5], [-1, -0.9, 3], [1, -2, 3]] as number[][]) {
+      const sy = by + dy * rad, sw = dy < -1.2 ? sway : 0;
+      for (let k2 = 0; k2 < len; k2++) lpx(cx + dx * (k2 + 1) + (k2 > 1 ? sw : 0), sy - k2, 1, 1, OUT);
+    }
+    lpx(cx - 3 + sway, by - rad * 2 - 2, 1, 3, OUT); lpx(cx + 3 + sway, by - rad * 2 - 1, 1, 3, OUT);
+  } else {
+    lpx(cx - 1, by - 4, 3, 5, T.trunk);
+    const top = by - rad - 3, tx = cx + sway;
+    disc(tx, top, rad + 1, OUT); disc(tx, top, rad, T.leafD); disc(tx - 1, top - 1, rad - 2, T.leaf); disc(tx - 2, top - 3, Math.max(1, rad - 6), T.leafL);
+    if (id === 'reino' && rad > 5 && (cx + by) % 3 === 0) { lpx(tx + 2, top + 1, 1, 1, '#ff4655'); lpx(tx - 3, top + 2, 1, 1, '#ff4655'); }   // manzanas
   }
+}
+/** Árbol suelto en su propio lienzo (para dibujarlo cada fotograma con balanceo). La base queda en (w/2, h − 2). */
+export function treeSprite(id: string, rad: number, sway: number, make: MakeCanvas) {
+  const w = rad * 2 + 12, h = rad * 2 + 30, cv = make(w, h), g = cv.getContext('2d');
+  const lpx = (x: number, y: number, ww: number, hh: number, c: string) => { g.fillStyle = c; g.fillRect(x, y, ww, hh); };
+  const disc = (cx: number, cy: number, r: number, c: string) => { for (let dy = -r; dy <= r; dy++) { const hw = Math.floor(Math.sqrt(r * r - dy * dy)); lpx(cx - hw, cy + dy, hw * 2 + 1, 1, c); } };
+  const ell = (cx: number, cy: number, rx: number, ry: number, c: string) => { for (let dy = -ry; dy <= ry; dy++) { const hw = Math.floor(rx * Math.sqrt(Math.max(0, 1 - (dy * dy) / (ry * ry)))); lpx(cx - hw, cy + dy, hw * 2 + 1, 1, c); } };
+  paintTree({ lpx, disc, ell }, id, w >> 1, h - 2, rad, sway);
+  return cv;
 }

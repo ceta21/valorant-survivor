@@ -5,12 +5,12 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { spriteCanvas, spriteSize, setAgentSheet, IDLE, WALK, CAST, Dir, Pose } from '../src/game/sprites';
 import { AGENT_IMAGES } from '../src/data/agentImages';
 import { loadImage } from '@napi-rs/canvas';
-import { ALL_AGENTS } from '../src/data/agents';
+import { AGENTS } from '../src/data/agents';
 
 mkdirSync('shots', { recursive: true });
 for (const id of Object.keys(AGENT_IMAGES)) setAgentSheet(id, await loadImage(`public/agents/${id}.png`));
 const pick = process.argv[2]?.split(',');
-const agents = pick ? ALL_AGENTS.filter(a => pick.includes(a.id)) : ALL_AGENTS;
+const agents = pick ? AGENTS.filter(a => pick.includes(a.id)) : AGENTS;
 const S = 4, cw = 22 * S + 8, ch = 30 * S + 22;
 const views: [string, Dir, Pose, boolean][] = [
   ['frente', 'front', IDLE, false], ['espalda', 'back', IDLE, false], ['derecha', 'side', IDLE, false], ['izquierda', 'side', IDLE, true],

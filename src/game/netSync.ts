@@ -7,7 +7,7 @@ import { POWERS } from '../data/powers';
 import { BossPattern, UpgradeChoice } from './types';
 
 const ENEMY_IDS = Object.keys(ENEMIES);
-const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf', 'wisp', 'ice', 'water', 'rock', 'star'];
+const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf', 'wisp', 'ice', 'water', 'rock', 'star', 'disc'];
 const PATTERNS: BossPattern[] = ['ring', 'spiral', 'slam', 'charge', 'summon'];
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r2 = (v: number) => Math.round(v * 100) / 100;
@@ -16,6 +16,7 @@ export interface PlayerSnap {
   x: number; y: number; f: number; hp: number; mhp: number; sh: number; msh: number; dead: 0 | 1; gone: 0 | 1;
   ifr: number; inv: number; dT: number; dvx: number; dvy: number; cT: number; cU: 0 | 1; held: string; shot: number;
   b: [number, number, number, string, number, number]; // sprintT, sprintRad, frenzyT, frenzyFx, stormT, stormPow
+  ob?: [number, number, number, number, string, string]; // órbita: orbitT, orbitN, orbitR, orbitAng, orbitCol, orbitFx
   mx: number; my: number; ult: number; cds: [number, number]; spd: number; cdr: number; area: number;
   dr: number; da: number; w: [string, number][]; tu: [number, number, number, number, number, number, string, number?, number?, number?][];
   hf: number; pend: number; rr: number; ch: UpgradeChoice[];
@@ -27,14 +28,14 @@ export interface Snap {
   ban: [string, string, number, string?, Record<string, string>?] | 0; shk: number;
   p: PlayerSnap[];
   en: number[];   // por enemigo: id, def, x, y, hp, maxHp, flags, face*100, atk(kind+1), atkT*100, atkDur*100, atkX, atkY, atkAng*100
-  pj: number[];   // por proyectil: x, y, vx, vy, r*10, look, crit, color
+  pj: number[];   // por proyectil: x, y, vx, vy, r*10, look, crit, color, paleta
   ep: number[];   // por proyectil enemigo: x, y, vx, vy, r, color
   gm: number[];   // por gema: x, y, v*10, kind, altura (premios de caja; si no, 0)
   sk: unknown[][]; vf: unknown[][]; cl: string[]; ev: unknown[][];
   sh?: number[];  // por obús: x, y, ox, oy, t*100, dur*100, r
   cr?: number[];  // por caja: id, x, y, vida en %, golpe (0/1)
 }
-const EN = 14, PJ = 8, EP = 6, GM = 5;
+const EN = 14, PJ = 9, EP = 6, GM = 5;
 
 /* ------------------------------------------------------------------ anfitrión */
 export function makeSnapshot(e: GameEngine): Snap {
@@ -51,7 +52,7 @@ export function makeSnapshot(e: GameEngine): Snap {
       a ? PATTERNS.indexOf(a.kind) + 1 : 0, a ? Math.round(a.t * 100) : 0, a ? Math.round(a.dur * 100) : 0, a ? Math.round(a.x) : 0, a ? Math.round(a.y) : 0, a ? Math.round(a.ang * 100) : 0);
   }
   const pj: number[] = [];
-  for (const b of e.projs) if (!b.dead) pj.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), Math.round(b.r * 10), Math.max(0, LOOKS.indexOf(b.look)), b.crit ? 1 : 0, col(b.color));
+  for (const b of e.projs) if (!b.dead) pj.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), Math.round(b.r * 10), Math.max(0, LOOKS.indexOf(b.look)), b.crit ? 1 : 0, col(b.color), col(b.pal ?? ''));
   const ep: number[] = [];
   for (const b of e.eprojs) if (!b.dead) ep.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), b.r, col(b.color));
   const gm: number[] = [];
@@ -62,6 +63,7 @@ export function makeSnapshot(e: GameEngine): Snap {
       x: r1(q.x), y: r1(q.y), f: r2(q.face), hp: r1(q.hp), mhp: r1(pl.stats.maxHp), sh: r1(q.shield), msh: pl.stats.maxShield, dead: pl.dead ? 1 : 0, gone: pl.gone ? 1 : 0,
       ifr: r2(q.iframes), inv: r2(q.invuln), dT: r2(q.dashT), dvx: Math.round(q.dashVx), dvy: Math.round(q.dashVy), cT: r2(pl.castT), cU: pl.castUlt ? 1 : 0,
       held: pl.held, shot: r2(pl.lastShotT), b: [r2(b.sprintT), b.sprintRad, r2(b.frenzyT), b.frenzyFx, r2(b.stormT), b.stormPow],
+      ob: b.orbitT > 0 ? [r2(b.orbitT), b.orbitN, r1(b.orbitR), r2(b.orbitAng), b.orbitCol, b.orbitFx] : undefined,
       mx: r2(pl.inputMove.x), my: r2(pl.inputMove.y), ult: r1(pl.ult), cds: [r1(pl.cds.special), r1(pl.cds.secondary)],
       spd: pl.stats.speed, cdr: pl.stats.cdr, area: pl.stats.area, dr: pl.stats.drones, da: r2(pl.droneAngle),
       w: pl.weapons.map(w => [w.id, w.lvl]), tu: pl.turrets.filter(t => !t.dead).map(t => [Math.round(t.x), Math.round(t.y), r2(t.ang), r1(t.t), t.max, r2(t.cd), t.color, Math.round(t.hp), Math.round(t.maxHp), t.flash > 0 ? 1 : 0]),
@@ -112,6 +114,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     pl.stats.maxHp = ps.mhp; pl.stats.maxShield = ps.msh; pl.stats.speed = ps.spd; pl.stats.cdr = ps.cdr; pl.stats.area = ps.area; pl.stats.drones = ps.dr;
     pl.dead = !!ps.dead; pl.gone = !!ps.gone; pl.castT = ps.cT; pl.castUlt = !!ps.cU; pl.held = ps.held; pl.lastShotT = ps.shot;
     Object.assign(pl.buffs, { sprintT: ps.b[0], sprintRad: ps.b[1], frenzyT: ps.b[2], frenzyFx: ps.b[3], stormT: ps.b[4], stormPow: ps.b[5] });
+    if (ps.ob) Object.assign(pl.buffs, { orbitT: ps.ob[0], orbitN: ps.ob[1], orbitR: ps.ob[2], orbitAng: ps.ob[3], orbitCol: ps.ob[4], orbitFx: ps.ob[5] }); else pl.buffs.orbitT = 0;
     if (!mine) { pl.inputMove.x = ps.mx; pl.inputMove.y = ps.my; }
     pl.ult = ps.ult; pl.cds.special = ps.cds[0]; pl.cds.secondary = ps.cds[1]; pl.droneAngle = ps.da;
     pl.weapons.length = 0; for (const [id, lvl] of ps.w) if (POWERS[id]) pl.weapons.push({ id, lvl, cd: 0 });
@@ -141,7 +144,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
   for (let i = 0; i < s.pj.length; i += PJ) {
     const look = s.pj[i + 5];
     e.projs.push({ x: s.pj[i], y: s.pj[i + 1], vx: s.pj[i + 2], vy: s.pj[i + 3], r: s.pj[i + 4] / 10, look: LOOKS[look] ?? '', crit: !!s.pj[i + 6],
-      color: s.cl[s.pj[i + 7]], dmg: 0, life: 1, pierce: 0, hit: [], homing: false, target: null, burn: 0, explode: 0, mark: 0, dead: false, chain: false, owner: 0 });
+      color: s.cl[s.pj[i + 7]], pal: s.cl[s.pj[i + 8]] || undefined, dmg: 0, life: 1, pierce: 0, hit: [], homing: false, target: null, burn: 0, explode: 0, mark: 0, dead: false, chain: false, owner: 0 });
   }
   e.eprojs = [];
   for (let i = 0; i < s.ep.length; i += EP) e.eprojs.push({ x: s.ep[i], y: s.ep[i + 1], vx: s.ep[i + 2], vy: s.ep[i + 3], r: s.ep[i + 4], color: s.cl[s.ep[i + 5]], dmg: 0, life: 1, dead: false });

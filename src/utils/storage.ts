@@ -2,7 +2,7 @@ import type { Lang } from '../i18n';
 import { browserLang } from '../i18n';
 import { KeyMap, normalizeKeys } from '../game/controls';
 import { DailyProgress, LoginStreak, emptyDaily, emptyLogin } from '../data/daily';
-import { ShopSave, emptyShop, LEGACY_WEAPON_PRICES } from '../data/shop';
+import { ShopSave, emptyShop, LEGACY_PRICES } from '../data/shop';
 import { LEGACY_AGENT_COSTS } from '../data/agents';
 import { mapOrDefault } from '../data/maps';
 export interface Settings {
@@ -28,10 +28,6 @@ export interface SaveData {
   lastMap: string;
   lastDifficulty: string;
   playerName: string;
-  /** Mercado nocturno: agentes exclusivos comprados. */
-  exclusives: string[];
-  /** Habilidades elegidas para cada agente exclusivo. */
-  kits: Record<string, { special: string; secondary: string; ultimate: string }>;
   /** Cartas del mercado ya descubiertas en la rotación actual. */
   market: { period: number; revealed: number[] };
   /** Última versión de las novedades que ha visto el jugador. */
@@ -60,8 +56,6 @@ export const defaultSave = (): SaveData => ({
   lastMap: 'reino',
   lastDifficulty: 'normal',
   playerName: '',
-  exclusives: [],
-  kits: {},
   market: { period: 0, revealed: [] },
   newsSeen: '',
   daily: emptyDaily(''),
@@ -73,20 +67,19 @@ export const defaultSave = (): SaveData => ({
 export function normalizeSave(p: any): SaveData {
   const d = defaultSave();
   if (!p || typeof p !== 'object') return d;
-  // agentes de versiones anteriores que ya no existen: se quitan y se devuelve lo que costaron
+  // héroes de versiones anteriores que ya no existen: se quitan y se devuelve lo que costaron
   const legacy = Array.isArray(p.unlocked) ? p.unlocked.filter((id: string) => id in LEGACY_AGENT_COSTS) : [];
   if (legacy.length) {
     p = { ...p, unlocked: [...d.unlocked, ...p.unlocked.filter((id: string) => !(id in LEGACY_AGENT_COSTS) && !d.unlocked.includes(id))],
       credits: (p.credits ?? 0) + legacy.reduce((t: number, id: string) => t + LEGACY_AGENT_COSTS[id], 0) };
   }
-  // ya no hay armas: las exclusivas y los estilos de arma comprados se quitan y se devuelve lo que costaron
+  // lo que ya no existe (armas exclusivas, estilos de arma y los héroes exclusivos) se quita y se devuelve lo que costó
   const ex: string[] = Array.isArray(p.exclusives) ? p.exclusives : [], own: string[] = Array.isArray(p.shop?.owned) ? p.shop.owned : [];
-  const guns = [...ex, ...own].filter(id => id in LEGACY_WEAPON_PRICES);
-  if (guns.length) {
-    p = { ...p, credits: (p.credits ?? 0) + guns.reduce((t, id) => t + LEGACY_WEAPON_PRICES[id], 0), exclusives: ex.filter(id => !(id in LEGACY_WEAPON_PRICES)),
-      shop: { ...p.shop, owned: own.filter(id => !(id in LEGACY_WEAPON_PRICES)) } };
+  const gone = [...ex, ...own].filter(id => id in LEGACY_PRICES);
+  if (gone.length || ex.length) {
+    p = { ...p, credits: (p.credits ?? 0) + gone.reduce((t, id) => t + LEGACY_PRICES[id], 0), shop: p.shop && { ...p.shop, owned: own.filter(id => !(id in LEGACY_PRICES)) } };
   }
-  delete p.loadout; if (p.shop) delete p.shop.weapon;
+  p = { ...p }; delete p.exclusives; delete p.kits; delete p.loadout; if (p.shop) delete p.shop.weapon;
   return {
     ...d, ...p,
     lastMap: mapOrDefault(p.lastMap ?? d.lastMap),   // los mapas antiguos (Ascent, Bind, Haven) pasan a la zona por defecto
@@ -97,8 +90,6 @@ export function normalizeSave(p: any): SaveData {
     unlocked: Array.isArray(p.unlocked) && p.unlocked.length ? p.unlocked : d.unlocked,
     claimed: p.claimed || [],
     achievements: p.achievements || [],
-    exclusives: Array.isArray(p.exclusives) ? p.exclusives : [],
-    kits: p.kits && typeof p.kits === 'object' ? p.kits : {},
     market: p.market && typeof p.market.period === 'number' ? p.market : d.market,
     daily: p.daily && typeof p.daily.day === 'string' ? { ...d.daily, ...p.daily } : d.daily,
     login: p.login && typeof p.login.streak === 'number' ? { ...d.login, ...p.login } : d.login,

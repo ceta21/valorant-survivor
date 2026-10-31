@@ -58,3 +58,10 @@ shot('zephyr', 'reino', 1, 'cajas', e => {
     { id: 3, x: x + 40, y: y - 70, hp: 20, max: 30, flash: 0.1, dead: false });
   ([1, 2, 3, 4] as const).forEach((k, i) => e.gems.push({ x: x - 150 + i * 60, y: y + 70, v: k === 1 ? 0.25 : 20, kind: k, mag: false, dead: false, t: 0 }));
 });
+// habilidades nuevas: órbita (Aqua), espiral (Nox), bumerán (Grim), rastro (Sylvan) y rebote (Zephyr)
+for (const [id, slot] of [['aqua', 'special'], ['nox', 'special'], ['grim', 'special'], ['sylvan', 'special'], ['zephyr', 'secondary']] as const) {
+  shot(id, 'reino', 25, 'hab_' + id, e => {
+    e.cds.special = e.cds.secondary = 0; e.cast(slot);
+    for (let i = 0; i < 30; i++) e.update(1 / 60);
+  });
+}

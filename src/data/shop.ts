@@ -1,13 +1,15 @@
-// Tienda: estilos de agentes y mascotas. Los estilos son solo estéticos; las mascotas
+// Tienda: estilos de héroes y mascotas. Los estilos son solo estéticos; las mascotas
 // acompañan al jugador en la partida y, si se compra su poder, atacan con su elemento.
 
-/** Lo que costaban las armas exclusivas y los estilos de arma (ya no hay armas): se devuelve al cargar el guardado. */
-export const LEGACY_WEAPON_PRICES: Record<string, number> = {
+/** Lo que costaban las cosas que ya no existen (armas exclusivas, estilos de arma y los héroes exclusivos Eclipse, Vórtice
+ *  y Quimera): se devuelve al cargar el guardado. */
+export const LEGACY_PRICES: Record<string, number> = {
   ws_oro: 4000, ws_dragon: 5000, ws_glaciar: 3500, ws_toxico: 3500, ws_vacio: 4500, ws_selva: 3000,
   ares_inferno: 12000, marshal_vacio: 14000, bucky_tormenta: 10000, guardian_aurora: 11000, frenzy_cosmos: 9000, bulldog_draco: 13000,
+  eclipse: 42000, vortice: 38000, quimera: 45000,
 };
 
-/** Estilo de agente: recolorea la ropa y la armadura (respeta la piel y el contorno). Solo estético. */
+/** Estilo de héroe: recolorea la ropa y la armadura (respeta la piel y el contorno). Solo estético. */
 export interface AgentSkin { id: string; name: string; desc: string; price: number; ramp: string[] }
 export const AGENT_SKINS: AgentSkin[] = [
   { id: 'as_oro', name: 'Armadura dorada', desc: 'Armadura de oro pulido de pies a cabeza.', price: 12000, ramp: ['#3a2406', '#7a5414', '#c4902a', '#f0c850', '#fff2b0'] },
@@ -54,7 +56,7 @@ export const PET_BY_ID = Object.fromEntries(PETS.map(p => [p.id, p])) as Record<
 /** Lo comprado y lo que lleva puesto el jugador. */
 export interface ShopSave {
   owned: string[];
-  /** Estilo equipado en cada agente. */
+  /** Estilo equipado en cada héroe. */
   agent: Record<string, string>;
   /** Mascota que acompaña ('' = ninguna). */
   pet: string;

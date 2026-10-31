@@ -1,5 +1,5 @@
-// Sprites pixel-art de los agentes, dibujados por código (sin imágenes externas).
-// Cada agente tiene 3 vistas: de frente, de espaldas y de lado (mirando a la derecha; la izquierda es el
+// Sprites pixel-art de los héroes, dibujados por código (sin imágenes externas).
+// Cada héroe tiene 3 vistas: de frente, de espaldas y de lado (mirando a la derecha; la izquierda es el
 // espejo), con fotogramas de andar/correr y una pose de lanzar habilidad.
 import { AGENT_IMAGES } from '../data/agentImages';
 import { AGENT_SKIN_BY_ID } from '../data/shop';
@@ -39,18 +39,17 @@ function shade(hex: string, k: number) {
   return `#${[n >> 16, (n >> 8) & 255, n & 255].map(c => f(c).toString(16).padStart(2, '0')).join('')}`;
 }
 
-/* ------------------------------------------------------------------ aspecto de cada agente */
+/* ------------------------------------------------------------------ aspecto de cada héroe */
 const LOOKS: Record<string, Look> = {
-  // exclusivos del mercado nocturno (los héroes usan su hoja de sprites)
-  eclipse: { skin: '#d8b49a', hair: '#1b1530', style: 'long', top: '#2a1f4a', top2: '#9b7bff', trim: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['goldface'] },
-  vortice: { skin: '#c98d6a', hair: '#ff3d81', style: 'pigtails', top: '#1f1f2a', top2: '#ff3d81', trim: '#ffffff', pants: '#2a2a36', boots: '#ff3d81', acc: ['goggles'] },
-  quimera: { skin: '#8a5a3a', hair: '#e8f1f8', style: 'crest', hat: '#5dff9a', beard: '#e8f1f8', top: '#24413a', top2: '#5dff9a', trim: '#ffe14a', pants: '#1a2a26', boots: '#0f1a18', acc: ['beard'] },
+  // aspecto genérico, solo si un héroe no tiene hoja de sprites
+  default: { skin: '#d8b49a', hair: '#1b1530', style: 'long', top: '#2a1f4a', top2: '#9b7bff', trim: '#ffd24a', pants: '#181230', boots: '#0e0a1c', eyes: '#ffd24a', acc: ['goldface'] },
+
 };
-export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.eclipse).skin;
+export const agentSkin = (id: string) => (LOOKS[id] ?? LOOKS.default).skin;
 
 /* ------------------------------------------------------------------ dibujo */
 export function buildSprite(id: string, pose: Pose = IDLE, dir: Dir = 'front'): Grid {
-  const L = LOOKS[id] ?? LOOKS.eclipse;
+  const L = LOOKS[id] ?? LOOKS.default;
   const g: Grid = Array.from({ length: SH }, () => Array<string | null>(SW).fill(null));
   const px = (x: number, y: number, c: string | null) => { if (x >= 0 && x < SW && y >= 0 && y < SH) g[y][x] = c; };
   const rect = (x: number, y: number, w: number, h: number, c: string | null) => { for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) px(x + i, y + j, c); };
@@ -211,13 +210,13 @@ export function buildSprite(id: string, pose: Pose = IDLE, dir: Dir = 'front'): 
   return out;
 }
 
-/* ------------------------------------------------------------------ agentes sacados de su hoja de sprites */
-// Fotogramas recortados de la imagen del agente (scripts/cut-agent.ts) y guardados con sus colores exactos en
+/* ------------------------------------------------------------------ héroes sacados de su hoja de sprites */
+// Fotogramas recortados de la imagen del héroe (scripts/cut-agent.ts) y guardados con sus colores exactos en
 // public/agents/<id>.png: una fila por vista (frente, espalda, lado) y una columna por paso. Ya traen su
 // contorno y su arma. "side" mira a la derecha; la izquierda es el espejo.
 const ROW: Record<Dir, number> = { front: 0, back: 1, side: 2 };
 const sheets = new Map<string, any>();   // id → imagen cargada (null mientras carga)
-/** Dirección de la hoja de un agente. */
+/** Dirección de la hoja de un héroe. */
 export const agentSheetUrl = (id: string) => `${(import.meta as any).env?.BASE_URL ?? './'}agents/${id}.png`;
 /** Columnas de la hoja (el máximo de pasos entre las tres vistas). */
 export const sheetCols = (id: string) => { const A = AGENT_IMAGES[id]; return Math.max(A.front, A.back, A.side); };
@@ -236,14 +235,14 @@ function sheetOf(id: string) {
   }
   return sheets.get(id) ?? null;
 }
-/** Espera a que la hoja del agente esté cargada (o ya no haga falta). */
+/** Espera a que la hoja del héroe esté cargada (o ya no haga falta). */
 export function agentSheetReady(id: string): Promise<void> {
   if (!hasImage(id) || sheetOf(id)) return Promise.resolve();
   return waiting.get(id) ?? Promise.resolve();
 }
 /** Empieza a cargar todas las hojas (al arrancar el juego, para que estén listas al jugar). */
 export function preloadAgentSheets() { for (const id of Object.keys(AGENT_IMAGES)) sheetOf(id); }
-/** El agente usa los fotogramas de su imagen (y no el muñeco dibujado por código). */
+/** El héroe usa los fotogramas de su imagen (y no el muñeco dibujado por código). */
 export const hasImage = (id: string) => id in AGENT_IMAGES;
 /** Tamaño del sprite en píxeles y unidades de mundo por píxel. */
 export function spriteSize(id: string) {
@@ -270,7 +269,7 @@ export function spriteRuns(id: string): { x: number; y: number; w: number; c: st
   return runs;
 }
 
-/** Estilo de agente (tienda): pasa la ropa y la armadura a la gama del estilo según su brillo.
+/** Estilo de héroe (tienda): pasa la ropa y la armadura a la gama del estilo según su brillo.
  *  No toca el contorno ni los tonos de piel. */
 function applySkin(c: any, skin: string) {
   const ramp = AGENT_SKIN_BY_ID[skin]?.ramp;
@@ -294,7 +293,7 @@ function applySkin(c: any, skin: string) {
 }
 
 const cache = new Map<string, any>();
-/** Sprite ya pintado en un canvas (escala entera, sin suavizado). `skin`: estilo de agente de la tienda. */
+/** Sprite ya pintado en un canvas (escala entera, sin suavizado). `skin`: estilo de héroe de la tienda. */
 export function spriteCanvas(id: string, make: (w: number, h: number) => any, scale = 3, pose: Pose = IDLE, dir: Dir = 'front', frame = 0, skin = '') {
   const { w: GW, h: GH } = spriteSize(id);
   if (hasImage(id)) {

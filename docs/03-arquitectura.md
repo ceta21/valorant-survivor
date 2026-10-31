@@ -91,7 +91,7 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
     `public/agents/<id>.png` (una fila por vista —frente, espalda, lado— y una columna por paso) y sus medidas en
     `src/data/agentImages/<id>.json` (`px` = escala para que todos midan ~58 unidades). El juego las precarga
     al crear el `Renderer`; los retratos del menú usan la misma hoja.
-  - **Dibujados por código** (los exclusivos Eclipse, Vórtice y Quimera): rejilla 22×30 con poses (reposo, andar, correr, lanzar).
+  - **Dibujados por código** (aspecto genérico `default`, solo si un héroe no tiene hoja de sprites): rejilla 22×30 con poses (reposo, andar, correr, lanzar).
   - El cuerpo mira hacia donde se mueve: de frente (bajando o quieto), de espaldas (subiendo) o de lado (la
     izquierda es el espejo de la derecha). No llevan arma: al lanzar el poder sale un destello de su color en la mano.
 - Poderes: los datos están en `powers.ts` (`PowerDef`) y el motor los guarda en `weapons` (`WeaponInst`: id, nivel,
@@ -99,9 +99,24 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   hielo, agua, roca) que el Renderer dibuja con los sprites de `vfx.ts` y su paleta, al doble de tamaño (`BIG`)
   y con un halo de su color; las bombas y cohetes de habilidad usan la misma escala, y las explosiones, anillos,
   haces, rayos y conos se dibujan algo más grandes que su área de daño.
+- **Mapa vivo** (`drawLiveChunk()` en el Renderer, cada fotograma encima de los chunks visibles, en píxeles de arte
+  de `U` unidades): reflejos que avanzan por el agua, lava que late con burbujas que revientan, ondas en las fuentes,
+  fuegos de hogueras/braseros/farolas que parpadean con chispas, aspas del molino que giran y árboles que se mecen
+  (3 fotogramas de copa, `treeSprite()` + `paintTree()` de MapArt, en caché). Los árboles y las aspas ya no se pintan
+  en el chunk (solo su sombra).
+- **Oclusión ambiental** en `MapArt`: antes de pintar objetos, el suelo se oscurece en 3 capas escalonadas
+  (`AO`, rgba(12,6,24,0.1)) alrededor de edificios, muros, torres, cajas, árboles, rocas y monumentos de suelo, junto a
+  las mesetas de roca, y el agua junto a la orilla. Héroes y enemigos llevan sombra de contacto en dos capas (halo
+  suave y núcleo oscuro).
+- Las habilidades de órbita, rebote y espiral lanzan proyectiles de su elemento (`elemLook(fx)`: fuego → llama,
+  agua → gota, veneno → hoja, hielo → cristal, sombra/alma → alma, `stim` → roca, el resto → estrella) con la paleta
+  de su `fx` (`pal`). Todos los proyectiles con aspecto llevan una estela de cometa (`drawComet()`: halo y 6 cuadros
+  que se estrechan y tiemblan) y sueltan chispas de su color al impactar; las bolas de la órbita dejan la estela en
+  curva. Los discos del bumerán (`disc`) se tiñen con el color de la habilidad (`tinted()` + `shade()`) y dejan
+  copias que se desvanecen. Los charcos del rastro se dibujan como campos (`field`) con la paleta de la habilidad.
 - Mascotas: `petSprites.ts`, un mismo cuerpo de 16×15 con los colores de cada una y el detalle de su elemento;
   2 fotogramas (de pie y saltito). Sus disparos usan los aspectos `flame`, `bolt` y `leaf` de los proyectiles.
-- Estilos de la tienda: el de agente se aplica al canvas del
+- Estilos de la tienda: el de héroe se aplica al canvas del
   sprite (`spriteCanvas(..., skin)`) pasando la ropa a la gama del estilo según su brillo.
 - Robots enemigos: `enemySprites.ts` dibuja cada tipo con rectángulos y contorno automático, 2 fotogramas de
   animación y variantes "golpe" (blanco) y "aturdido" (gris). Cada jefe tiene un detalle propio.

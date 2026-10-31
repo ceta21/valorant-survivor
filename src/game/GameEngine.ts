@@ -47,6 +47,12 @@ export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
   crit: boolean; color: string; hit: number[]; homing: boolean; target: Enemy | null; burn: number;
   explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean; owner: number;
+  /** Saltos que le quedan (bolas de rebote). */
+  bounce?: number;
+  /** Paleta del proyectil y de su estela (si no, la de su aspecto). */
+  pal?: string;
+  /** Bumerán: 1 = a la ida (turn = vida a la que se da la vuelta), 2 = volviendo al héroe. */
+  ret?: number; turn?: number;
 }
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
 /** Obús de mortero enemigo: vuela desde (ox,oy) y estalla en (x,y) al acabar dur. */
@@ -68,13 +74,37 @@ export interface Strike { x: number; y: number; r: number; t: number; dur: numbe
 export interface Vfx { kind: VfxKind; pal: string; x: number; y: number; r: number; t: number; dur: number; ang: number; seed: number; follow?: boolean; sprite?: string; owner?: number; w?: number }
 export type VfxKind = 'blast' | 'ring' | 'flames' | 'beam' | 'field' | 'eye' | 'gust' | 'rise' | 'ray' | 'cone';
 export type { ProjLook };
+/** Proyectil del elemento de una habilidad: llamas, gotas, hojas, cristales de hielo, estrellas, almas o rocas. */
+export function elemLook(fx?: string): ProjLook {
+  switch (fx) {
+    case 'fire': case 'boom': case 'orbital': return 'flame';
+    case 'water': return 'water';
+    case 'poison': return 'leaf';
+    case 'ice': return 'ice';
+    case 'electric': return 'bolt';
+    case 'gravity': case 'soul': case 'shadow': case 'paranoia': return 'wisp';
+    case 'stim': return 'rock';
+    default: return 'star';
+  }
+}
 export interface Particle { x: number; y: number; vx: number; vy: number; life: number; max: number; size: number; color: string; circle: boolean }
 export interface FloatText { x: number; y: number; life: number; text: string; color: string; size: number }
 export interface PlayerBody {
   x: number; y: number; r: number; hp: number; shield: number; face: number; iframes: number; invuln: number; sinceHit: number;
   dashT: number; dashVx: number; dashVy: number; dashPow: number; dashHit: number[]; lastDirX: number; lastDirY: number;
 }
-export type Buffs = { sprintT: number; sprintPow: number; sprintRad: number; sprintAcc: number; frenzyT: number; frenzyMul: number; frenzyHeal: number; frenzyFx: string; stormT: number; stormAcc: number; stormPow: number };
+export type Buffs = {
+  sprintT: number; sprintPow: number; sprintRad: number; sprintAcc: number; frenzyT: number; frenzyMul: number; frenzyHeal: number; frenzyFx: string;
+  stormT: number; stormAcc: number; stormPow: number;
+  /** Órbita: bolas girando alrededor (número, radio, ángulo, color, daño y espera de golpe por enemigo). */
+  orbitT: number; orbitN: number; orbitR: number; orbitAng: number; orbitCol: string; orbitFx: string; orbitPow: number; orbitHit: Record<number, number>;
+  /** Espiral: bolas lanzadas en espiral. */
+  spiralT: number; spiralAcc: number; spiralAng: number; spiralN: number; spiralPow: number; spiralCol: string; spiralFx: string;
+  /** Rastro: charcos que se van dejando al andar. */
+  trailT: number; trailAcc: number; trailPow: number; trailPal: string; trailSlow: number;
+};
+/** Charco del rastro: daña cada 0,4 s (y frena) a los enemigos que lo pisan. */
+export interface Puddle { x: number; y: number; r: number; t: number; dmg: number; slow: number; tick: number; owner: number }
 /** Datos con los que entra cada jugador a la partida. */
 export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; name: string; looks?: Looks }
 /** Mascota que acompaña a un jugador. Si cae, vuelve a los PET_RESPAWN segundos. */
@@ -160,6 +190,7 @@ export class GameEngine {
   eprojs: EProj[] = [];
   shells: Shell[] = [];
   gems: Gem[] = [];
+  puddles: Puddle[] = [];
   crates: Crate[] = [];
   crateT = 4;
   crateId = 0;
@@ -229,7 +260,9 @@ export class GameEngine {
       idx, name: st.name, agent: a, stats,
       body: { x: sp.x + idx * 36, y: sp.y, r: 12, hp: stats.maxHp, shield: stats.maxShield, face: 0, iframes: 0, invuln: 0, sinceHit: 99,
         dashT: 0, dashVx: 0, dashVy: 0, dashPow: 0, dashHit: [], lastDirX: 1, lastDirY: 0 },
-      buffs: { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '', stormT: 0, stormAcc: 0, stormPow: 0 },
+      buffs: { sprintT: 0, sprintPow: 0, sprintRad: 0, sprintAcc: 0, frenzyT: 0, frenzyMul: 1, frenzyHeal: 0, frenzyFx: '', stormT: 0, stormAcc: 0, stormPow: 0,
+        orbitT: 0, orbitN: 0, orbitR: 0, orbitAng: 0, orbitCol: '', orbitFx: '', orbitPow: 0, orbitHit: {}, spiralT: 0, spiralAcc: 0, spiralAng: 0, spiralN: 0, spiralPow: 0, spiralCol: '', spiralFx: '',
+        trailT: 0, trailAcc: 0, trailPow: 0, trailPal: '', trailSlow: 0 },
       cds: { special: 0, secondary: 0 }, ult: 25, weapons: [{ id: w, lvl: 1, cd: 0.2 }], held: w, heldSince: -9, lastShotT: -9, castT: -9, castUlt: false,
       inputMove: { x: 0, y: 0 }, taken: {}, rerolls: 2, choices: [], pending: 0, droneAngle: 0, droneCd, turrets: [], portalCd: 0, healTextT: 0, hurtFlash: 0, dead: false,
       looks: st.looks ?? {},
@@ -336,6 +369,7 @@ export class GameEngine {
     this.updateEProjs(dt);
     this.updateShells(dt);
     this.updateStrikes(dt);
+    this.updatePuddles(dt);
     this.updateGems(dt);
     this.updateCrates(dt);
     this.updateSpawner(dt);
@@ -429,6 +463,7 @@ export class GameEngine {
         }
       }
     }
+    this.updatePowerBuffs(dt);
     if (p.dashT > 0) {
       p.dashT -= dt;
       p.x += p.dashVx * dt; p.y += p.dashVy * dt;
@@ -491,7 +526,7 @@ export class GameEngine {
   private playerDown() {
     const pl = this.cur, p = pl.body;
     pl.dead = true; p.dashT = 0;
-    this.buffs.sprintT = this.buffs.frenzyT = this.buffs.stormT = 0;
+    this.buffs.sprintT = this.buffs.frenzyT = this.buffs.stormT = this.buffs.orbitT = this.buffs.spiralT = this.buffs.trailT = 0;
     if (this.players.every(x => x.dead)) { this.end(); return; }
     this.sparks(p.x, p.y, '#ff4655', 30, 300, 0.8);
     this.addFx(0, p.x, p.y, 0, 0, 90, 0.5, '#ff4655');
@@ -570,12 +605,13 @@ export class GameEngine {
   }
 
   spawnProj(x: number, y: number, a: number, speed: number, dmg: number, r: number, range: number, pierce: number, crit: boolean, color: string,
-    o: { homing?: boolean; burn?: number; explode?: number; mark?: number; look?: ProjLook; chain?: boolean; target?: Enemy | null } = {}) {
+    o: { homing?: boolean; burn?: number; explode?: number; mark?: number; look?: ProjLook; chain?: boolean; target?: Enemy | null; bounce?: number; ret?: boolean; pal?: string } = {}) {
     const p = this.projPool.pop() ?? ({ hit: [] } as unknown as Proj);
     p.x = x; p.y = y; p.vx = Math.cos(a) * speed; p.vy = Math.sin(a) * speed; p.dmg = dmg; p.r = r;
     p.life = range / speed; p.pierce = pierce; p.crit = crit; p.color = color; p.hit.length = 0;
     p.homing = !!o.homing; p.target = o.target ?? null; p.burn = o.burn ?? 0; p.explode = o.explode ?? 0;
     p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain; p.owner = this.cur.idx;
+    p.bounce = o.bounce ?? 0; p.ret = o.ret ? 1 : 0; p.turn = o.ret ? p.life / 2 : 0; p.pal = o.pal;
     this.projs.push(p);
   }
 
@@ -597,10 +633,20 @@ export class GameEngine {
           p.vx = Math.cos(cur) * sp; p.vy = Math.sin(cur) * sp;
         }
       }
+      if (p.ret) {
+        // bumerán: a la ida hasta la mitad de su vida; después vuelve a por su dueño y desaparece al llegar
+        const o = (this.players[p.owner] ?? this.cur).body, sp = Math.hypot(p.vx, p.vy);
+        if (p.ret === 1 && p.life <= (p.turn ?? 0)) { p.ret = 2; p.hit.length = 0; }
+        if (p.ret === 2) {
+          const dx = o.x - p.x, dy = o.y - p.y, d = Math.hypot(dx, dy) || 1;
+          p.vx = (dx / d) * sp; p.vy = (dy / d) * sp; p.life = Math.max(p.life, 0.2);
+          if (d < 22) { p.dead = true; continue; }
+        }
+      }
       p.x += p.vx * dt; p.y += p.vy * dt;
       p.life -= dt;
       if (p.life <= 0) { p.dead = true; continue; }
-      if (this.inObstacle(p.x, p.y, 0)) {
+      if (!p.ret && this.inObstacle(p.x, p.y, 0)) {
         p.dead = true;
         this.sparks(p.x, p.y, p.color, 2, 90, 0.2);
         continue;
@@ -618,10 +664,16 @@ export class GameEngine {
         p.hit.push(e.id);
         const stats = this.stats;
         this.damageEnemy(e, p.dmg, p.crit, { kx: p.vx, ky: p.vy, knock: p.dmg > 30 ? 120 : 70 });
+        if (p.look && Math.random() < 0.7) this.sparks(e.x, e.y, p.color, 4, 170, 0.3);   // chispas del color del ataque
         if (p.burn > 0) { e.burnT = 3; e.burnDps = Math.max(e.burnDps, p.burn); }
         if (p.mark > 0) e.markT = p.mark;
         if (p.explode > 0) this.explodeAt(e.x, e.y, 70 * stats.area, p.dmg * p.explode, '#d6a8ff');
         if (p.chain) this.chainFrom(e, p.dmg * 0.45, Math.max(1, stats.chain));
+        if (p.bounce && p.bounce > 0) {
+          // salta al enemigo más cercano que aún no ha tocado
+          const nx = this.nearestEnemy(e.x, e.y, 320, p.hit);
+          if (nx) { const sp = Math.hypot(p.vx, p.vy), a = Math.atan2(nx.y - e.y, nx.x - e.x); p.vx = Math.cos(a) * sp; p.vy = Math.sin(a) * sp; p.bounce--; p.life = Math.max(p.life, 0.9); return; }
+        }
         if (p.pierce <= 0) p.dead = true; else p.pierce--;
       });
     }
@@ -1345,6 +1397,57 @@ export class GameEngine {
   }
 
   /* ------------------------------------------------------------------ aliados: drones y torretas */
+  /** Habilidades que duran: órbita, espiral y rastro. */
+  private updatePowerBuffs(dt: number) {
+    const p = this.player, s = this.stats, b = this.buffs;
+    if (b.orbitT > 0) {
+      b.orbitT -= dt; b.orbitAng += dt * 3.2;
+      const dmg = b.orbitPow * 10 * s.dmg;
+      for (const id in b.orbitHit) if ((b.orbitHit[id] -= dt) <= 0) delete b.orbitHit[id];
+      for (let i = 0; i < b.orbitN; i++) {
+        const a = b.orbitAng + (i / b.orbitN) * Math.PI * 2, ox = p.x + Math.cos(a) * b.orbitR, oy = p.y + Math.sin(a) * b.orbitR;
+        this.forEnemiesIn(ox, oy, 18, e => {
+          if (b.orbitHit[e.id] > 0) return;
+          b.orbitHit[e.id] = 0.45;   // cada enemigo, como mucho un golpe cada 0,45 s
+          this.damageEnemy(e, dmg, false, { kx: e.x - p.x, ky: e.y - p.y, knock: 140 });
+          this.sparks(ox, oy, b.orbitCol, 3, 120, 0.3);
+        });
+        for (const c of this.crates) if (!c.dead && Math.hypot(c.x - ox, c.y - oy) < 30 && !(b.orbitHit[-c.id] > 0)) { b.orbitHit[-c.id] = 0.45; this.damageCrate(c, dmg); }
+      }
+    }
+    if (b.spiralT > 0) {
+      b.spiralT -= dt; b.spiralAcc += dt;
+      while (b.spiralAcc >= 0.08) {
+        b.spiralAcc -= 0.08; b.spiralAng += 0.42;
+        for (let k = 0; k < b.spiralN; k++) {
+          const a = b.spiralAng + (k / b.spiralN) * Math.PI * 2;
+          this.spawnProj(p.x, p.y, a, 420, b.spiralPow * 10 * s.dmg, 8, 420, s.pierce, false, b.spiralCol, { look: elemLook(b.spiralFx), pal: b.spiralFx });
+        }
+      }
+    }
+    if (b.trailT > 0) {
+      b.trailT -= dt; b.trailAcc += dt;
+      if (b.trailAcc >= 0.16 && Math.hypot(this.inputMove.x, this.inputMove.y) > 0.1) {
+        b.trailAcc = 0;
+        const r = 46 * s.area;
+        this.puddles.push({ x: p.x, y: p.y + 6, r, t: 2.6, dmg: b.trailPow * 10 * s.dmg, slow: b.trailSlow, tick: 0, owner: this.cur.idx });
+        this.addVfx('field', b.trailPal, p.x, p.y + 6, r, 2.6);
+      }
+    }
+  }
+  private updatePuddles(dt: number) {
+    for (const q of this.puddles) {
+      q.t -= dt; q.tick -= dt;
+      if (q.tick > 0 || q.t <= 0) continue;
+      q.tick = 0.4;
+      this.use(this.players[q.owner] ?? this.cur);
+      this.forEnemiesIn(q.x, q.y, q.r, e => {
+        this.damageEnemy(e, q.dmg, false, { noText: true });
+        if (q.slow) { e.slowT = Math.max(e.slowT, 0.6); e.slowMul = q.slow; }
+      });
+    }
+    if (this.puddles.some(q => q.t <= 0)) this.puddles = this.puddles.filter(q => q.t > 0);
+  }
   private updateAllies(dt: number) {
     const p = this.player, s = this.stats;
     this.droneAngle += dt * 2.2;
@@ -1580,6 +1683,28 @@ export class GameEngine {
       }
       case 'heal':
         this.addFx(0, p.x, p.y, 0, 0, 70, 0.5, ab.color);
+        break;
+      case 'orbit':
+        b.orbitT = ab.duration ?? 6; b.orbitN = ab.count ?? 5; b.orbitR = (ab.radius ?? 80) * s.area; b.orbitPow = ab.power; b.orbitCol = ab.color; b.orbitFx = ab.fx ?? 'fire'; b.orbitHit = {};
+        this.addFx(0, p.x, p.y, 0, 0, b.orbitR, 0.4, ab.color);
+        break;
+      case 'bounce': {
+        const n = ab.count ?? 3, tg = this.nearestEnemy(p.x, p.y, 520);
+        const a0 = tg ? Math.atan2(tg.y - p.y, tg.x - p.x) : Math.atan2(p.lastDirY, p.lastDirX);
+        for (let i = 0; i < n; i++) this.spawnProj(p.x, p.y, a0 + (i - (n - 1) / 2) * 0.35, 560, dmg, 9, 700, 0, false, ab.color, { look: elemLook(ab.fx), pal: ab.fx, bounce: ab.bounces ?? 4 });
+        break;
+      }
+      case 'spiral':
+        b.spiralT = ab.duration ?? 2.5; b.spiralN = ab.count ?? 2; b.spiralPow = ab.power; b.spiralCol = ab.color; b.spiralFx = ab.fx ?? 'fire'; b.spiralAcc = 0;
+        break;
+      case 'boomerang': {
+        const n = ab.count ?? 1, L = (ab.radius ?? 320) * Math.sqrt(s.range), tg = this.nearestEnemy(p.x, p.y, L + 80);
+        const a0 = tg ? Math.atan2(tg.y - p.y, tg.x - p.x) : Math.atan2(p.lastDirY, p.lastDirX);
+        for (let i = 0; i < n; i++) this.spawnProj(p.x, p.y, a0 + (i / n) * Math.PI * 2, 520, dmg, 14, L * 2, 99, false, ab.color, { look: 'disc', pal: ab.fx, ret: true });
+        break;
+      }
+      case 'trail':
+        b.trailT = ab.duration ?? 5; b.trailPow = ab.power; b.trailPal = ab.fx ?? 'poison'; b.trailSlow = ab.slow ?? 0; b.trailAcc = 0.16;
         break;
     }
     if (ab.heal && ab.kind !== 'frenzy') this.healPct(ab.heal);

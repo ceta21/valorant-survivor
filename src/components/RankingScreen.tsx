@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ALL_AGENTS as AGENTS, AGENT_BY_ID } from '../data/agents';
+import { AGENTS, AGENT_BY_ID } from '../data/agents';
 import { DIFFICULTIES, DIFFICULTY_BY_ID } from '../data/difficulty';
 import { MAP_BY_ID } from '../data/maps';
 import { Filters, ScoreEntry, fetchScores, isGlobal } from '../utils/leaderboard';
@@ -8,7 +8,7 @@ import { t, nf } from '../i18n';
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-/** Ranking: el jugador que más ha durado, filtrable por agente y dificultad. */
+/** Ranking: el jugador que más ha durado, filtrable por héroe y dificultad. */
 export function RankingScreen({ back }: { back: () => void }) {
   const [f, setF] = useState<Filters>({ agent: 'all', difficulty: 'all' });
   const [rows, setRows] = useState<ScoreEntry[] | null>(null);
@@ -33,7 +33,7 @@ export function RankingScreen({ back }: { back: () => void }) {
       {!isGlobal && <p className="lead">{t('El ranking global aún no está conectado: se muestran las partidas de este navegador.')}</p>}
       <div className="rank-filters">
         <label>
-          <span>{t('Agente')}</span>
+          <span>{t('Héroe')}</span>
           <select value={f.agent} onChange={e => pick({ agent: e.target.value })}>
             <option value="all">{t('Todos')}</option>
             {AGENTS.map(a => <option key={a.id} value={a.id}>{t(a.name)}</option>)}
@@ -50,7 +50,7 @@ export function RankingScreen({ back }: { back: () => void }) {
       <div className="rank-table-wrap">
         {error ? <p className="rank-msg">{error}</p> : !rows ? <p className="rank-msg">{t('Cargando…')}</p> : rows.length === 0 ? <p className="rank-msg">{t('Todavía no hay partidas con estos filtros.')}</p> : (
           <table className="records rank-table">
-            <thead><tr><th>#</th><th>{t('Jugador')}</th><th>{t('Tiempo')}</th><th>{t('Agente')}</th><th>{t('Dificultad')}</th><th className="opt">{t('Mapa')}</th><th className="opt">{t('Bajas')}</th><th className="opt">{t('Nivel')}</th><th className="opt">{t('Jefes')}</th></tr></thead>
+            <thead><tr><th>#</th><th>{t('Jugador')}</th><th>{t('Tiempo')}</th><th>{t('Héroe')}</th><th>{t('Dificultad')}</th><th className="opt">{t('Mapa')}</th><th className="opt">{t('Bajas')}</th><th className="opt">{t('Nivel')}</th><th className="opt">{t('Jefes')}</th></tr></thead>
             <tbody>
               {rows.map((r, i) => {
                 const d = DIFFICULTY_BY_ID[r.difficulty];

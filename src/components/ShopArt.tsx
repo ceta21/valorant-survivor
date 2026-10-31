@@ -1,5 +1,5 @@
-// Dibujos de la tienda (mascotas y agentes con estilo), compartidos por la Tienda,
-// la ficha de Agentes y la sección de Mascotas.
+// Dibujos de la tienda (mascotas y héroes con estilo), compartidos por la Tienda,
+// la ficha de Héroes y la sección de Mascotas.
 import { useEffect, useRef } from 'react';
 import { PetDef } from '../data/shop';
 import { petRuns, PW, PH } from '../game/petSprites';
@@ -18,7 +18,7 @@ export function PetArt({ id, className = 'shop-art pet' }: { id: string; classNa
   );
 }
 
-/** Agente dibujado con un estilo (se pinta en un canvas porque el estilo recolorea píxeles). */
+/** Héroe dibujado con un estilo (se pinta en un canvas porque el estilo recolorea píxeles). */
 export function AgentArt({ id, skin, className = 'shop-art agent' }: { id: string; skin: string; className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {

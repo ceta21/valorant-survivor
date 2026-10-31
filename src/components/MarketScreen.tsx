@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SaveData } from '../utils/storage';
-import { AGENT_BY_ID } from '../data/agents';
+import { playableAgent } from '../data/agents';
+import { AGENT_SKIN_BY_ID, PET_BY_ID } from '../data/shop';
 import { Offer, marketOffers, marketPeriod, msToNextRotation } from '../data/market';
-import { AgentPortrait } from './AgentPortrait';
+import { AgentArt, ELEMENT, PetArt } from './ShopArt';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
 
@@ -14,6 +15,7 @@ interface Props {
   buy: (offer: Offer) => void;
   back: () => void;
   goAgents: () => void;
+  goPets: () => void;
 }
 
 const fmtCountdown = (ms: number) => {
@@ -22,8 +24,8 @@ const fmtCountdown = (ms: number) => {
 };
 const credits = (n: number) => nf(n);
 
-/** Mercado nocturno: cartas boca abajo con los agentes exclusivos a precio de lujo. */
-export function MarketScreen({ save, seed, reveal, buy, back, goAgents }: Props) {
+/** Mercado nocturno: cartas boca abajo con estilos de héroe y mascotas de la Tienda a precio rebajado. */
+export function MarketScreen({ save, seed, reveal, buy, back, goAgents, goPets }: Props) {
   const period = marketPeriod();
   const offers = useMemo(() => marketOffers(seed, period), [seed, period]);
   const revealed = save.market.period === period ? save.market.revealed : [];
@@ -46,14 +48,14 @@ export function MarketScreen({ save, seed, reveal, buy, back, goAgents }: Props)
         <h2>{t('Mercado nocturno')}</h2>
         <span className="credits">◈ {credits(save.credits)}</span>
       </header>
-      <p className="lead">{t('Descubre tus cartas. Cada día los agentes exclusivos, que no se consiguen de otra forma, salen con un descuento distinto.')} {t('Nueva rotación en')} <b className="market-timer">{fmtCountdown(left)}</b>.</p>
+      <p className="lead">{t('Descubre tus cartas. Cada día salen estilos de héroe y mascotas de la Tienda con un descuento distinto.')} {t('Nueva rotación en')} <b className="market-timer">{fmtCountdown(left)}</b>.</p>
       <div className="market-cards">
         {offers.map((o, i) => {
           const open = revealed.includes(i);
-          const owned = save.exclusives.includes(o.id);
+          const owned = save.shop.owned.includes(o.id);
           const can = save.credits >= o.price;
-          const agent = AGENT_BY_ID[o.id];
-          const color = agent?.color ?? '#ff4655';
+          const style = o.kind === 'style' ? AGENT_SKIN_BY_ID[o.id] : null, pet = o.kind === 'pet' ? PET_BY_ID[o.id] : null;
+          const color = style ? style.ramp[3] : pet ? ELEMENT[pet.element].color : '#9b5cff';
           if (!open) {
             return (
               <button key={i} className={`mcard back ${flipping === i ? 'flipping' : ''}`} onClick={() => flip(i)} aria-label={t('Descubrir carta {n}', { n: i + 1 })}>
@@ -64,22 +66,17 @@ export function MarketScreen({ save, seed, reveal, buy, back, goAgents }: Props)
           }
           return (
             <article key={i} className={`mcard ${o.kind} ${owned ? 'owned' : ''}`} style={{ ['--mc' as any]: color }}>
-              <span className="mcard-kind">{t('Agente exclusivo')}</span>
+              <span className="mcard-kind">{style ? t('Estilo de héroe') : t('Mascota')}</span>
               <span className="mcard-off">-{o.discount}%</span>
-              <div className="mcard-art">{agent && <AgentPortrait agent={agent} />}</div>
-              <h3>{t(agent?.name ?? '')}</h3>
-              <p className="mcard-desc">{t(agent?.desc ?? '')}</p>
-              {agent && (
-                <ul className="mcard-stats">
-                  <li><span>{t('Vida')}</span><b>{agent.hp}</b></li>
-                  <li><span>{t('Velocidad')}</span><b>{agent.speed}</b></li>
-                  <li><span>{t(agent.trait.label)}</span><b>{t(agent.trait.desc)}</b></li>
-                  <li><span>{t('Habilidades')}</span><b>{t('Las eliges tú')}</b></li>
-                </ul>
-              )}
+              <div className="mcard-art">
+                {style ? <AgentArt id={playableAgent(save.lastAgent)} skin={style.id} className="market-art" /> : pet && <PetArt id={pet.id} className="market-art pet" />}
+              </div>
+              <h3>{t(style?.name ?? pet?.name ?? '')}</h3>
+              <p className="mcard-desc">{t(style?.desc ?? pet?.desc ?? '')}</p>
+              {pet && <ul className="mcard-stats"><li><span>{t('Elemento')}</span><b>{t(ELEMENT[pet.element].name)}</b></li><li><span>{t('Poder')}</span><b>{t(pet.power.name)}</b></li></ul>}
               <div className="mcard-price"><s>◈ {credits(o.base)}</s><strong>◈ {credits(o.price)}</strong></div>
               {owned ? (
-                <button className="btn btn-sm" onClick={() => { audio.play('click'); goAgents(); }}><b>{t('Personalizar')}</b></button>
+                <button className="btn btn-sm" onClick={() => { audio.play('click'); (style ? goAgents : goPets)(); }}><b>{t('Comprado · póntelo')}</b></button>
               ) : confirm === i ? (
                 <div className="mcard-confirm">
                   <button className="btn btn-red btn-sm" onClick={() => { audio.play('pick'); buy(o); setConfirm(null); }}><b>{t('Confirmar')}</b></button>

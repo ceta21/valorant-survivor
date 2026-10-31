@@ -29,7 +29,7 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
   const news = NEWS[0];
   const revealed = save.market.period === marketPeriod() ? save.market.revealed.length : 0;
   const day = dayKey(), today = todayProgress(save.daily, day);
-  const missions = dailyMissions(day, [...save.unlocked, ...save.exclusives])
+  const missions = dailyMissions(day, save.unlocked)
     .map((m, i) => ({ m, reward: DAILY_REWARDS[i], c: Math.min(m.value(today), m.goal), claimed: today.claimed.includes(m.id) }))
     .filter(x => !x.claimed);
   const streak = save.login.last === day ? save.login.streak : 0;

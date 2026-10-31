@@ -1,4 +1,4 @@
-// Generado por scripts/cut-agent.ts: agentes dibujados a partir de su hoja de sprites
+// Generado por scripts/cut-agent.ts: héroes dibujados a partir de su hoja de sprites
 // (la imagen está en public/agents/<id>.png: una fila por vista —frente, espalda, lado— y una columna por paso).
 import aqua from './aqua.json';
 import brutus from './brutus.json';
