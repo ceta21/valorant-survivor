@@ -15,7 +15,7 @@ Modos y funciones principales:
 - **Cooperativo para 2 jugadores** con código de sala.
 - **Cuentas** (usuario + contraseña, ID de jugador) o **modo invitado**.
 - **Ranking global** filtrable por héroe y dificultad.
-- **Mercado nocturno** diario con estilos de héroe y mascotas de la Tienda rebajados.
+- **Mercado de la Grieta** diario con estilos de héroe y mascotas de la Tienda rebajados.
 - Mejoras permanentes, misiones, logros, estadísticas, novedades.
 - **Español e inglés**, controles reasignables, adaptado a móvil y escritorio.
 
@@ -72,7 +72,7 @@ La lista completa de versiones está en [Novedades](10-datos-del-juego.md#histor
 3. Dificultades, modo infinito y ranking global.
 4. Efectos de habilidades en pixel art.
 5. Cuentas de jugador y guardado en la nube.
-6. Mercado nocturno.
+6. Mercado de la Grieta.
 7. Novedades, cuenta de administrador.
 8. Cooperativo para 2 jugadores.
 9. Panel del menú, robots enemigos, Artillero, sección Apoyo, adaptación a pantallas.

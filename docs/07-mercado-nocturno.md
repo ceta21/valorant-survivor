@@ -1,4 +1,4 @@
-# 07 · Mercado nocturno
+# 07 · Mercado de la Grieta
 
 Código: `src/data/market.ts` (rotación y precios), `src/components/MarketScreen.tsx` (pantalla),
 `src/data/shop.ts` (estilos de héroe y mascotas que se ofrecen).

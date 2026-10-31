@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-31 · versión de Novedades: v1.23
+> Última generación: 2026-10-31 · versión de Novedades: v2.0
 
 ## Héroes base
 
@@ -250,7 +250,7 @@ Coste del nivel siguiente: `round(80 × (nivel + 1)^1.6)` → 80, 243, 464, 735,
 | `infierno` | Infierno | Roca volcánica cruzada por ríos de lava, fortalezas con cuernos y pinchos de piedra. |
 | `ciudad` | Ciudad | Metrópolis moderna con rascacielos, avenidas, helipuertos, parques y un puerto. |
 
-## Mercado nocturno
+## Mercado de la Grieta
 
 - 4 cartas por jugador, nueva rotación cada 24 h (medianoche UTC).
 - Son los héroes exclusivos, en orden al azar.
@@ -277,26 +277,4 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
-| v1.23 | 2026-10-31 | Ahora son héroes | Mejora |
-| v1.22 | 2026-10-31 | Habilidades nuevas | Nuevo |
-| v1.21 | 2026-10-31 | Cajas con premios | Nuevo |
-| v1.20 | 2026-10-30 | Ahora somos ENDLESS RIFT | Nuevo |
-| v1.19 | 2026-10-30 | Poderes en vez de armas | Nuevo |
-| v1.18 | 2026-10-30 | Un mundo nuevo | Nuevo |
-| v1.17 | 2026-10-30 | 20 héroes nuevos | Nuevo |
-| v1.16 | 2026-10-29 | Tienda: estilos y mascotas | Nuevo |
-| v1.15 | 2026-10-29 | Misiones diarias y racha | Nuevo |
-| v1.14 | 2026-10-29 | Agentes disponibles | Mejora |
-| v1.13 | 2026-10-29 | 14 agentes nuevos y nuevo aspecto | Nuevo |
-| v1.12 | 2026-10-29 | Corrección del modo en pareja | Mejora |
-| v1.11 | 2026-10-29 | Torretas de Killjoy | Mejora |
-| v1.10 | 2026-10-28 | Idiomas y controles | Nuevo |
-| v1.9 | 2026-10-28 | Nuevo enemigo: Artillero | Nuevo |
-| v1.8 | 2026-10-28 | Nuevos robots enemigos | Mejora |
-| v1.7 | 2026-10-28 | Jugar en pareja | Nuevo |
-| v1.6 | 2026-10-28 | Mercado nocturno | Nuevo |
-| v1.5 | 2026-10-28 | Cuentas de jugador | Nuevo |
-| v1.4 | 2026-10-28 | Habilidades con nuevos efectos | Mejora |
-| v1.3 | 2026-10-28 | Dificultades, modo infinito y ranking | Nuevo |
-| v1.2 | 2026-10-28 | Nuevo estilo pixel art | Mejora |
-| v1.1 | 2026-10-28 | Mapas infinitos | Mejora |
+| v2.0 | 2026-10-31 | ¡Lanzamiento de ENDLESS RIFT! | Nuevo |

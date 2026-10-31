@@ -16,7 +16,7 @@
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir héroe, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
-| Mercado nocturno | `MarketScreen` | Cartas del día |
+| Mercado de la Grieta | `MarketScreen` | Cartas del día |
 | Ranking global | `RankingScreen` | Tabla filtrable por héroe y dificultad |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
 | Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar) y logros |
@@ -48,7 +48,7 @@ o pulsando fuera. En solitario detiene la partida mientras está abierto; en coo
   que conserva el nombre antiguo: botones principales, pestañas activas) y oro (`--gold`) en títulos y al pasar el
   ratón por los botones principales. Fondo de los menús: estrellas blancas, moradas y doradas, resplandor central
   y 3 grietas pixeladas (`public/ui/crack.svg`) que bajan y laten con `steps()`.
-- Colores de botones especiales: Jugar en pareja (cian), Mercado nocturno (morado), Apoyo (verde).
+- Colores de botones especiales: Jugar en pareja (cian), Mercado de la Grieta (morado), Apoyo (verde).
 - Todo el estilo está en `src/styles/index.css` (variables de color en `:root`).
 
 ## Adaptación a pantallas

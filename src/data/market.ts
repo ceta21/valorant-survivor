@@ -1,4 +1,4 @@
-// Mercado nocturno: cada jugador recibe cada día 4 cartas boca abajo con estilos de héroe y mascotas de la Tienda a
+// Mercado de la Grieta: cada jugador recibe cada día 4 cartas boca abajo con estilos de héroe y mascotas de la Tienda a
 // precio rebajado (deterministas para su cuenta, así que recargar la página no cambia la tienda). Lo comprado aquí va
 // a la Tienda como si se hubiera comprado allí.
 import { AGENT_SKINS, PETS } from './shop';

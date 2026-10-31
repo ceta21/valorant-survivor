@@ -24,7 +24,7 @@ const fmtCountdown = (ms: number) => {
 };
 const credits = (n: number) => nf(n);
 
-/** Mercado nocturno: cartas boca abajo con estilos de héroe y mascotas de la Tienda a precio rebajado. */
+/** Mercado de la Grieta: cartas boca abajo con estilos de héroe y mascotas de la Tienda a precio rebajado. */
 export function MarketScreen({ save, seed, reveal, buy, back, goAgents, goPets }: Props) {
   const period = marketPeriod();
   const offers = useMemo(() => marketOffers(seed, period), [seed, period]);
@@ -45,7 +45,7 @@ export function MarketScreen({ save, seed, reveal, buy, back, goAgents, goPets }
     <div className="screen market">
       <header className="top">
         <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
-        <h2>{t('Mercado nocturno')}</h2>
+        <h2>{t('Mercado de la Grieta')}</h2>
         <span className="credits">◈ {credits(save.credits)}</span>
       </header>
       <p className="lead">{t('Descubre tus cartas. Cada día salen estilos de héroe y mascotas de la Tienda con un descuento distinto.')} {t('Nueva rotación en')} <b className="market-timer">{fmtCountdown(left)}</b>.</p>

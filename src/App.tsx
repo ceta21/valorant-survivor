@@ -160,7 +160,7 @@ export default function App() {
     const period = marketPeriod(), cur = s.market.period === period ? s.market.revealed : [];
     return cur.includes(slot) ? s : { ...s, market: { period, revealed: [...cur, slot] } };
   });
-  /** Compra una oferta del mercado nocturno: va a la Tienda como si se hubiera comprado allí (más barata). */
+  /** Compra una oferta del Mercado de la Grieta: va a la Tienda como si se hubiera comprado allí (más barata). */
   const buyOffer = (o: Offer) => update(s => s.credits < o.price || s.shop.owned.includes(o.id) ? s : { ...s, credits: s.credits - o.price, shop: { ...s.shop, owned: [...s.shop.owned, o.id] } });
 
   const go = (s: Screen) => {

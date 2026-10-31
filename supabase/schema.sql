@@ -1,4 +1,4 @@
--- Ranking global de VALORANT SURVIVORS.
+-- Ranking global de ENDLESS RIFT.
 -- Pega esto en Supabase > SQL Editor > New query y pulsa "Run".
 
 create table if not exists public.scores (

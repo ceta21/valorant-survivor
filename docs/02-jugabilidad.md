@@ -180,7 +180,7 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
   héroes de versiones anteriores ya no existen: al cargar un guardado se quitan y se devuelve lo que costaron
   (`LEGACY_AGENT_COSTS`); sus marcas del ranking salen como "Héroe retirado".
 - **Mejoras permanentes**: daño, vida, velocidad y experiencia, 10 niveles cada una (ver coste en [10](10-datos-del-juego.md#mejoras-permanentes)).
-- **Mercado nocturno**: ver [07](07-mercado-nocturno.md).
+- **Mercado de la Grieta**: ver [07](07-mercado-nocturno.md).
 - **Tienda** (`src/data/shop.ts`, `ShopScreen`): **solo compra** (con confirmación). Lo comprado se pone en otro sitio:
   estilos de héroe en la ficha de cada héroe (**Héroes**); mascotas y su poder en **Mascotas**.
   - Estilos de héroes (◈ 8.000–12.000): recolorean ropa y armadura del héroe al que se pongan, respetando piel y

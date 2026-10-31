@@ -12,7 +12,7 @@ mantenerlo. Es la "memoria" del proyecto: **se actualiza con cada cambio** (ver
 | [04 · Base de datos (Supabase)](04-base-de-datos.md) | Tablas, columnas, permisos (RLS), triggers, funciones y ficheros SQL |
 | [05 · Cuentas y progreso](05-cuentas-y-progreso.md) | Registro, inicio de sesión, invitado, qué se guarda y dónde, administrador |
 | [06 · Modo cooperativo](06-cooperativo.md) | Salas, conexión P2P, sincronización anfitrión/invitado, caídas y reapariciones |
-| [07 · Mercado nocturno](07-mercado-nocturno.md) | Rotación diaria, precios, armas y héroes exclusivos, kits personalizados |
+| [07 · Mercado de la Grieta](07-mercado-nocturno.md) | Rotación diaria, precios, armas y héroes exclusivos, kits personalizados |
 | [08 · Interfaz](08-interfaz.md) | Pantallas, estilo pixel art, idiomas, controles, adaptación a pantallas |
 | [09 · Desarrollo y despliegue](09-desarrollo-y-despliegue.md) | Comandos, pruebas, publicación, cómo añadir contenido, lista de comprobación de cambios |
 | [10 · Datos del juego](10-datos-del-juego.md) | **Generado automáticamente**: tablas exactas de héroes, armas, enemigos, mejoras… |

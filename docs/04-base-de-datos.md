@@ -18,6 +18,7 @@ ranking local.
 | `supabase/market.sql` | Permitía en el ranking los héroes exclusivos (`eclipse`, `vortice`, `quimera`, ya retirados; sus marcas siguen siendo válidas) | Sí |
 | `supabase/agents.sql` | (Antiguo) permitía los 14 agentes de la versión 1.13 | Sí |
 | `supabase/heroes.sql` | Permite en el ranking los 20 héroes originales y las zonas (`reino`, `glaciar`, `infierno`, `ciudad`); mantiene los ids antiguos | Pendiente |
+| `supabase/ranking-seguro.sql` | Ranking a prueba de trampas: rechaza marcas imposibles (mínimo 5 s; bajas ≤ 20·tiempo + 100; nivel ≤ 10 + tiempo/5; jefes ≤ 1 + tiempo/20) y envíos demasiado seguidos (la marca anterior del mismo jugador debe ser de hace más de máx(20 s, 0,8 × tiempo de la partida)). El juego muestra un aviso claro si el servidor la rechaza | Sí |
 | `supabase/admin.sql` | Columna `is_admin` y convierte una cuenta en administrador con todo desbloqueado (cambiar `TU_USUARIO`) | Sí |
 
 Configuración de Auth necesaria: **Authentication → Sign In / Providers → "Confirm email" desactivado**

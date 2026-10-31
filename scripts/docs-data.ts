@@ -84,7 +84,7 @@ out.push(table(['Tipo', 'id', 'Nombre', 'Condición', 'Recompensa'],
 out.push(`\n## Mapas\n`);
 out.push(table(['id', 'Nombre', 'Descripción'], MAPS.map(m => [`\`${m.id}\``, m.name, m.desc])));
 
-out.push(`\n## Mercado nocturno\n`);
+out.push(`\n## Mercado de la Grieta\n`);
 out.push(`- ${MARKET_SLOTS} cartas por jugador, nueva rotación cada ${MARKET_PERIOD_MS / 3600000} h (medianoche UTC).
 - Son los héroes exclusivos, en orden al azar.
 - Descuento aleatorio del 10 % al 35 %; el precio se redondea a múltiplos de 50.

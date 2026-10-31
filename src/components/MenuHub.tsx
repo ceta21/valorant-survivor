@@ -45,7 +45,7 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
         </button>
       )}
       <button className="hub-card hub-market" style={{ ['--hc' as any]: '#b05cff' }} onClick={open('market')}>
-        <span className="hub-kicker"><Emo e="🌙" />{t('Mercado nocturno')}</span>
+        <span className="hub-kicker"><Emo e="🌙" />{t('Mercado de la Grieta')}</span>
         <div className="hub-cards" aria-hidden="true">
           {Array.from({ length: MARKET_SLOTS }, (_, i) => <i key={i} className={i < revealed ? 'on' : ''}>{i < revealed ? '★' : '?'}</i>)}
         </div>

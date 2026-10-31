@@ -55,5 +55,10 @@ export async function submitScore(s: ScoreEntry): Promise<void> {
     return;
   }
   const { error } = await supabase.from('scores').insert(row);
-  if (error) throw new Error(/registrada/.test(error.message) ? t('Ese nombre pertenece a una cuenta registrada') : `${t('No se pudo enviar')} (${error.message})`);
+  if (error) {
+    if (/registrada/.test(error.message)) throw new Error(t('Ese nombre pertenece a una cuenta registrada'));
+    if (/seguido/.test(error.message)) throw new Error(t('Espera un poco antes de enviar otra marca'));
+    if (/scores_plausible/.test(error.message)) throw new Error(t('Esta marca no es válida'));
+    throw new Error(`${t('No se pudo enviar')} (${error.message})`);
+  }
 }

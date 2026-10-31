@@ -54,7 +54,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={hover}><b><Emo e="📅" />{t('Diario')}{hasDailyReward(save.daily, save.login, save.unlocked) && <i className="news-badge">!</i>}</b></button>
           <button className="btn btn-shop" onClick={click('shop')} onMouseEnter={hover}><b><Emo e="🧺" />{t('Tienda')}</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={hover}><b><Emo e="💪" />{t('Mejoras')}</b></button>
-          <button className="btn btn-market" onClick={click('market')} onMouseEnter={hover}><b><Emo e="🌙" />{t('Mercado nocturno')}</b></button>
+          <button className="btn btn-market" onClick={click('market')} onMouseEnter={hover}><b><Emo e="🌙" />{t('Mercado de la Grieta')}</b></button>
           <button className="btn" onClick={click('ranking')} onMouseEnter={hover}><b><Emo e="🏆" />{t('Ranking global')}</b></button>
           <button className="btn" onClick={click('news')} onMouseEnter={hover}><b><Emo e="📰" />{t('Novedades')}{save.newsSeen !== LATEST_NEWS && <i className="news-badge">!</i>}</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={hover}><b><Emo e="📊" />{t('Estadísticas')}</b></button>
