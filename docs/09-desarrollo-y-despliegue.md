@@ -34,7 +34,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 ## Publicar
 
 1. Commit y push a `main` (Gabriel confirma antes de cada subida).
-2. Vercel publica solo en ~1 minuto en https://valorant-survivor.vercel.app/.
+2. Vercel publica solo en ~1 minuto en https://endless-rift.vercel.app/.
 3. Comprobar que la versión publicada incluye el cambio (por ejemplo, buscando un texto nuevo en el JS servido).
 4. Si un cambio necesita SQL nuevo, **ejecutarlo en Supabase antes de subir** el código que lo usa.
 

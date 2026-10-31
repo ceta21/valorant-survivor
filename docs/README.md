@@ -22,6 +22,6 @@ mantenerlo. Es la "memoria" del proyecto: **se actualiza con cada cambio** (ver
 Survivor de oleadas en 2D pixel art ("grietas infinitas de las que emergen hordas de enemigos"), hecho con React + TypeScript + Canvas,
 publicado en Vercel, con cuentas, ranking y salas cooperativas en Supabase.
 
-- Juego publicado: https://valorant-survivor.vercel.app/
+- Juego publicado: https://endless-rift.vercel.app/
 - Repositorio (privado): `ceta21/valorant-survivor`, rama `main`
 - Creador: Gabriel Vigo Rodríguez — https://www.linkedin.com/in/gabrielvigorodriguez

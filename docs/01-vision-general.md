@@ -55,7 +55,7 @@ valorant-survivors/
 
 ## Dónde está publicado
 
-- **Web**: https://valorant-survivor.vercel.app/ (Vercel, plan gratuito). Cada push a `main`
+- **Web**: https://endless-rift.vercel.app/ (Vercel, plan gratuito). Cada push a `main`
   despliega una versión nueva en ~1 minuto.
 - **Base de datos**: proyecto Supabase `vfmagtrfcnlxbgpwrjbr`. El plan gratuito **pausa el
   proyecto tras 7 días sin uso**; se reactiva desde el panel con *Restore project*.

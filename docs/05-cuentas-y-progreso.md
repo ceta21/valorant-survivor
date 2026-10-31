@@ -13,7 +13,7 @@ Al abrir el juego:
 
 - Pide nombre de usuario (3–16 letras, números o `_`), contraseña (mín. 6) y repetirla.
 - Internamente se usa Supabase Auth con un **correo derivado del nombre**:
-  `<usuario en minúsculas>@players.valorant-survivor.vercel.app` (no se envían correos; "Confirm email" está
+  `<usuario en minúsculas>@players.valorant-survivor.vercel.app` (dominio inventado del nombre antiguo, que no se cambia para no romper los inicios de sesión; no se envían correos; "Confirm email" está
   desactivado).
 - Antes de registrar se comprueba con `username_available`. El trigger crea el perfil y asigna un
   **ID de jugador** automático (`#10000`, `#10001`…).
