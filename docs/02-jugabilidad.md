@@ -105,6 +105,14 @@ se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su po
   (>10, más grande) según su valor; la de curación es una cruz verde. Se atraen al acercarse (radio 120 × imán)
   o solas tras 8 s. Si hay más de 320 gemas, las nuevas se suman a una existente.
 - Orbes de curación (cruz verde): los sueltan los élites, los jefes (3) y el 0,8 % de los enemigos normales.
+- **Cajas rompibles**: aparece una cada 7 s a 380–760 de un jugador (máximo 6 a la vez; nunca en obstáculos, agua,
+  lava ni abismo; desaparecen si todos se alejan más de 1.800). No bloquean el paso. Tienen 30 de vida × (1 + minuto/10)
+  y se rompen con los proyectiles (gastan perforación) y las explosiones. Al romperse sueltan experiencia y un premio:
+  curación 25 % (35 %), monedas de 15–30 créditos que se suman al final (35 %), imán que atrae todas las gemas de
+  experiencia (20 %) o bomba que mata a los enemigos normales a 620 y quita un 8 % de vida a los jefes (10 %).
+  El poder dispara a lo que tenga más cerca: el enemigo más cercano o la caja más cercana. El premio sale despedido
+  de la caja, rebota al caer y se queda en el suelo: no vuela hacia ti ni lo atrae el imán; se recoge pasándole por
+  encima (a menos de 18 + radio del héroe). Las cajas salen en el minimapa como puntos dorados.
 - Rareza de las mejoras: pesos `[máx(20, 60 − 0,8·N), 28 + 0,6·N, 10 + 0,5·N, 2 + 0,15·N]` (N = nivel), así
   que a más nivel, más mejoras épicas y legendarias.
 

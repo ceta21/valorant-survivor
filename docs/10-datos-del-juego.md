@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-30 · versión de Novedades: v1.20
+> Última generación: 2026-10-31 · versión de Novedades: v1.21
 
 ## Agentes base
 
@@ -285,6 +285,7 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
+| v1.21 | 2026-10-31 | Cajas con premios | Nuevo |
 | v1.20 | 2026-10-30 | Ahora somos ENDLESS RIFT | Nuevo |
 | v1.19 | 2026-10-30 | Poderes en vez de armas | Nuevo |
 | v1.18 | 2026-10-30 | Un mundo nuevo | Nuevo |

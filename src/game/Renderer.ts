@@ -47,7 +47,7 @@ export class Renderer {
     preloadAgentSheets();
   }
 
-  /** Cristal de experiencia (o cruz de curación) en pixel art, con contorno y brillo. */
+  /** Cristal de experiencia, cruz de curación o premio de caja (imán, bomba, moneda) en pixel art, con contorno y brillo. */
   private gemSprite(tier: string) {
     let c = this.gemCache.get(tier);
     if (c) return c;
@@ -57,12 +57,18 @@ export class Renderer {
       gold: ['#2a1a06', '#b07a14', '#ffd24a', '#fff2b0', '#ffffff'],
       epic: ['#1a0a2a', '#6a2aa8', '#c070ff', '#f0d0ff', '#ffffff'],
       heal: ['#0b2018', '#1f8a3a', '#5dff9a', '#d8ffe0', '#ffffff'],
+      magnet: ['#1a0a0a', '#8a1a1a', '#e0303a', '#ff8a8a', '#ffffff'],
+      bomb: ['#000000', '#1a1a22', '#3a3a48', '#7a7a8a', '#ff8a1c'],
+      coin: ['#2a1a06', '#b07a14', '#ffd24a', '#fff2b0', '#ffffff'],
     };
     const crystal = ['....O....', '...OWO...', '..OLWMO..', '.OLLWMMO.', 'OLLLWMMDO', 'OLLLMMMDO', '.OLLMMDO.', '..OLMDO..', '..OMMDO..', '...ODO...', '....O....'];
     const big = ['.....O.....', '....OWO....', '...OLWMO...', '..OLLWMMO..', '.OLLLWMMDO.', 'OLLLLWMMMDO', 'OLLLLMMMMDO', '.OLLLMMMDO.',
       '..OLLMMDO..', '..OLMMMDO..', '...OMMDO...', '...OMDDO...', '....ODO....', '.....O.....'];
     const cross = ['...OOO...', '...OWO...', 'OOOOLOOOO', 'OWLLLMMMO', 'OOOOMOOOO', '...OMO...', '...OMO...', '...ODO...', '...OOO...'];
-    const rows = tier === 'heal' ? cross : tier === 'epic' || tier === 'gold' ? big : crystal;
+    const magnet = ['OOO...OOO', 'OWO...OWO', 'OMO...OMO', 'OMO...OMO', 'OMMOOOMMO', 'OLMMMMMDO', '.OLMMMDO.', '..OOOOO..'];
+    const bomb = ['.....OO..', '....OW.O.', '...OO....', '..ODDDO..', '.ODLMMDO.', 'ODLLMMMDO', 'ODMMMMMDO', 'ODMMMMMDO', '.ODMMMDO.', '..OOOOO..'];
+    const coin = ['..OOOOO..', '.OLWWLMO.', 'OLWLMMMDO', 'OLLMDMMDO', 'OLMDDDMDO', 'OLMMDMMDO', 'OMMMMMDDO', '.OMDDDDO.', '..OOOOO..'];
+    const rows = tier === 'heal' ? cross : tier === 'magnet' ? magnet : tier === 'bomb' ? bomb : tier === 'coin' ? coin : tier === 'epic' || tier === 'gold' ? big : crystal;
     const [o, d, m, l, w] = PALS[tier], pal: Record<string, string> = { O: o, D: d, M: m, L: l, W: w };
     c = this.makeCanvas(rows[0].length * PX, rows.length * PX);
     const cg = c.getContext('2d');
@@ -70,12 +76,28 @@ export class Renderer {
     this.gemCache.set(tier, c);
     return c;
   }
+  /** Caja de madera con bandas de hierro, cerradura dorada y un cristal morado de la grieta en la tapa. */
+  private crateSprite(hit: boolean) {
+    const key = hit ? 'crate-hit' : 'crate';
+    let c = this.gemCache.get(key);
+    if (c) return c;
+    const rows = ['.OOOOOOOOOO.', 'OLLLLPPLLLLO', 'OMMMPWWPMMMO', 'OIIIIPPIIIIO', 'OMDMMMMMMDMO', 'OMDMMMMMMDMO', 'OIIIIGGIIIIO', 'OMDMMGGMMDMO', 'OMDMMMMMMDMO', 'ODDDDDDDDDDO', '.OOOOOOOOOO.'];
+    const pal: Record<string, string> = hit
+      ? { O: '#ffffff', L: '#ffffff', M: '#ffffff', D: '#e6e6e6', I: '#ffffff', P: '#ffffff', W: '#ffffff', G: '#ffffff' }
+      : { O: '#1a0e08', L: '#c9894a', M: '#a0602a', D: '#6a3a18', I: '#4a4a58', P: '#9b5cff', W: '#e2c4ff', G: '#ffd24a' };
+    const S = PX * 2;
+    c = this.makeCanvas(rows[0].length * S, rows.length * S);
+    const cg = c.getContext('2d');
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { cg.fillStyle = pal[ch]; cg.fillRect(x * S, y * S, S, S); } }));
+    this.gemCache.set(key, c);
+    return c;
+  }
   /** Halo del color del cristal (degradado radial ya pintado, para no recalcularlo por gema). */
   private gemGlow(tier: string) {
     const key = 'glow-' + tier;
     let c = this.gemCache.get(key);
     if (c) return c;
-    const col = { blue: '79,208,255', green: '63,224,160', gold: '255,210,74', epic: '192,112,255', heal: '93,255,154' }[tier] ?? '255,255,255';
+    const col = { blue: '79,208,255', green: '63,224,160', gold: '255,210,74', epic: '192,112,255', heal: '93,255,154', magnet: '255,80,90', bomb: '255,140,40', coin: '255,210,74', crate: '192,112,255' }[tier] ?? '255,255,255';
     c = this.makeCanvas(64, 64);
     const cg = c.getContext('2d'), gr = cg.createRadialGradient(32, 32, 2, 32, 32, 32);
     gr.addColorStop(0, `rgba(${col},1)`); gr.addColorStop(0.25, `rgba(${col},0.6)`); gr.addColorStop(0.6, `rgba(${col},0.18)`); gr.addColorStop(1, `rgba(${col},0)`);
@@ -160,21 +182,38 @@ export class Renderer {
       pixelCircle(g, pt.x, pt.y, 18, col, PX, 2, ph * 3);
       pixelCircle(g, pt.x, pt.y, 8, '#ffffff', PX, 1, -ph * 4);
     }
+    // cajas rompibles: madera con herrajes y un cristal de la grieta que brilla; parpadean en blanco al golpearlas
+    for (const c of e.crates) {
+      if (c.dead || !vis(c.x, c.y)) continue;
+      const spr = this.crateSprite(c.flash > 0), cx = Math.round(c.x / PX) * PX, cy = Math.round(c.y / PX) * PX;
+      const glow = this.gemGlow('crate'), pulse = 0.6 + 0.4 * Math.sin(e.time * 3 + c.id);
+      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(cx - 22, cy + spr.height / 2 - 4, 44, 6);
+      g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.55 * pulse;
+      g.drawImage(glow, cx - 40, cy - 40, 80, 80);
+      g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+      g.drawImage(spr, cx - spr.width / 2, cy - spr.height / 2);
+      if (c.hp < c.max) {
+        g.fillStyle = '#000'; g.fillRect(cx - 18, cy - spr.height / 2 - 8, 36, 4);
+        g.fillStyle = '#ffd24a'; g.fillRect(cx - 17, cy - spr.height / 2 - 7, Math.max(0, 34 * (c.hp / c.max)), 2);
+      }
+    }
     // gemas: cristales pixel art con halo que late y un destello de vez en cuando
     g.imageSmoothingEnabled = false;
     for (const m of e.gems) {
       if (!vis(m.x, m.y)) continue;
-      const tier = m.kind === 1 ? 'heal' : m.v > 10 ? 'epic' : m.v > 4 ? 'gold' : m.v > 1.5 ? 'green' : 'blue';
-      const bob = Math.round(Math.sin(m.t * 5) * 1.5), ph = m.x * 0.13 + m.y * 0.07;
-      const gx = Math.round(m.x / PX) * PX, gy = Math.round(m.y / PX) * PX + bob;
+      const tier = m.kind === 1 ? 'heal' : m.kind === 2 ? 'magnet' : m.kind === 3 ? 'bomb' : m.kind === 4 ? 'coin' : m.v > 10 ? 'epic' : m.v > 4 ? 'gold' : m.v > 1.5 ? 'green' : 'blue';
+      const lift = Math.round((m.z ?? 0) / PX) * PX;   // premio de caja en el aire
+      const bob = lift ? 0 : Math.round(Math.sin(m.t * 5) * 1.5), ph = m.x * 0.13 + m.y * 0.07;
+      const gx = Math.round(m.x / PX) * PX, gy = Math.round(m.y / PX) * PX + bob - lift;
       // halo luminoso (suma luz)
-      const glow = this.gemGlow(tier), pulse = 0.75 + 0.25 * Math.sin(e.time * 4 + ph), gs = (tier === 'epic' || tier === 'gold' ? 30 : 22) * (0.9 + 0.1 * pulse);
+      const glow = this.gemGlow(tier), pulse = 0.75 + 0.25 * Math.sin(e.time * 4 + ph), gs = (tier === 'epic' || tier === 'gold' || m.kind >= 2 ? 30 : 22) * (0.9 + 0.1 * pulse);
       const spr = this.gemSprite(tier);
-      g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(gx - 4, gy - bob + spr.height / 2 + 2, 8, 2);   // sombra en el suelo
+      g.fillStyle = 'rgba(0,0,0,0.35)'; const sw = m.box ? 14 : 8; g.fillRect(gx - sw / 2, gy - bob + lift + (spr.height * (m.kind >= 1 ? 2 : 1)) / 2, sw, m.box ? 3 : 2);   // sombra en el suelo
       g.globalCompositeOperation = 'lighter'; g.globalAlpha = pulse;
       g.drawImage(glow, gx - gs, gy - gs, gs * 2, gs * 2);
       g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
-      g.drawImage(spr, gx - spr.width / 2, gy - spr.height / 2);
+      const sc = m.kind >= 1 ? 2 : 1;   // curación y premios de las cajas, al doble para que se vean
+      g.drawImage(spr, gx - (spr.width * sc) / 2, gy - (spr.height * sc) / 2, spr.width * sc, spr.height * sc);
       // destello: una cruz blanca que aparece un instante
       if (((e.time * 0.7 + ph) % 1) < 0.12) {
         const sx = gx + 4, sy = gy - spr.height / 2 + 2;

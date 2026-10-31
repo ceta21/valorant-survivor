@@ -50,3 +50,11 @@ shot('zephyr', 'reino', 1, 'poderes_todos', e => {
     e.spawnProj(e.player.x - 250 + i * 50, e.player.y - 60, 0, 1, 1, w.size, 999, 0, false, w.color, { look: w.look });
   });
 });
+// cajas (una recién golpeada y otra dañada) y los 4 premios que sueltan
+shot('zephyr', 'reino', 1, 'cajas', e => {
+  e.enemies.length = 0; e.gems.length = 0;
+  const { x, y } = e.player;
+  e.crates.push({ id: 1, x: x - 160, y: y - 70, hp: 30, max: 30, flash: 0, dead: false }, { id: 2, x: x - 60, y: y - 70, hp: 12, max: 30, flash: 0, dead: false },
+    { id: 3, x: x + 40, y: y - 70, hp: 20, max: 30, flash: 0.1, dead: false });
+  ([1, 2, 3, 4] as const).forEach((k, i) => e.gems.push({ x: x - 150 + i * 60, y: y + 70, v: k === 1 ? 0.25 : 20, kind: k, mag: false, dead: false, t: 0 }));
+});

@@ -1,7 +1,7 @@
 // Cooperativo en red: el anfitrión simula la partida y envía "fotos" del estado; el invitado
 // no simula: copia esas fotos en su motor, suaviza los movimientos entre una y otra y solo
 // predice su propio personaje para que responda al instante.
-import { Enemy, GameEngine, Pl, ProjLook } from './GameEngine';
+import { Enemy, GameEngine, GemKind, Pl, ProjLook } from './GameEngine';
 import { ENEMIES } from '../data/enemies';
 import { POWERS } from '../data/powers';
 import { BossPattern, UpgradeChoice } from './types';
@@ -29,11 +29,12 @@ export interface Snap {
   en: number[];   // por enemigo: id, def, x, y, hp, maxHp, flags, face*100, atk(kind+1), atkT*100, atkDur*100, atkX, atkY, atkAng*100
   pj: number[];   // por proyectil: x, y, vx, vy, r*10, look, crit, color
   ep: number[];   // por proyectil enemigo: x, y, vx, vy, r, color
-  gm: number[];   // por gema: x, y, v*10, kind
+  gm: number[];   // por gema: x, y, v*10, kind, altura (premios de caja; si no, 0)
   sk: unknown[][]; vf: unknown[][]; cl: string[]; ev: unknown[][];
   sh?: number[];  // por obús: x, y, ox, oy, t*100, dur*100, r
+  cr?: number[];  // por caja: id, x, y, vida en %, golpe (0/1)
 }
-const EN = 14, PJ = 8, EP = 6, GM = 4;
+const EN = 14, PJ = 8, EP = 6, GM = 5;
 
 /* ------------------------------------------------------------------ anfitrión */
 export function makeSnapshot(e: GameEngine): Snap {
@@ -54,7 +55,7 @@ export function makeSnapshot(e: GameEngine): Snap {
   const ep: number[] = [];
   for (const b of e.eprojs) if (!b.dead) ep.push(Math.round(b.x), Math.round(b.y), Math.round(b.vx), Math.round(b.vy), b.r, col(b.color));
   const gm: number[] = [];
-  for (const g of e.gems) if (!g.dead) gm.push(Math.round(g.x), Math.round(g.y), Math.round(g.v * 10), g.kind);
+  for (const g of e.gems) if (!g.dead) gm.push(Math.round(g.x), Math.round(g.y), Math.round(g.v * 10), g.kind, g.box ? Math.round((g.z ?? 0) + 1) : 0);
   const p = e.players.map((pl): PlayerSnap => {
     const q = pl.body, b = pl.buffs;
     return {
@@ -77,6 +78,7 @@ export function makeSnapshot(e: GameEngine): Snap {
     sk: e.strikes.filter(s => !s.dead).map(s => [Math.round(s.x), Math.round(s.y), Math.round(s.r), r2(s.t), r2(s.dur), s.fx ?? '', Math.round(s.ox), Math.round(s.oy), s.color]),
     vf: e.vfx.map(v => [v.kind, v.pal, Math.round(v.x), Math.round(v.y), Math.round(v.r), r2(v.t), r2(v.dur), r2(v.ang), v.seed, v.follow ? 1 : 0, v.sprite ?? '', v.owner ?? 0, r2(v.w ?? 0)]),
     cl: colors, ev: ev.length > 400 ? ev.slice(-400) : ev,
+    cr: e.crates.filter(c => !c.dead).flatMap(c => [c.id, Math.round(c.x), Math.round(c.y), Math.round((c.hp / c.max) * 100), c.flash > 0 ? 1 : 0]),
     sh: e.shells.filter(s => !s.dead).flatMap(s => [Math.round(s.x), Math.round(s.y), Math.round(s.ox), Math.round(s.oy), Math.round(s.t * 100), Math.round(s.dur * 100), s.r]),
   };
 }
@@ -149,8 +151,12 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     const x = s.gm[i], y = s.gm[i + 1];
     // reutiliza la gema más cercana para que las atraídas se deslicen en vez de saltar
     const prev = oldGems[e.gems.length];
-    e.gems.push({ x: prev ? prev.x : x, y: prev ? prev.y : y, tx: x, ty: y, v: s.gm[i + 2] / 10, kind: s.gm[i + 3] as 0 | 1, mag: false, dead: false, t: prev?.t ?? 0 });
+    e.gems.push({ x: prev ? prev.x : x, y: prev ? prev.y : y, tx: x, ty: y, v: s.gm[i + 2] / 10, kind: s.gm[i + 3] as GemKind, mag: false, dead: false, t: prev?.t ?? 0,
+      box: s.gm[i + 4] > 0, z: Math.max(0, s.gm[i + 4] - 1) });
   }
+  const cr = s.cr ?? [];
+  e.crates = [];
+  for (let i = 0; i < cr.length; i += 5) e.crates.push({ id: cr[i], x: cr[i + 1], y: cr[i + 2], hp: cr[i + 3], max: 100, flash: cr[i + 4] ? 0.05 : 0, dead: false });
   e.shells = [];
   const sh = s.sh ?? [];
   for (let i = 0; i < sh.length; i += 7) e.shells.push({ x: sh[i], y: sh[i + 1], ox: sh[i + 2], oy: sh[i + 3], t: sh[i + 4] / 100, dur: sh[i + 5] / 100, r: sh[i + 6], dmg: 0, dead: false });

@@ -25,7 +25,7 @@ Separación de responsabilidades:
   (los estados son `playing`, `paused`, `levelup`, `won`, `lost`).
 - Orden de cada paso: rejilla espacial → por cada jugador (movimiento, poderes, drones/torretas, carga de
   definitiva) → proyectiles → enemigos → proyectiles enemigos → obuses → golpes de área y efectos →
-  gemas → generador de enemigos → partículas → limpieza.
+  gemas → cajas (aparecer y quitar las lejanas) → generador de enemigos → partículas → limpieza.
 - **Rejilla espacial** de 64×64 celdas de 64 unidades (toroidal) para buscar enemigos cercanos rápido.
 - **Reservas** (pools) de enemigos y proyectiles para no crear objetos nuevos constantemente; partículas, textos
   y ondas en anillos de tamaño fijo (700 / 70 / 120).
@@ -82,7 +82,7 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   lo amplía un número entero de veces sin suavizado (`image-rendering: pixelated`). Por eso todo, incluidas las
   formas vectoriales, se ve pixelado.
 - La cámara se alinea a la rejilla de píxeles para que el mundo no "tiemble".
-- Orden de dibujo: chunks → portales → gemas → golpes de área y obuses (con su aviso) → campos →
+- Orden de dibujo: chunks → portales → cajas → gemas y premios → golpes de área y obuses (con su aviso) → campos →
   avisos de jefes → torretas → enemigos → proyectiles → efectos de habilidad → jugadores (con drones) →
   efectos sobre el personaje → ondas y partículas → nombres en cooperativo → números de daño → viñeta.
 - Personajes: dos tipos (`sprites.ts`).

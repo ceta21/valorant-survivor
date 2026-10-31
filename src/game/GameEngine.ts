@@ -24,6 +24,8 @@ const GRID = 64; // rejilla toroidal 64×64 celdas (cubre ±2048 unidades alrede
 const gidx = (cx: number, cy: number) => ((cy & 63) << 6) | (cx & 63);
 const MAX_ENEMIES = 230;
 const MAX_GEMS = 320;
+/** Cajas: como mucho CRATE_MAX a la vez, una nueva cada CRATE_EVERY s, con vida que crece con el tiempo. */
+const CRATE_MAX = 6, CRATE_EVERY = 7, CRATE_HP = 30;
 const rnd = (a = 1, b?: number) => (b === undefined ? Math.random() * a : a + Math.random() * (b - a));
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
@@ -49,7 +51,15 @@ export interface Proj {
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
 /** Obús de mortero enemigo: vuela desde (ox,oy) y estalla en (x,y) al acabar dur. */
 export interface Shell { x: number; y: number; ox: number; oy: number; t: number; dur: number; r: number; dmg: number; dead: boolean }
-export interface Gem { x: number; y: number; v: number; kind: 0 | 1; mag: boolean; dead: boolean; t: number; tx?: number; ty?: number }
+/** Tipo de gema: 0 experiencia, 1 curación, 2 imán, 3 bomba, 4 monedas (v = créditos). */
+export type GemKind = 0 | 1 | 2 | 3 | 4;
+export interface Gem {
+  x: number; y: number; v: number; kind: GemKind; mag: boolean; dead: boolean; t: number; tx?: number; ty?: number;
+  /** Premio de caja: sale despedido, cae al suelo rebotando (z = altura) y solo se recoge pasándole por encima. */
+  box?: boolean; z?: number; vz?: number; vx?: number; vy?: number;
+}
+/** Caja rompible: aparece cerca de los jugadores y suelta un premio al romperla. No bloquea el paso. */
+export interface Crate { id: number; x: number; y: number; hp: number; max: number; flash: number; dead: boolean }
 /** Torreta de Killjoy. Tiene vida: los robots cuerpo a cuerpo van a por ella si les pilla más cerca que el jugador. */
 export interface Turret { x: number; y: number; t: number; cd: number; power: number; dead: boolean; color: string; ang: number; max: number; hp: number; maxHp: number; flash: number }
 export interface Strike { x: number; y: number; r: number; t: number; dur: number; dmg: number; color: string; stun: number; burn: number; slow: number; mark: number; dead: boolean; fx?: AbilityFx; ox: number; oy: number; owner: number }
@@ -150,6 +160,11 @@ export class GameEngine {
   eprojs: EProj[] = [];
   shells: Shell[] = [];
   gems: Gem[] = [];
+  crates: Crate[] = [];
+  crateT = 4;
+  crateId = 0;
+  /** Créditos de las monedas recogidas en la partida (se suman al resultado). */
+  bonusCredits = 0;
   turrets: Turret[] = [];
   strikes: Strike[] = [];
   vfx: Vfx[] = [];
@@ -322,6 +337,7 @@ export class GameEngine {
     this.updateShells(dt);
     this.updateStrikes(dt);
     this.updateGems(dt);
+    this.updateCrates(dt);
     this.updateSpawner(dt);
     this.updateFx(dt);
     this.cleanup();
@@ -526,7 +542,10 @@ export class GameEngine {
     const d = POWERS[w.id], s = this.stats, p = this.player;
     const ev = w.lvl >= 5 ? d.evolved : null;
     const range = d.range * s.range;
-    const t = this.nearestEnemy(p.x, p.y, range + 20);
+    // a lo que esté más cerca: el enemigo más cercano o la caja más cercana
+    const near = this.nearestEnemy(p.x, p.y, range + 20), box = this.nearestCrate(p.x, p.y, range + 20);
+    const foe = box && (!near || Math.hypot(box.x - p.x, box.y - p.y) < Math.hypot(near.x - p.x, near.y - p.y)) ? null : near;
+    const t = foe ?? box;
     if (!t) return false;
     const base = Math.atan2(t.y - p.y, t.x - p.x);
     p.face = base;
@@ -542,7 +561,7 @@ export class GameEngine {
     for (let i = 0; i < count; i++) {
       const a = base + (i - (count - 1) / 2) * fan + rnd(-d.jitter, d.jitter);
       const crit = Math.random() < critCh;
-      this.spawnProj(p.x + Math.cos(a) * 12, p.y + Math.sin(a) * 12, a, d.speed, crit ? dmg * critMul : dmg, d.size, range, pierce, crit, d.color, { burn: ((d.burn ?? 0) + s.burn) * s.dmg, explode, chain: !!d.chain || s.chain > 0, look: d.look, homing: d.homing, target: t });
+      this.spawnProj(p.x + Math.cos(a) * 12, p.y + Math.sin(a) * 12, a, d.speed, crit ? dmg * critMul : dmg, d.size, range, pierce, crit, d.color, { burn: ((d.burn ?? 0) + s.burn) * s.dmg, explode, chain: !!d.chain || s.chain > 0, look: d.look, homing: d.homing && !!foe, target: foe });
     }
     this.sfx(d.size >= 6 ? 'shoot_heavy' : 'shoot', d.size >= 6 ? 0.06 : 0.045);
     const mx = p.x + Math.cos(base) * 16, my = p.y + Math.sin(base) * 16;
@@ -586,6 +605,14 @@ export class GameEngine {
         this.sparks(p.x, p.y, p.color, 2, 90, 0.2);
         continue;
       }
+      for (const c of this.crates) {
+        if (c.dead || p.hit.includes(-c.id) || Math.hypot(c.x - p.x, c.y - p.y) > p.r + 18) continue;
+        p.hit.push(-c.id);
+        this.damageCrate(c, p.dmg);
+        if (p.pierce <= 0) { p.dead = true; break; }
+        p.pierce--;
+      }
+      if (p.dead) continue;
       this.forEnemiesIn(p.x, p.y, p.r, e => {
         if (p.dead || p.hit.includes(e.id)) return;
         p.hit.push(e.id);
@@ -642,6 +669,7 @@ export class GameEngine {
   explodeAt(x: number, y: number, r: number, dmg: number, color: string, o: { stun?: number; burn?: number; slow?: number; mark?: number } = {}) {
     this.addFx(0, x, y, 0, 0, r, 0.35, color);
     this.sparks(x, y, color, Math.min(18, 6 + (r / 12) | 0), 260, 0.5);
+    for (const c of this.crates) if (!c.dead && Math.hypot(c.x - x, c.y - y) < r + 18) this.damageCrate(c, dmg);
     this.forEnemiesIn(x, y, r, e => {
       this.damageEnemy(e, dmg, false, { kx: e.x - x, ky: e.y - y, knock: 180, blast: true });
       if (e.dead) return;
@@ -1133,7 +1161,7 @@ export class GameEngine {
   }
 
   /* ------------------------------------------------------------------ gemas y experiencia */
-  private dropGem(x: number, y: number, v: number, kind: 0 | 1, healFrac = 0.12) {
+  private dropGem(x: number, y: number, v: number, kind: GemKind, healFrac = 0.12) {
     if (kind === 1) v = healFrac;
     if (this.gems.length >= MAX_GEMS && kind === 0) {
       const g = this.gems[(Math.random() * this.gems.length) | 0];
@@ -1146,10 +1174,11 @@ export class GameEngine {
     for (const g of this.gems) {
       if (g.dead) continue;
       this.use(this.nearestPlayer(g.x, g.y));
+      if (g.box) { this.updatePrize(g, dt); continue; }
       const p = this.player, mag = 120 * this.stats.magnet;
       g.t += dt;
       const dx = p.x - g.x, dy = p.y - g.y, d = Math.hypot(dx, dy) || 1;
-      if (d < mag || g.t > 8) g.mag = true;
+      if (d < mag || (g.t > 8 && g.kind <= 1)) g.mag = true;   // los premios de las cajas esperan a que pases cerca
       if (g.mag) {
         const s = 380 + (300 - Math.min(300, d)) * 1.4;
         g.x += (dx / d) * s * dt; g.y += (dy / d) * s * dt;
@@ -1157,8 +1186,50 @@ export class GameEngine {
       if (d < p.r + 8) {
         g.dead = true;
         if (g.kind === 0) { this.addXp(g.v); this.sfx('gem', 0.05); }
-        else { this.healPct(g.v); this.sfx('pick', 0.1); }
+        else if (g.kind === 1) { this.healPct(g.v); this.sfx('pick', 0.1); }
+        else this.pickBonus(g);
       }
+    }
+  }
+  /** Premio de caja: vuela en parábola, rebota al caer y espera en el suelo a que lo pises (sin imán). */
+  private updatePrize(g: Gem, dt: number) {
+    g.t += dt;
+    if ((g.z ?? 0) > 0 || (g.vz ?? 0) > 0) {
+      g.vz = (g.vz ?? 0) - 1100 * dt; g.z = (g.z ?? 0) + g.vz * dt;
+      const nx = g.x + (g.vx ?? 0) * dt, ny = g.y + (g.vy ?? 0) * dt;
+      if (!this.world.hit(nx, ny, 6)) { g.x = nx; g.y = ny; }
+      if (g.z <= 0) {
+        g.z = 0;
+        if (g.vz < -140) { g.vz = -g.vz * 0.38; g.vx = (g.vx ?? 0) * 0.5; g.vy = (g.vy ?? 0) * 0.5; }   // rebote
+        else { g.vz = 0; g.vx = 0; g.vy = 0; }
+      }
+      return;
+    }
+    const p = this.player;
+    if (Math.hypot(p.x - g.x, p.y - g.y) < p.r + 18) {
+      g.dead = true;
+      if (g.kind === 1) { this.healPct(g.v); this.sfx('pick', 0.1); }
+      else this.pickBonus(g);
+    }
+  }
+  /** Premios de las cajas: imán (atrae todas las gemas), bomba (barre a los enemigos cercanos) y monedas. */
+  private pickBonus(g: Gem) {
+    const p = this.player;
+    if (g.kind === 2) {
+      for (const o of this.gems) if (o.kind === 0 && !o.box) o.mag = true;
+      this.addFx(0, p.x, p.y, 0, 0, 160, 0.4, '#ff5a64');
+      this.sfx('pick', 0.1);
+    } else if (g.kind === 3) {
+      const R = 620;
+      this.addFx(0, p.x, p.y, 0, 0, R, 0.6, '#ffb02e');
+      this.vfx.push({ kind: 'ring', pal: 'boom', x: p.x, y: p.y, r: R * 0.6, t: 0, dur: 0.6, ang: 0, seed: (Math.random() * 1000) | 0, owner: this.cur.idx });
+      this.forEnemiesIn(p.x, p.y, R, e => this.damageEnemy(e, e.isBoss ? e.maxHp * 0.08 : e.hp + 1, false, { kx: e.x - p.x, ky: e.y - p.y, knock: 260, blast: true }));
+      this.shakeT = Math.max(this.shakeT, 0.4);
+      this.sfx('explosion', 0);
+    } else {
+      this.bonusCredits += g.v;
+      this.text(p.x, p.y - 26, `+${Math.round(g.v)} ◈`, '#ffd24a', 15);
+      this.sfx('pick', 0.1);
     }
   }
   addXp(v: number) {
@@ -1691,9 +1762,52 @@ export class GameEngine {
     this.eprojs = this.eprojs.filter(b => !b.dead);
     if (this.shells.length) this.shells = this.shells.filter(s => !s.dead);
     this.gems = this.gems.filter(g => !g.dead);
+    if (this.crates.some(c => c.dead)) this.crates = this.crates.filter(c => !c.dead);
     this.turrets = this.turrets.filter(t => !t.dead);
     for (const pl of this.players) if (pl !== this.cur && pl.turrets.some(t => t.dead)) pl.turrets = pl.turrets.filter(t => !t.dead);
     this.strikes = this.strikes.filter(s => !s.dead);
+  }
+
+  /* ------------------------------------------------------------------ cajas rompibles */
+  private updateCrates(dt: number) {
+    for (const c of this.crates) {
+      if (c.flash > 0) c.flash -= dt;
+      if (!c.dead && this.players.every(pl => Math.hypot(pl.body.x - c.x, pl.body.y - c.y) > 1800)) c.dead = true;   // se quedó muy atrás
+    }
+    this.crateT -= dt;
+    if (this.crateT > 0) return;
+    this.crateT = CRATE_EVERY;
+    const alive = this.players.filter(pl => !pl.dead);
+    if (!alive.length || this.crates.filter(c => !c.dead).length >= CRATE_MAX) return;
+    const b = alive[(Math.random() * alive.length) | 0].body;
+    for (let t = 0; t < 12; t++) {
+      const a = rnd(Math.PI * 2), d = rnd(380, 760), x = b.x + Math.cos(a) * d, y = b.y + Math.sin(a) * d;
+      const ground = this.world.terrainAt(x, y);
+      if (this.world.hit(x, y, 22) || ground === Cell.Water || ground === Cell.Lava || ground === Cell.Sea || ground === Cell.Void) continue;
+      const hp = CRATE_HP * (1 + this.time / 600);
+      this.crates.push({ id: ++this.crateId, x, y, hp, max: hp, flash: 0, dead: false });
+      return;
+    }
+  }
+  private nearestCrate(x: number, y: number, r: number): Crate | null {
+    let best: Crate | null = null, bd = r;
+    for (const c of this.crates) { const d = Math.hypot(c.x - x, c.y - y); if (!c.dead && d < bd) { bd = d; best = c; } }
+    return best;
+  }
+  damageCrate(c: Crate, dmg: number) {
+    if (c.dead || dmg <= 0) return;
+    c.hp -= dmg; c.flash = 0.1;
+    if (c.hp > 0) { this.sfx('hit', 0.04); return; }
+    c.dead = true;
+    this.sparks(c.x, c.y, '#d9a066', 14, 220, 0.5);
+    this.sparks(c.x, c.y, '#c070ff', 6, 160, 0.5);
+    this.addFx(0, c.x, c.y, 0, 0, 46, 0.3, '#ffd24a');
+    this.sfx('kill', 0.05);
+    // premio: curación 35 %, monedas 35 %, imán 20 %, bomba 10 %; y siempre algo de experiencia
+    const r = Math.random(), kind: GemKind = r < 0.35 ? 1 : r < 0.7 ? 4 : r < 0.9 ? 2 : 3, a = rnd(Math.PI * 2);
+    this.gems.push({ x: c.x, y: c.y, v: kind === 4 ? 15 + ((Math.random() * 16) | 0) : kind === 1 ? 0.25 : 0, kind, mag: false, dead: false, t: 0,
+      box: true, z: 8, vz: 340, vx: Math.cos(a) * 70, vy: Math.sin(a) * 40 });
+    this.dropGem(c.x + 14, c.y + 8, 1 + this.level * 0.2, 0);
   }
 
   /* ------------------------------------------------------------------ control de estado */
@@ -1715,7 +1829,7 @@ export class GameEngine {
   /** Resultado de la partida para un jugador (en cooperativo, las bajas y el tiempo son del equipo). */
   resultFor(idx: number): RunResult {
     const win = this.finalKilled;
-    const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits);
+    const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
       bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id,

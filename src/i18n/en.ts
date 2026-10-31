@@ -466,6 +466,12 @@ export const EN: Record<string, string> = {
   'El agua te frena (y a los enemigos también).': 'Water slows you down (and enemies too).',
   'La lava quema: si la pisas pierdes vida poco a poco; los enemigos que la cruzan arden.': 'Lava burns: stepping on it drains your health; enemies crossing it catch fire.',
   /* ------------------------------------------------------------------ poderes */
+  'Cajas con premios': 'Crates with rewards',
+  'Tu poder dispara a la caja si la tienes más cerca que a los enemigos.': 'Your power shoots the crate if it is closer to you than the enemies.',
+  'El premio sale despedido de la caja y cae al suelo: pásale por encima para cogerlo.': 'The reward pops out of the crate and falls to the ground: walk over it to pick it up.',
+  'Cajas por el mapa: rómpelas con tus poderes para conseguir premios.': 'Crates around the map: break them with your powers to get rewards.',
+  'Pueden soltar curación, monedas (créditos extra), un imán que atrae todas las gemas o una bomba que barre a los enemigos.': 'They can drop healing, coins (extra credits), a magnet that pulls in every gem or a bomb that wipes out enemies.',
+  'Las cajas salen en el minimapa como puntos dorados.': 'Crates show up on the minimap as golden dots.',
   'Ahora somos ENDLESS RIFT': 'We are now ENDLESS RIFT',
   'Menús renovados con los colores de la grieta: noche violeta, grietas moradas que laten y detalles dorados.': 'Menus redesigned in the colours of the rift: violet night, pulsing purple cracks and golden details.',
   'Nuevo nombre: el juego pasa a llamarse ENDLESS RIFT, grietas infinitas de las que emergen hordas de enemigos.': 'New name: the game is now called ENDLESS RIFT, endless rifts from which hordes of enemies emerge.',

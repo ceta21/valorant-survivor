@@ -38,6 +38,11 @@ export function Minimap({ engine, onOpen }: { engine: GameEngine; onOpen?: () =>
         const q = place(pt.x - me.x, pt.y - me.y);
         if (!q.out) { dot(q.x, q.y, 5, '#000'); dot(q.x, q.y, 3, MAPS[pt.to].colors.accent); }
       }
+      for (const c of engine.crates) {
+        if (c.dead) continue;
+        const q = place(c.x - me.x, c.y - me.y);
+        if (!q.out) { dot(q.x, q.y, 4, '#000'); dot(q.x, q.y, 2, '#ffd24a'); }
+      }
       for (const e of engine.enemies) {
         if (e.dead || !e.isBoss) continue;
         const p = place(e.x - me.x, e.y - me.y);

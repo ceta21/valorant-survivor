@@ -11,6 +11,16 @@ export interface NewsEntry {
 
 export const NEWS: NewsEntry[] = [
   {
+    id: '1.21', date: '2026-10-31', title: 'Cajas con premios', tag: 'Nuevo', color: '#ffd24a',
+    items: [
+      'Cajas por el mapa: rómpelas con tus poderes para conseguir premios.',
+      'Pueden soltar curación, monedas (créditos extra), un imán que atrae todas las gemas o una bomba que barre a los enemigos.',
+      'Las cajas salen en el minimapa como puntos dorados.',
+      'Tu poder dispara a la caja si la tienes más cerca que a los enemigos.',
+      'El premio sale despedido de la caja y cae al suelo: pásale por encima para cogerlo.',
+    ],
+  },
+  {
     id: '1.20', date: '2026-10-30', title: 'Ahora somos ENDLESS RIFT', tag: 'Nuevo', color: '#9b5cff',
     items: [
       'Nuevo nombre: el juego pasa a llamarse ENDLESS RIFT, grietas infinitas de las que emergen hordas de enemigos.',
