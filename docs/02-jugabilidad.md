@@ -41,7 +41,10 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
   **4 a la vez**: al subir de nivel pueden ofrecerse poderes nuevos ("Nuevo poder") o subir de nivel los que se
   tienen. Algunos tienen efecto propio: el fuego quema 3 s, el rayo salta a otro enemigo, la sombra persigue, la
   roca y la evolución de otros estallan.
-- Por nivel: **+22 % daño y −6 % de recarga**. Al **nivel 5 el poder evoluciona** (efecto especial propio).
+- Por nivel: **+22 % daño y −6 % de recarga**, hasta el **nivel 5**. **Evolución combinada**: con el poder al nivel 5 y
+  su mejora de partida (`evoWith`, ver [10](10-datos-del-juego.md#poderes)), sale siempre la carta dorada de **EVOLUCIÓN**
+  (nivel 6, efecto especial propio). Mientras no la tengas, la carta de esa mejora sale el doble y avisa con
+  "★ Evoluciona …"; en el HUD el poder pone MÁX y su ayuda dice qué mejora le falta.
 - Las mejoras de partida también son sobre los poderes (daño, velocidad de lanzamiento, proyectiles extra,
   perforación, quemadura, alcance…).
 - Daño de un lanzamiento: `daño base × (1 + 0,22 × (nivel − 1)) × mult. evolución × daño del jugador`.

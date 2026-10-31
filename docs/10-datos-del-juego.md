@@ -124,19 +124,19 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 
 ## Poderes
 
-| id | Nombre | Rareza | Daño | Recarga (s) | Proyectiles | Perfora | Alcance | Crítico | Extra | Evolución (Nv 5) | Héroes que empiezan con él |
+| id | Nombre | Rareza | Daño | Recarga (s) | Proyectiles | Perfora | Alcance | Crítico | Extra | Evoluciona con (Nv 5 + mejora) | Héroes que empiezan con él |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| `arcano` | 🔮 Proyectil arcano | Común | 12 | 0.42 | 1 | 0 | 400 | 0.05 | — | Cometa arcano: +1 proyectil, +30% daño y atraviesa 1 enemigo | zephyr |
-| `flecha` | 🏹 Flecha élfica | Poco común | 20 | 0.75 | 1 | 2 | 520 | 0.1 | — | Flecha del bosque: Dispara 3 flechas y atraviesan 2 enemigos más | lyra |
-| `fuego` | 🔥 Bola de fuego | Común | 12 | 0.6 | 1 | 0 | 380 | 0 | quema 6/s | Infierno: +1 bola, +25% daño y estallan al impactar | ember, raven, draco |
-| `rayo` | ⚡ Rayo | Poco común | 8 | 0.34 | 1 | 0 | 380 | 0.05 | encadena | Tormenta eléctrica: Dispara 2 rayos y +30% daño | volt, tink |
-| `hoja` | 🍃 Hojas afiladas | Común | 9 | 0.6 | 3 | 0 | 340 | 0 | — | Vendaval de hojas: +3 hojas por lanzamiento | sylvan |
-| `viento` | 🌪️ Cuchilla de viento | Poco común | 5 | 0.16 | 1 | 1 | 340 | 0.05 | — | Huracán: Atraviesa 1 enemigo más y +40% daño | vex, zahir |
-| `sombra` | 👻 Esfera sombría | Poco común | 18 | 0.65 | 1 | 0 | 460 | 0.1 | persigue | Legión de almas: +2 almas por lanzamiento y +20% crítico | nox, morgan, sora |
-| `hielo` | ❄️ Fragmento de hielo | Común | 13 | 0.5 | 1 | 1 | 420 | 0.05 | — | Ventisca: +2 fragmentos y atraviesan 1 enemigo más | frost |
-| `luz` | ✨ Lanza de luz | Épica | 26 | 0.95 | 1 | 99 | 600 | 0.2 | — | Juicio divino: Recarga 30% más rápida y estalla al impactar | kael, seraph |
-| `roca` | 🪨 Roca | Poco común | 24 | 1 | 1 | 0 | 340 | 0 | explota 0.35 | Alud: +2 rocas y explosiones mayores | brutus, talos, grim |
-| `agua` | 💧 Chorro de agua | Común | 7 | 0.42 | 2 | 1 | 380 | 0 | — | Maremoto: +2 chorros y +25% daño | aqua |
+| `arcano` | 🔮 Proyectil arcano | Común | 12 | 0.42 | 1 | 0 | 400 | 0.05 | — | Circuitos de recarga → Cometa arcano: +1 proyectil, +30% daño y atraviesa 1 enemigo | zephyr |
+| `flecha` | 🏹 Flecha élfica | Poco común | 20 | 0.75 | 1 | 2 | 520 | 0.1 | — | Visión lejana → Flecha del bosque: Dispara 3 flechas y atraviesan 2 enemigos más | lyra |
+| `fuego` | 🔥 Bola de fuego | Común | 12 | 0.6 | 1 | 0 | 380 | 0 | quema 6/s | Toque ígneo → Infierno: +1 bola, +25% daño y estallan al impactar | ember, raven, draco |
+| `rayo` | ⚡ Rayo | Poco común | 8 | 0.34 | 1 | 0 | 380 | 0.05 | encadena | Arco eléctrico → Tormenta eléctrica: Dispara 2 rayos y +30% daño | volt, tink |
+| `hoja` | 🍃 Hojas afiladas | Común | 9 | 0.6 | 3 | 0 | 340 | 0 | — | Nanobots → Vendaval de hojas: +3 hojas por lanzamiento | sylvan |
+| `viento` | 🌪️ Cuchilla de viento | Poco común | 5 | 0.16 | 1 | 1 | 340 | 0.05 | — | Botas de sprint → Huracán: Atraviesa 1 enemigo más y +40% daño | vex, zahir |
+| `sombra` | 👻 Esfera sombría | Poco común | 18 | 0.65 | 1 | 0 | 460 | 0.1 | persigue | Succión vital → Legión de almas: +2 almas por lanzamiento y +20% crítico | nox, morgan, sora |
+| `hielo` | ❄️ Fragmento de hielo | Común | 13 | 0.5 | 1 | 1 | 420 | 0.05 | — | Carga expansiva → Ventisca: +2 fragmentos y atraviesan 1 enemigo más | frost |
+| `luz` | ✨ Lanza de luz | Épica | 26 | 0.95 | 1 | 99 | 600 | 0.2 | — | Ojo de halcón → Juicio divino: Recarga 30% más rápida y estalla al impactar | kael, seraph |
+| `roca` | 🪨 Roca | Poco común | 24 | 1 | 1 | 0 | 340 | 0 | explota 0.35 | Blindaje reforzado → Alud: +2 rocas y explosiones mayores | brutus, talos, grim |
+| `agua` | 💧 Chorro de agua | Común | 7 | 0.42 | 2 | 1 | 380 | 0 | — | Escudo regenerativo → Maremoto: +2 chorros y +25% daño | aqua |
 
 ## Enemigos
 

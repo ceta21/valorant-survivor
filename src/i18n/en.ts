@@ -438,6 +438,10 @@ export const EN: Record<string, string> = {
   'Roca volcánica cruzada por ríos de lava, fortalezas con cuernos y pinchos de piedra.': 'Volcanic rock crossed by lava rivers, horned fortresses and stone spikes.',
   'Metrópolis moderna con rascacielos, avenidas, helipuertos, parques y un puerto.': 'Modern metropolis with skyscrapers, avenues, helipads, parks and a harbour.',
   /* ------------------------------------------------------------------ lanzamiento */
+  'Al máximo: con «{u}» evoluciona.': 'At max: evolves with “{u}”.',
+  'Evoluciona {p}': 'Evolves {p}',
+  'Evoluciona al nivel {n} con «{u}»': 'Evolves at level {n} with “{u}”',
+  'MÁX': 'MAX',
   'Arrastra el dedo por la pantalla para moverte.': 'Drag your finger across the screen to move.',
   'Muévete con {k} o las flechas.': 'Move with {k} or the arrow keys.',
   'Tu poder ({p}) dispara solo al enemigo más cercano: tú esquiva.': 'Your power ({p}) fires on its own at the nearest enemy: you just dodge.',
@@ -451,6 +455,7 @@ export const EN: Record<string, string> = {
   'Espera un poco antes de enviar otra marca': 'Wait a little before submitting another score',
   'Esta marca no es válida': 'This score is not valid',
   '¡Lanzamiento de ENDLESS RIFT!': 'ENDLESS RIFT launch!',
+  'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.': 'Combined evolutions: take a power to level 5 and get its paired upgrade to unlock its legendary version.',
   'Tu primera partida te guía con consejos cortos, y el juego se adapta al móvil en horizontal.': 'Your first run guides you with short tips, and the game adapts to phones in landscape.',
   '¡Bienvenido a ENDLESS RIFT! Grietas infinitas de las que emergen hordas de enemigos: ¿cuánto aguantarás?': 'Welcome to ENDLESS RIFT! Endless rifts from which hordes of enemies emerge: how long can you last?',
   '20 héroes, cada uno con su poder que dispara solo y 3 habilidades propias.': '20 heroes, each with a power that fires on its own and 3 unique abilities.',

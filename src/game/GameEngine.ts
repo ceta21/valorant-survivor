@@ -1,7 +1,7 @@
 import {
   AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, ProjLook, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
-import { POWERS, POWER_LIST, heroPower } from '../data/powers';
+import { POWERS, POWER_LIST, heroPower, MAX_LEVEL, EVO_LEVEL } from '../data/powers';
 import {
   BOSS_SCHEDULE, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, WAVE_TIMES,
 } from '../data/enemies';
@@ -563,8 +563,8 @@ export class GameEngine {
   /* ------------------------------------------------------------------ poderes (se lanzan solos) */
   private weaponCd(w: WeaponInst) {
     const d = POWERS[w.id];
-    const ev = w.lvl >= 5 ? d.evolved : null;
-    const cd = d.cooldown * (1 - 0.06 * (w.lvl - 1)) * (ev?.cdMul ?? 1);
+    const ev = w.lvl >= EVO_LEVEL ? d.evolved : null;
+    const cd = d.cooldown * (1 - 0.06 * (Math.min(w.lvl, MAX_LEVEL) - 1)) * (ev?.cdMul ?? 1);
     return cd / (this.stats.aspd * (this.buffs.frenzyT > 0 ? this.buffs.frenzyMul : 1));
   }
   private updateWeapons(dt: number) {
@@ -575,7 +575,7 @@ export class GameEngine {
   }
   private fire(w: WeaponInst): boolean {
     const d = POWERS[w.id], s = this.stats, p = this.player;
-    const ev = w.lvl >= 5 ? d.evolved : null;
+    const ev = w.lvl >= EVO_LEVEL ? d.evolved : null;
     const range = d.range * s.range;
     // a lo que esté más cerca: el enemigo más cercano o la caja más cercana
     const near = this.nearestEnemy(p.x, p.y, range + 20), box = this.nearestCrate(p.x, p.y, range + 20);
@@ -587,7 +587,7 @@ export class GameEngine {
     if (w.id !== this.held && this.time - this.heldSince > 0.8) { this.held = w.id; this.heldSince = this.time; }
     if (w.id === this.held) this.lastShotT = this.time;
     const count = d.count + (ev?.count ?? 0) + s.extraProj;
-    const dmg = d.damage * (1 + 0.22 * (w.lvl - 1)) * (ev?.dmgMul ?? 1) * s.dmg;
+    const dmg = d.damage * (1 + 0.22 * (Math.min(w.lvl, MAX_LEVEL) - 1)) * (ev?.dmgMul ?? 1) * s.dmg;
     const pierce = d.pierce + (ev?.pierce ?? 0) + s.pierce;
     const critCh = s.crit + d.crit + (ev?.crit ?? 0);
     const critMul = s.critMul + d.critMul;
@@ -1320,12 +1320,13 @@ export class GameEngine {
     for (const u of UPGRADES) {
       if (u.max && (this.taken[u.id] ?? 0) >= u.max) continue;
       cands.push({
-        weight: u.weight,
+        weight: u.weight * (this.weapons.some(x => x.lvl < EVO_LEVEL && POWERS[x.id].evoWith === u.id) && !this.taken[u.id] ? 2 : 1),
         make: () => {
           let r = this.rollRarity();
           while (r > 0 && u.v[r] <= 0) r = (r - 1) as Rarity;
           if (u.v[r] <= 0) for (let k = 1; k < 4; k++) if (u.v[k] > 0) { r = k as Rarity; break; }
-          return { id: u.id, kind: 'stat', name: u.name, desc: u.text(u.v[r]), icon: u.icon, rarity: r, value: u.v[r] };
+          const evo = this.weapons.find(x => x.lvl < EVO_LEVEL && POWERS[x.id].evoWith === u.id);
+          return { id: u.id, kind: 'stat', name: u.name, desc: u.text(u.v[r]), icon: u.icon, rarity: r, value: u.v[r], evoFor: evo && !this.taken[u.id] ? evo.id : undefined };
         },
       });
     }
@@ -1340,16 +1341,24 @@ export class GameEngine {
       }
     }
     for (const inst of this.weapons) {
-      if (inst.lvl >= 5) continue;
       const w = POWERS[inst.id];
+      if (inst.lvl >= EVO_LEVEL) continue;
+      if (inst.lvl >= MAX_LEVEL) {
+        // al máximo: evoluciona solo si ya se tiene su mejora; entonces la carta sale siempre
+        if (!this.taken[w.evoWith]) continue;
+        cands.push({
+          weight: 1e6,
+          make: () => ({ id: w.id + '_evo', kind: 'power-evo', powerId: w.id, icon: w.icon, value: EVO_LEVEL, rarity: 3 as Rarity, name: w.evolved.name, desc: `EVOLUCIÓN: ${w.evolved.desc}` }),
+        });
+        continue;
+      }
       const nl = inst.lvl + 1;
       cands.push({
         weight: 7,
         make: () => ({
           id: w.id + '_up', kind: 'power-up', powerId: w.id, icon: w.icon, value: nl,
-          rarity: (nl >= 5 ? 3 : nl >= 4 ? 2 : 1) as Rarity,
-          name: nl >= 5 ? `${w.evolved.name}` : `${w.name} Nv.${nl}`,
-          desc: nl >= 5 ? `EVOLUCIÓN: ${w.evolved.desc}` : `${w.name}: +22% daño y -6% de recarga`,
+          rarity: (nl >= 5 ? 2 : nl >= 4 ? 1 : 1) as Rarity,
+          name: `${w.name} Nv.${nl}`, desc: `${w.name}: +22% daño y -6% de recarga`,
         }),
       });
     }
@@ -1386,7 +1395,7 @@ export class GameEngine {
       this.weapons.push({ id: c.powerId as string, lvl: 1, cd: 0.1 });
     } else {
       const w = this.weapons.find(x => x.id === c.powerId);
-      if (w) { w.lvl++; if (w.lvl >= 5) this.showBanner(`¡${POWERS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2, '¡{n}!', { n: POWERS[w.id].evolved.name }); }
+      if (w) { w.lvl = c.kind === 'power-evo' ? EVO_LEVEL : Math.min(MAX_LEVEL, w.lvl + 1); if (w.lvl >= EVO_LEVEL) this.showBanner(`¡${POWERS[w.id].evolved.name.toUpperCase()}!`, '#ffb020', 2.2, '¡{n}!', { n: POWERS[w.id].evolved.name }); }
     }
     this.sfx('pick', 0);
     pl.pending--;

@@ -1,3 +1,4 @@
+import { UPGRADE_BY_ID } from '../src/data/upgrades';
 // Genera docs/10-datos-del-juego.md con las tablas de datos sacadas directamente del código
 // (héroes, habilidades, armas, enemigos, mejoras, dificultades, misiones…).
 // Se ejecuta con `npm run docs:data` cada vez que cambian los datos del juego.
@@ -45,10 +46,10 @@ out.push(table(['id', 'Nombre', 'Tipo', 'Recarga', 'Efecto visual', 'Parámetros
 
 
 out.push(`\n## Poderes\n`);
-out.push(table(['id', 'Nombre', 'Rareza', 'Daño', 'Recarga (s)', 'Proyectiles', 'Perfora', 'Alcance', 'Crítico', 'Extra', 'Evolución (Nv 5)', 'Héroes que empiezan con él'],
+out.push(table(['id', 'Nombre', 'Rareza', 'Daño', 'Recarga (s)', 'Proyectiles', 'Perfora', 'Alcance', 'Crítico', 'Extra', 'Evoluciona con (Nv 5 + mejora)', 'Héroes que empiezan con él'],
   Object.values(POWERS).map(w => [`\`${w.id}\``, `${w.icon} ${w.name}`, RARITY_NAMES[w.rare], w.damage, w.cooldown, w.count, w.pierce, w.range, w.crit,
     [w.burn ? `quema ${w.burn}/s` : '', w.chain ? 'encadena' : '', w.homing ? 'persigue' : '', w.explode ? `explota ${w.explode}` : ''].filter(Boolean).join(', ') || '—',
-    `${w.evolved.name}: ${w.evolved.desc}`, Object.keys(HERO_POWER).filter(h => HERO_POWER[h] === w.id).join(', ')])));
+    `${UPGRADE_BY_ID[w.evoWith]?.name ?? w.evoWith} → ${w.evolved.name}: ${w.evolved.desc}`, Object.keys(HERO_POWER).filter(h => HERO_POWER[h] === w.id).join(', ')])));
 out.push('');
 
 out.push(`## Enemigos\n`);

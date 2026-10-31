@@ -500,3 +500,8 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
   .hint { display: none; }
   .coach { top: 58px; bottom: auto; }
 }
+
+/* evoluciones combinadas: carta dorada y aviso en las mejoras que hacen evolucionar un poder */
+.ucard.evo { box-shadow: inset 0 0 0 var(--p) var(--gold), 0 0 24px rgba(240, 200, 80, .45), var(--bevel); }
+.ucard.evo .ucard-rar { color: var(--gold); }
+.ucard-evo { display: block; margin-top: 6px; color: var(--gold); font-size: 13px; font-weight: 700; }

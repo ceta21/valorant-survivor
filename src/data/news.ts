@@ -18,6 +18,7 @@ export const NEWS: NewsEntry[] = [
       '20 héroes, cada uno con su poder que dispara solo y 3 habilidades propias.',
       'Un mundo con 4 zonas (Reino, Glaciar, Infierno y Ciudad) unidas por portales; el agua frena y la lava quema.',
       'Sube de nivel, aprende poderes nuevos y hazlos evolucionar; rompe cajas para conseguir premios.',
+      'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.',
       'Juega en pareja, completa misiones diarias, mantén tu racha y compite en el ranking global.',
       'Personaliza a tus héroes con estilos y llévate una mascota con poderes de la Tienda o del Mercado de la Grieta.',
     ],

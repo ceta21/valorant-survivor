@@ -1,5 +1,6 @@
 import { GameEngine } from '../game/GameEngine';
-import { POWERS } from '../data/powers';
+import { EVO_LEVEL, MAX_LEVEL, POWERS } from '../data/powers';
+import { UPGRADE_BY_ID } from '../data/upgrades';
 import { t } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 import { Minimap } from './Minimap';
@@ -72,8 +73,10 @@ export function GameHUD({ hud, engine, onPause, onCast, keys, onMap }: Props) {
       {hud.banner && <div className="banner" style={{ color: hud.banner.color }} key={hud.banner.text}>{bannerText(hud.banner)}</div>}
       <div className="weapons">
         {hud.weapons.map(w => (
-          <div key={w.id} className={`wslot ${w.lvl >= 5 ? 'evo' : ''}`} style={{ ['--wc' as any]: POWERS[w.id].color }}>
-            <i className="powicon" aria-hidden="true">{POWERS[w.id].icon}</i><b>{t(w.lvl >= 5 ? POWERS[w.id].evolved.name : POWERS[w.id].name)}</b><span>{t('Nv')} {w.lvl}</span>
+          <div key={w.id} className={`wslot ${w.lvl >= EVO_LEVEL ? 'evo' : ''}`} style={{ ['--wc' as any]: POWERS[w.id].color }}
+            title={w.lvl < EVO_LEVEL ? t('Evoluciona al nivel {n} con «{u}»', { n: MAX_LEVEL, u: t(UPGRADE_BY_ID[POWERS[w.id].evoWith]?.name ?? '') }) : undefined}>
+            <i className="powicon" aria-hidden="true">{POWERS[w.id].icon}</i><b>{t(w.lvl >= EVO_LEVEL ? POWERS[w.id].evolved.name : POWERS[w.id].name)}</b>
+            <span>{w.lvl >= EVO_LEVEL ? '★' : w.lvl >= MAX_LEVEL ? t('MÁX') : `${t('Nv')} ${w.lvl}`}</span>
           </div>
         ))}
       </div>

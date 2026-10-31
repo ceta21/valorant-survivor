@@ -27,6 +27,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada héroe usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
+| `npm run test:evo` | Evoluciones combinadas: sin la mejora no evoluciona; con ella la carta sale siempre, la evolución se aplica y la carta de la mejora avisa |
 | `npm run test:kinds` | Habilidades nuevas: la órbita gira y golpea, los orbes rebotan entre enemigos, la espiral dispara en todas direcciones, el bumerán vuelve y el rastro daña y ralentiza |
 | `npm run test:crates` | Cajas: aparecen cerca y sin pasar del máximo, se rompen con proyectiles y explosiones, sueltan premio cada premio (curación, imán, bomba, monedas) funciona, el premio cae al suelo y se recoge pisándolo, y el poder dispara a la caja si está más cerca que el enemigo |
 | `npm run test:world` | Mundo: zonas y abismos, determinismo, terreno de cada zona y castillos, que el agua frene y la lava queme, que todo el suelo esté conectado y que cada portal lleve a su pareja |

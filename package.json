@@ -21,7 +21,8 @@
     "test:daily": "tsx scripts/daily-test.ts",
     "test:pets": "tsx scripts/pet-test.ts",
     "test:crates": "tsx scripts/crate-test.ts",
-    "test:kinds": "tsx scripts/ability-test.ts"
+    "test:kinds": "tsx scripts/ability-test.ts",
+    "test:evo": "tsx scripts/evo-test.ts"
   },
   "keywords": [],
   "author": "",

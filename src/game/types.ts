@@ -139,6 +139,8 @@ export interface PowerDef {
   chain?: boolean;  // salta a un enemigo cercano al impactar
   homing?: boolean; // persigue al objetivo
   explode?: number;
+  /** Mejora de partida (id de UPGRADES) que hace falta, además del nivel 5, para evolucionar. */
+  evoWith: string;
   evolved: { name: string; desc: string; count?: number; pierce?: number; dmgMul?: number; cdMul?: number; crit?: number; explode?: number };
 }
 
@@ -149,11 +151,13 @@ export interface RunResult {
 
 export interface UpgradeChoice {
   id: string;
-  kind: 'stat' | 'power-new' | 'power-up';
+  kind: 'stat' | 'power-new' | 'power-up' | 'power-evo';
   name: string;
   desc: string;
   icon: string;
   rarity: Rarity;
   value: number;
   powerId?: string;
+  /** Carta de mejora que, junto con un poder al nivel 5, permite evolucionarlo (id del poder). */
+  evoFor?: string;
 }

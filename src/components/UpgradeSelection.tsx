@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { UpgradeChoice, RARITY_COLORS, RARITY_NAMES } from '../game/types';
 import { UPGRADE_BY_ID } from '../data/upgrades';
-import { POWERS } from '../data/powers';
+import { MAX_LEVEL, POWERS } from '../data/powers';
 import { t, upgradeText } from '../i18n';
 import { keyLabel } from '../game/controls';
 
@@ -14,9 +14,10 @@ function describe(c: UpgradeChoice): { name: string; desc: string } {
   const w = POWERS[c.powerId ?? ''];
   if (!w) return { name: t(c.name), desc: t(c.desc) };
   if (c.kind === 'power-new') return { name: t(w.name), desc: t('Nuevo poder: {d}', { d: t(w.desc) }) };
-  return c.value >= 5
-    ? { name: t(w.evolved.name), desc: t('EVOLUCIÓN: {d}', { d: t(w.evolved.desc) }) }
-    : { name: `${t(w.name)} ${t('Nv.')}${c.value}`, desc: t('{w}: +22% daño y -6% de recarga', { w: t(w.name) }) };
+  if (c.kind === 'power-evo') return { name: t(w.evolved.name), desc: t('EVOLUCIÓN: {d}', { d: t(w.evolved.desc) }) };
+  const up = UPGRADE_BY_ID[w.evoWith];
+  const hint = c.value >= MAX_LEVEL && up ? ' ' + t('Al máximo: con «{u}» evoluciona.', { u: t(up.name) }) : '';
+  return { name: `${t(w.name)} ${t('Nv.')}${c.value}`, desc: t('{w}: +22% daño y -6% de recarga', { w: t(w.name) }) + hint };
 }
 
 interface Props { choices: UpgradeChoice[]; rerolls: number; pick: (i: number) => void; reroll: () => void; level: number; rerollKey?: string }
@@ -37,11 +38,12 @@ export function UpgradeSelection({ choices, rerolls, pick, reroll, level, reroll
       <p>{t('Elige una mejora')} <small>{t('(teclas 1, 2, 3)')}</small></p>
       <div className="cards">
         {choices.map((c, i) => { const d = describe(c); return (
-          <button key={c.id + i + c.rarity} className="ucard" style={{ ['--rc' as any]: RARITY_COLORS[c.rarity], animationDelay: `${i * 70}ms` }} onClick={() => pick(i)}>
+          <button key={c.id + i + c.rarity} className={`ucard ${c.kind === 'power-evo' ? 'evo' : ''}`} style={{ ['--rc' as any]: RARITY_COLORS[c.rarity], animationDelay: `${i * 70}ms` }} onClick={() => pick(i)}>
             <span className="ucard-rar">{t(RARITY_NAMES[c.rarity])}</span>
             <span className="ucard-icon">{c.icon}</span>
             <b>{d.name}</b>
             <span className="ucard-desc">{d.desc}</span>
+            {c.evoFor && POWERS[c.evoFor] && <span className="ucard-evo">★ {t('Evoluciona {p}', { p: t(POWERS[c.evoFor].name) })}</span>}
             <kbd>{i + 1}</kbd>
           </button>
         ); })}
