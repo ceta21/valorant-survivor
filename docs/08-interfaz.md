@@ -99,6 +99,8 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
   hay una ventana encima (`role="dialog"`), solo se mueve por sus botones.
 - **Viveza del color** (Configuración, se guarda en el dispositivo; por defecto 50 %): filtro CSS sobre el lienzo de la
   partida (`vividFilter`: saturación ×1 a ×1,6 y contraste ×1 a ×1,08). Aviva a la vez mapa, héroes, enemigos y
-  efectos sin tocar los dibujos; 0 % deja los colores originales.
+  efectos sin tocar los dibujos; 0 % deja los colores originales. También se aplica al personaje de los retratos
+  (menú, elegir héroe, pareja) y a los dibujos de la tienda, con la variable CSS `--hero-vivid` que pone `App`; el
+  resto de la interfaz no cambia.
 - **Calidad baja** (Configuración, se guarda en el dispositivo): sin animaciones del mapa ni polvo ambiental y la
   mitad de chispas, para móviles o PCs lentos.

@@ -23,7 +23,7 @@ export function AgentPortrait({ agent, locked = false }: { agent: AgentDef; lock
       <rect width="200" height="240" fill={`url(#st-${id})`} />
       <g transform="translate(100 110) scale(6.2) translate(-12 -12)" opacity="0.14" fill="none" stroke={a} strokeWidth="1.2" strokeLinejoin="miter"><path d={agent.emblem} /></g>
       <rect x="56" y="208" width="88" height="8" fill="#000" opacity="0.35" /><rect x="68" y="216" width="64" height="4" fill="#000" opacity="0.35" />
-      <svg x="22" y="28" width="156" height="184" viewBox={`0 0 ${sz.w} ${sz.h}`} style={{ filter: locked ? 'grayscale(1) brightness(0.4)' : undefined }}>
+      <svg x="22" y="28" width="156" height="184" viewBox={`0 0 ${sz.w} ${sz.h}`} style={{ filter: locked ? 'grayscale(1) brightness(0.4)' : 'var(--hero-vivid, none)' }}>
         {img
           // héroe con hoja de sprites: su primer fotograma de frente
           ? <image href={agentSheetUrl(id)} width={sheetCols(id) * sz.w} height={3 * sz.h} style={{ imageRendering: 'pixelated' }} />

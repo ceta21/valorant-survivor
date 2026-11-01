@@ -15,7 +15,7 @@ import { MEDALS, SUNDAY_PRIZES, lastFinishedSunday } from './data/sundayRank';
 import { fetchScores } from './utils/leaderboard';
 import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
-import { SaveData, Settings, Prefs, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
+import { SaveData, Settings, Prefs, vividFilter, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
 import { nf, setLang, t } from './i18n';
 import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
@@ -76,6 +76,8 @@ export default function App() {
   const doSignOut = async () => { await signOut(); setAccount(null); setSave(defaultSave()); setScreen('auth'); };
   const openAuth = () => { setAuthFromMenu(true); setScreen('auth'); };
 
+  // la viveza del color también se aplica a los dibujos de los héroes fuera de la partida (retratos y tienda)
+  useEffect(() => { document.documentElement.style.setProperty('--hero-vivid', vividFilter(prefs.vivid)); }, [prefs.vivid]);
   useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
   /** Avisos arriba: logros conseguidos y premios del ranking del domingo. */
   const [achToast, setAchToast] = useState<Pick<Achievement, 'id' | 'name' | 'reward'>[]>([]);

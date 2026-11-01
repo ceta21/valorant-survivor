@@ -33,5 +33,5 @@ export function AgentArt({ id, skin, className = 'shop-art agent' }: { id: strin
     });
     return () => { live = false; };
   }, [id, skin]);
-  return <canvas ref={ref} className={className} aria-hidden="true" />;
+  return <canvas ref={ref} className={className} aria-hidden="true" style={{ filter: 'var(--hero-vivid, none)' }} />;
 }
