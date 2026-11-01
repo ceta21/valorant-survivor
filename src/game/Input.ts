@@ -1,7 +1,8 @@
 import { GameEngine } from './GameEngine';
 import { DEFAULT_KEYS, KeyMap } from './controls';
+import { PAD, pad, padMove, pressedEdges, setPadInGame } from '../utils/gamepad';
 
-/** Teclado → motor. Gestiona y limpia sus propios listeners. */
+/** Teclado, joystick táctil y mando → motor. Gestiona y limpia sus propios listeners. */
 export class Input {
   private keys = new Set<string>();
   private stick = { x: 0, y: 0 };
@@ -12,12 +13,15 @@ export class Input {
   private handlers: [string, (ev: any) => void][] = [];
 
   private map: KeyMap;
+  private padPrev: boolean[] = [];
+  private onMap?: () => void;
 
   constructor(engine: GameEngine, onPause: () => void, castFn?: (slot: 'special' | 'secondary' | 'ultimate') => void, keys: KeyMap = DEFAULT_KEYS, onMap?: () => void) {
     this.engine = engine;
     this.map = keys;
     this.onPause = onPause;
     this.castFn = castFn ?? (slot => { this.engine.cast(slot); });
+    this.onMap = onMap;
     const down = (ev: KeyboardEvent) => {
       const k = ev.code;
       const m = this.map;
@@ -48,11 +52,28 @@ export class Input {
     if (k.has(m.up) || k.has('ArrowUp')) y -= 1;
     if (k.has(m.down) || k.has('ArrowDown')) y += 1;
     if (x === 0 && y === 0) { x = this.stick.x; y = this.stick.y; }
+    // mando: se mueve con el stick o la cruceta; los botones lanzan habilidades, pausan o abren el mapa
+    const p = pad(), playing = this.engine.state === 'playing';
+    setPadInGame(playing);
+    if (p) {
+      const edges = pressedEdges(p, this.padPrev);
+      if (playing) {
+        if (x === 0 && y === 0) ({ x, y } = padMove(p));
+        for (const b of edges) {
+          if (b === PAD.A || b === PAD.RB) this.castFn('special');
+          else if (b === PAD.X || b === PAD.LB) this.castFn('secondary');
+          else if (b === PAD.Y || b === PAD.RT) this.castFn('ultimate');
+          else if (b === PAD.START) this.onPause();
+          else if (b === PAD.SELECT) this.onMap?.();
+        }
+      }
+    }
     else if (x !== 0 && y !== 0) { x *= Math.SQRT1_2; y *= Math.SQRT1_2; }
     this.engine.inputMove.x = x; this.engine.inputMove.y = y;
   }
 
   destroy() {
+    setPadInGame(false);
     for (const [n, h] of this.handlers) window.removeEventListener(n, h);
     this.handlers = [];
   }

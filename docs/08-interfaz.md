@@ -92,3 +92,10 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
 - Siempre activas: flechas para mover y Esc para pausar. Botón "Restaurar controles".
 - Las teclas elegidas se muestran en el HUD, la ficha del héroe, la ayuda del menú y el botón de relanzar.
 - Móvil: arrastrar el dedo sobre el juego para moverse; tocar los botones de habilidad del HUD.
+- **Mando** (`utils/gamepad.ts`, Xbox/PlayStation o compatibles; no se configura): en partida, stick izquierdo o
+  cruceta para moverse, A/RB habilidad principal, X/LB secundaria, Y/RT definitiva, Start pausa y Select/Back mapa
+  (lo lee `Input.poll()` cada fotograma). Fuera de la partida (menús, mejoras, pausa, resultado) la cruceta o el
+  stick mueven el foco al botón más cercano en esa dirección, A lo pulsa y B vuelve (botón «Volver» o Escape); si
+  hay una ventana encima (`role="dialog"`), solo se mueve por sus botones.
+- **Calidad baja** (Configuración, se guarda en el dispositivo): sin animaciones del mapa ni polvo ambiental y la
+  mitad de chispas, para móviles o PCs lentos.

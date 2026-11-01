@@ -148,6 +148,8 @@ export class Renderer {
   }
 
   /** Modo pixel-art: w,h = tamaño del lienzo en píxeles de juego (cada uno = PX unidades de mundo). */
+  /** Calidad baja: sin animaciones del mapa (agua, lava, árboles…) ni polvo ambiental. */
+  low = false;
   resizePixels(w: number, h: number) {
     this.dpr = 1;
     this.zoom = 1 / PX;
@@ -273,7 +275,7 @@ export class Renderer {
       g.drawImage(this.chunkCanvas(e, i, j), 0, 0, CPX, CPX, i * CS, j * CS, CS + 1, CS + 1);
     }
     // mapa vivo: agua y lava que se mueven, árboles que se balancean, fuegos que parpadean y aspas que giran
-    for (let j = c0y; j <= c1y; j++) for (let i = c0x; i <= c1x; i++) this.drawLiveChunk(g, e, i, j);
+    if (!this.low) for (let j = c0y; j <= c1y; j++) for (let i = c0x; i <= c1x; i++) this.drawLiveChunk(g, e, i, j);
 
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
@@ -678,7 +680,7 @@ export class Renderer {
     // polvo ambiental (en pantalla)
     g.fillStyle = 'rgba(255,255,255,0.10)';
     const tm = e.time;
-    for (let i = 0; i < 36; i++) {
+    for (let i = 0; i < (this.low ? 0 : 36); i++) {
       const x = ((i * 197 + tm * (6 + (i % 5) * 3) - this.camX * 0.25) % this.vw + this.vw) % this.vw;
       const y = ((i * 311 - tm * (4 + (i % 4) * 3) - this.camY * 0.25) % this.vh + this.vh) % this.vh;
       g.fillRect(Math.floor(x), Math.floor(y), Math.max(1, Math.round(2 * this.dpr * z)), Math.max(1, Math.round(2 * this.dpr * z)));

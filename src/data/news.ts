@@ -28,6 +28,7 @@ export const NEWS: NewsEntry[] = [
       'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.',
       'Eventos del domingo: cada domingo hay uno distinto (Fiebre del oro, Lluvia de cajas, Caza de jefes, Gran horda o Semana del saber); entre semana el menú te dice cuál toca.',
       'Instálalo como app: desde el navegador, «Instalar» o «Añadir a pantalla de inicio»; se abre a pantalla completa con su icono, carga más rápido y se actualiza solo.',
+      'Juega con mando (Xbox, PlayStation o compatible): stick para moverte, A/X/Y para las habilidades y la cruceta para los menús; y opción de calidad baja para móviles o PCs lentos.',
       'Juega en pareja, completa misiones diarias, mantén tu racha y compite en el ranking global.',
       'Personaliza a tus héroes con estilos y llévate una mascota con poderes de la Tienda o del Mercado de la Grieta.',
     ],

@@ -126,15 +126,15 @@ export function clearLegacySave(): void {
 /* ------------------------------------------------------------------ preferencias del dispositivo */
 // Idioma y controles se guardan en este navegador (también en modo invitado y antes de entrar).
 
-export interface Prefs { lang: Lang; keys: KeyMap }
+export interface Prefs { lang: Lang; keys: KeyMap; /** Calidad baja: menos efectos para móviles o PCs lentos. */ low: boolean }
 const PREFS = 'valorant-survivors-prefs-v1';
 
 export function loadPrefs(): Prefs {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS) || '{}');
-    return { lang: p.lang === 'en' || p.lang === 'es' ? p.lang : browserLang(), keys: normalizeKeys(p.keys) };
+    return { lang: p.lang === 'en' || p.lang === 'es' ? p.lang : browserLang(), keys: normalizeKeys(p.keys), low: p.low === true };
   } catch {
-    return { lang: browserLang(), keys: normalizeKeys() };
+    return { lang: browserLang(), keys: normalizeKeys(), low: false };
   }
 }
 export function savePrefs(p: Prefs): void {

@@ -85,6 +85,7 @@ No dependen de la cuenta; se guardan en `localStorage` (`valorant-survivors-pref
 
 - `lang`: `es` o `en` (por defecto, inglés si el navegador está en inglés; si no, español).
 - `keys`: teclas de cada acción (ver [08](08-interfaz.md#controles)).
+- `low`: calidad baja (menos efectos).
 
 ## Claves de `localStorage` que usa el juego
 

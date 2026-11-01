@@ -28,6 +28,8 @@ interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
   /** Estilos de la tienda y mascota (en solitario; en cooperativo van en coop.setups). */
   looks?: Looks;
+  /** Calidad baja (preferencia del dispositivo): menos efectos. */
+  low?: boolean;
   /** Ventajas del equipo que lleva el héroe. */
   gear?: Partial<Stats>;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
@@ -72,7 +74,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
+export function GameScreen({ low = false, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -175,6 +177,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
       offs.push(link.on('bye', gone), link.on('peer-left', gone));
     }
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
+    renderer.low = low; engine.lowFx = low;
     renderer.shake = settings.shake;
     engineRef.current = engine; rendererRef.current = renderer;
     const input = new Input(engine, togglePause, cast, keys, () => toggleMap());

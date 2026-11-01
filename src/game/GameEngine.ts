@@ -2007,8 +2007,11 @@ export class GameEngine {
   }
 
   /* ------------------------------------------------------------------ efectos visuales */
+  /** Calidad baja: la mitad de chispas. */
+  lowFx = false;
   sparks(x: number, y: number, color: string, n: number, speed: number, life = 0.4) {
     if (this.netOut) this.netOut.push(['s', Math.round(x), Math.round(y), color, n, Math.round(speed), life]);
+    if (this.lowFx) n = Math.ceil(n / 2);
     for (let i = 0; i < n; i++) {
       const p = this.particles.next();
       const a = rnd(Math.PI * 2), sp = rnd(speed * 0.3, speed);

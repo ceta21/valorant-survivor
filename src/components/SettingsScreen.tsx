@@ -24,6 +24,7 @@ export function SettingsScreen({ settings, change, back, reset, prefs, changePre
         <AudioControls settings={settings} change={change} />
         <label className="row"><span>{t('Sacudida de pantalla')}</span><input type="checkbox" checked={settings.shake} onChange={e => change({ shake: e.target.checked })} /></label>
         <label className="row"><span>{t('Consejos de la primera partida')}</span><input type="checkbox" checked={!settings.tutorialDone} onChange={e => change({ tutorialDone: !e.target.checked })} /></label>
+        <label className="row"><span>{t('Calidad baja (menos efectos, para móviles o PCs lentos)')}</span><input type="checkbox" checked={prefs.low} onChange={e => changePrefs({ low: e.target.checked })} /></label>
         <label className="row"><span>{t('Pausa automática al salir de la pestaña')}</span><input type="checkbox" checked={settings.autoPause} onChange={e => change({ autoPause: e.target.checked })} /></label>
         <label className="row"><span>{t('Enviar estadísticas anónimas de uso (ayudan a mejorar el juego)')}</span><input type="checkbox" checked={settings.analytics} onChange={e => change({ analytics: e.target.checked })} /></label>
 
