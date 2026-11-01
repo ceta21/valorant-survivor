@@ -518,3 +518,11 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 .end-loot { display: flex; flex-wrap: wrap; gap: 6px 14px; justify-content: center; font-size: 16px; }
 .end-loot > b { width: 100%; text-align: center; color: var(--gold); }
 @media (max-width: 700px) { .gear-slots { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* privacidad y aviso legal */
+.privacy-box { display: grid; gap: 14px; max-width: 760px; width: 100%; margin: 0 auto; padding-bottom: 24px; justify-items: start; }
+.privacy-box section { width: 100%; }
+.privacy-box h3 { margin: 0 0 6px; color: var(--gold); font-size: 18px; }
+.privacy-box ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; color: var(--cream); line-height: 1.4; }
+.link-btn { background: none; border: 0; padding: 4px 0; color: var(--mute); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; justify-self: center; }
+.link-btn:hover, .link-btn:focus-visible { color: var(--cream); }

@@ -5,6 +5,8 @@ import { USERNAME_RE } from '../utils/account';
 import { t } from '../i18n';
 
 interface Props {
+  /** Abre Privacidad y aviso legal. */
+  privacy: () => void;
   /** Si se viene del menú como invitado, se puede volver atrás. */
   back?: () => void;
   guestHasProgress: boolean;
@@ -14,7 +16,7 @@ interface Props {
 }
 
 /** Inicio de sesión, registro y acceso como invitado. */
-export function AuthScreen({ back, guestHasProgress, onSignIn, onSignUp, onGuest }: Props) {
+export function AuthScreen({ privacy, back, guestHasProgress, onSignIn, onSignUp, onGuest }: Props) {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
@@ -77,6 +79,7 @@ export function AuthScreen({ back, guestHasProgress, onSignIn, onSignUp, onGuest
             <p className="auth-note">{t('Como invitado, tu progreso se pierde al cerrar la página.')}</p>
           </div>
         )}
+        <button className="link-btn" onClick={() => { audio.play('click'); privacy(); }}>{t('Privacidad y aviso legal')}</button>
       </div>
     </div>
   );

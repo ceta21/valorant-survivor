@@ -14,20 +14,26 @@ import { DEFAULT_KEYS } from '../src/game/controls';
 import { defaultSave } from '../src/utils/storage';
 import { ShopScreen } from '../src/components/ShopScreen';
 import { PetsScreen } from '../src/components/PetsScreen';
+import { GearScreen } from '../src/components/GearScreen';
+import { PrivacyScreen } from '../src/components/PrivacyScreen';
+import { SupportScreen } from '../src/components/SupportScreen';
 
 const s = defaultSave(); s.credits = 600;
 const noop = () => {};
 const out: [string, string][] = [
   ['menu', renderToString(<MainMenu save={s} go={noop} account={{ uid: 'x', username: 'Prueba', playerId: 10000 }} accountsEnabled onLogin={noop} onLogout={noop} keys={DEFAULT_KEYS} />)],
   ['market', renderToString(<MarketScreen save={{ ...s, market: { period: Math.floor(Date.now() / 86400000), revealed: [0, 1, 2, 3] } }} seed="test" reveal={noop} buy={noop} back={noop} goAgents={noop} goPets={noop} />)],
-  ['auth', renderToString(<AuthScreen guestHasProgress onSignIn={async () => {}} onSignUp={async () => {}} onGuest={noop} />)],
+  ['auth', renderToString(<AuthScreen privacy={noop} guestHasProgress onSignIn={async () => {}} onSignUp={async () => {}} onGuest={noop} />)],
   ['agents', renderToString(<AgentSelection save={{ ...s, shop: { ...s.shop, owned: ['as_oro'], agent: { zephyr: 'as_oro' } } }} back={noop} start={noop} unlock={noop} equip={noop} keys={DEFAULT_KEYS} />)],
   ['shop', renderToString(<ShopScreen save={{ ...s, shop: { ...s.shop, owned: ['ws_oro', 'pet_voltio'] } }} back={noop} buy={noop} />)],
   ['pets', renderToString(<PetsScreen save={{ ...s, shop: { ...s.shop, owned: ['pet_voltio', 'pet_copito'], pet: 'pet_voltio', power: { pet_voltio: 2 } } }} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],
   ['pets-vacio', renderToString(<PetsScreen save={s} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],
   ['meta', renderToString(<MetaScreen save={s} back={noop} buy={noop} />)],
   ['stats', renderToString(<StatsScreen save={s} back={noop} claim={noop} />)],
-  ['settings', renderToString(<SettingsScreen settings={s.settings} change={noop} back={noop} reset={noop} prefs={{ lang: 'es', keys: DEFAULT_KEYS }} changePrefs={noop} />)],
+  ['settings', renderToString(<SettingsScreen privacy={noop} settings={s.settings} change={noop} back={noop} reset={noop} prefs={{ lang: 'es', keys: DEFAULT_KEYS }} changePrefs={noop} />)],
+  ['gear', renderToString(<GearScreen save={s} back={noop} change={noop} />)],
+  ['privacy', renderToString(<PrivacyScreen back={noop} />)],
+  ['support', renderToString(<SupportScreen back={noop} privacy={noop} />)],
   ['ranking', renderToString(<RankingScreen back={noop} />)],
   ['news', renderToString(<NewsScreen back={noop} />)],
   ['levelup', renderToString(<UpgradeSelection level={3} rerolls={2} pick={noop} reroll={noop} choices={[{ id: 'dmg', kind: 'stat', name: 'Munición', desc: '+12%', icon: '✦', rarity: 1, value: 0.12 }]} />)],

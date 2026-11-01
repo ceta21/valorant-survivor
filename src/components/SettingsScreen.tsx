@@ -7,9 +7,10 @@ import { ACTIONS, Action, DEFAULT_KEYS, KeyMap, RESERVED, keyLabel } from '../ga
 interface Props {
   settings: Settings; change: (s: Partial<Settings>) => void; back: () => void; reset: () => void;
   prefs: Prefs; changePrefs: (p: Partial<Prefs>) => void;
+  privacy: () => void;
 }
 
-export function SettingsScreen({ settings, change, back, reset, prefs, changePrefs }: Props) {
+export function SettingsScreen({ settings, change, back, reset, prefs, changePrefs, privacy }: Props) {
   const [confirm, setConfirm] = useState(false);
   return (
     <div className="screen settings">
@@ -49,6 +50,7 @@ export function SettingsScreen({ settings, change, back, reset, prefs, changePre
               <button className="btn btn-sm" onClick={() => setConfirm(false)}><b>{t('Cancelar')}</b></button></div>
           )}
         </div>
+        <button className="link-btn" onClick={privacy}>{t('Privacidad y aviso legal')}</button>
       </div>
     </div>
   );

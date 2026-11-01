@@ -4,7 +4,7 @@ import { t } from '../i18n';
 const LINKEDIN = 'https://www.linkedin.com/in/gabrielvigorodriguez';
 
 /** Apoyo: quién ha creado el juego y cómo seguirle. */
-export function SupportScreen({ back }: { back: () => void }) {
+export function SupportScreen({ back, privacy }: { back: () => void; privacy: () => void }) {
   return (
     <div className="screen support">
       <header className="top">
@@ -19,6 +19,7 @@ export function SupportScreen({ back }: { back: () => void }) {
         <a className="btn btn-xl btn-linkedin" href={LINKEDIN} target="_blank" rel="noopener noreferrer" onClick={() => audio.play('click')}>
           <b>in · {t('Ver mi perfil de LinkedIn')}</b>
         </a>
+        <button className="link-btn" onClick={() => { audio.play('click'); privacy(); }}>{t('Privacidad y aviso legal')}</button>
       </section>
     </div>
   );

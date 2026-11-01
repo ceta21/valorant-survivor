@@ -3,7 +3,7 @@
 ## Pantallas
 
 `App.tsx` decide qué pantalla se ve (`screen`): `loading`, `auth`, `menu`, `agents`, `meta`, `stats`,
-`settings`, `ranking`, `market`, `news`, `coop`, `support`, `daily`, `shop`, `pets`, `gear`, `game`.
+`settings`, `ranking`, `market`, `news`, `coop`, `support`, `daily`, `shop`, `pets`, `gear`, `privacy`, `game`.
 
 | Pantalla | Componente | Qué hay |
 |---|---|---|
@@ -23,6 +23,7 @@
 | Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar) y logros |
 | Configuración | `SettingsScreen` | Sonido y pantalla, **Idioma**, **Controles**, borrar progreso |
 | Apoyo | `SupportScreen` | Creador del juego (Gabriel Vigo Rodríguez) y enlace a su LinkedIn |
+| Privacidad y aviso legal | `PrivacyScreen` | Qué datos se guardan y dónde, para qué, cómo borrarlos (Configuración o pedirlo por LinkedIn) y aviso legal. Se abre con un enlace desde el acceso, Apoyo y Configuración, y vuelve a la pantalla de origen. **Revisarla si cambia qué datos se guardan** |
 
 ### HUD de la partida
 
@@ -48,7 +49,8 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
 
 ## Estilo pixel art
 
-- Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes).
+- Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes). Se sirven
+  desde la propia web (`@fontsource/*`, importadas en `main.tsx`), sin pedir nada a Google al abrir el juego.
 - Botones y paneles con esquinas en escalón (`--notch`), bordes de 4 px, sombras duras y sin degradados suaves;
   animaciones con `steps()`.
 - Tema **ENDLESS RIFT**: noche violeta (`--ink`, `--panel`), morado de grieta como color de acción (`--red`,

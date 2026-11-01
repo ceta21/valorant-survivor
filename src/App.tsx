@@ -20,6 +20,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { NewsScreen } from './components/NewsScreen';
 import { SupportScreen } from './components/SupportScreen';
+import { PrivacyScreen } from './components/PrivacyScreen';
 import { CoopScreen, CoopStart } from './components/CoopScreen';
 import type { CoopLink } from './net/coopLink';
 import type { PlayerSetup } from './game/GameEngine';
@@ -33,7 +34,7 @@ import { GearScreen } from './components/GearScreen';
 import { PET_POWER_PRICES, ShopSave, looksFor } from './data/shop';
 import { LOGIN_REWARD, STREAK_REWARDS, addRun, dailyMissions, dayKey, todayProgress, touchLogin } from './data/daily';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'gear' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'gear' | 'privacy' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -167,6 +168,9 @@ export default function App() {
   /** Compra una oferta del Mercado de la Grieta: va a la Tienda como si se hubiera comprado allí (más barata). */
   const buyOffer = (o: Offer) => update(s => s.credits < o.price || s.shop.owned.includes(o.id) ? s : { ...s, credits: s.credits - o.price, shop: { ...s.shop, owned: [...s.shop.owned, o.id] } });
 
+  // la página de privacidad se abre desde el acceso, Apoyo o Configuración y vuelve a donde estabas
+  const [privacyFrom, setPrivacyFrom] = useState<Screen>('menu');
+  const openPrivacy = () => { setPrivacyFrom(screen); setScreen('privacy'); };
   const go = (s: Screen) => {
     if (s === 'news') update(v => (v.newsSeen === LATEST_NEWS ? v : { ...v, newsSeen: LATEST_NEWS }));
     setScreen(s);
@@ -179,7 +183,7 @@ export default function App() {
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
       {screen === 'loading' && <div className="screen auth"><p className="rank-msg">{t('Cargando…')}</p></div>}
       {screen === 'auth' && (
-        <AuthScreen back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}
+        <AuthScreen privacy={openPrivacy} back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}
           onSignIn={doSignIn} onSignUp={doSignUp} onGuest={() => go('menu')} />
       )}
       {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} keys={prefs.keys} />}
@@ -199,11 +203,12 @@ export default function App() {
         <StatsScreen save={save} back={() => go('menu')} claim={(id, reward) => update(s => (s.claimed.includes(id) ? s : { ...s, credits: s.credits + reward, claimed: [...s.claimed, id] }))} />
       )}
       {screen === 'settings' && (
-        <SettingsScreen settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} prefs={prefs} changePrefs={changePrefs} />
+        <SettingsScreen privacy={openPrivacy} settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} prefs={prefs} changePrefs={changePrefs} />
       )}
       {screen === 'ranking' && <RankingScreen back={() => go('menu')} />}
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
-      {screen === 'support' && <SupportScreen back={() => go('menu')} />}
+      {screen === 'support' && <SupportScreen back={() => go('menu')} privacy={openPrivacy} />}
+      {screen === 'privacy' && <PrivacyScreen back={() => setScreen(privacyFrom)} />}
       {screen === 'shop' && <ShopScreen save={save} back={() => go('menu')} buy={buyShop} />}
       {screen === 'gear' && <GearScreen save={save} back={() => go('menu')} change={fn => update(s => { const r = fn(s.gear, s.credits); return r ? { ...s, gear: r.gear, credits: r.credits } : s; })} />}
       {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}

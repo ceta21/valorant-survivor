@@ -36,7 +36,7 @@ Modos y funciones principales:
 
 ```
 valorant-survivors/
-├─ index.html              fuentes de Google (Press Start 2P, Pixelify Sans) y raíz de React
+├─ index.html              raíz de React (las fuentes van en el paquete con @fontsource)
 ├─ src/
 │  ├─ main.tsx, App.tsx    arranque y navegación entre pantallas, estado global (guardado, cuenta, preferencias)
 │  ├─ components/          pantallas y piezas de interfaz (menú, héroes, partida, HUD, mercado, sala…)
