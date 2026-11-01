@@ -1,3 +1,4 @@
+import { GEAR_BY_ID, GEAR_RARITY_COLORS, GEAR_RARITY_NAMES } from '../data/gear';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { Renderer, PX } from '../game/Renderer';
@@ -6,6 +7,7 @@ import { AgentDef, MapDef, RunResult, UpgradeChoice } from '../game/types';
 import { MetaLevels, Settings } from '../utils/storage';
 import { audio } from '../utils/audio';
 import { GameHUD, Hud } from './GameHUD';
+import type { Stats } from '../game/types';
 import { Coach } from './Coach';
 import { UpgradeSelection } from './UpgradeSelection';
 import { AudioControls } from './SettingsScreen';
@@ -25,6 +27,8 @@ interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
   /** Estilos de la tienda y mascota (en solitario; en cooperativo van en coop.setups). */
   looks?: Looks;
+  /** Ventajas del equipo que lleva el héroe. */
+  gear?: Partial<Stats>;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
@@ -67,7 +71,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ agent, map, difficulty, meta, settings, looks, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
+export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -122,7 +126,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, acco
         if (link) link.send({ type: 'end', r: engine.resultFor(1) });
       },
       sfx: n => audio.play(n),
-    }, difficulty, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks);
+    }, difficulty, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks, gear);
     if (link && !isGuest) engine.netOut = [];
     if (import.meta.env.DEV) (window as any).__vs = engine;   // solo en desarrollo, para depurar
     const cast = (slot: 'special' | 'secondary' | 'ultimate') => {
@@ -308,6 +312,12 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, acco
             <div><dt>{t('Jefes')}</dt><dd>{result.r.bossKills}</dd></div>
             <div className="reward"><dt>{t('Créditos')}</dt><dd>+◈ {nf(result.r.credits)}</dd></div>
           </dl>
+          {(result.r.loot?.length ?? 0) > 0 && (
+            <div className="end-loot">
+              <b>{t('Botín de los jefes')}</b>
+              {result.r.loot!.map((l, i) => <span key={i} style={{ color: GEAR_RARITY_COLORS[l.rarity] }}>{GEAR_BY_ID[l.id]?.icon} {t(GEAR_BY_ID[l.id]?.name ?? l.id)} · {t(GEAR_RARITY_NAMES[l.rarity])}</span>)}
+            </div>
+          )}
           {result.ach.length > 0 && <p className="ach">{t('Logro desbloqueado:')} {result.ach.map(a => t(a)).join(', ')}</p>}
           <div className="pause-btns">
             {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>{t('Jugar otra vez')}</b></button>}

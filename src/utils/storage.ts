@@ -3,6 +3,7 @@ import { browserLang } from '../i18n';
 import { KeyMap, normalizeKeys } from '../game/controls';
 import { DailyProgress, LoginStreak, emptyDaily, emptyLogin } from '../data/daily';
 import { ShopSave, emptyShop, LEGACY_PRICES } from '../data/shop';
+import { GearSave, emptyGear } from '../data/gear';
 import { LEGACY_AGENT_COSTS } from '../data/agents';
 import { mapOrDefault } from '../data/maps';
 export interface Settings {
@@ -40,6 +41,8 @@ export interface SaveData {
   login: LoginStreak;
   /** Tienda: estilos y mascotas comprados y equipados. */
   shop: ShopSave;
+  /** Equipo entre partidas: objetos ganados y los que se llevan puestos. */
+  gear: GearSave;
 }
 
 const KEY = 'valorant-survivors-save-v1';
@@ -63,6 +66,7 @@ export const defaultSave = (): SaveData => ({
   daily: emptyDaily(''),
   login: emptyLogin(),
   shop: emptyShop(),
+  gear: emptyGear(),
 });
 
 /** Completa un guardado (local o de la nube) con los valores por defecto que falten. */
@@ -96,6 +100,7 @@ export function normalizeSave(p: any): SaveData {
     daily: p.daily && typeof p.daily.day === 'string' ? { ...d.daily, ...p.daily } : d.daily,
     login: p.login && typeof p.login.streak === 'number' ? { ...d.login, ...p.login } : d.login,
     shop: p.shop && Array.isArray(p.shop.owned) ? { ...d.shop, ...p.shop } : d.shop,
+    gear: p.gear && Array.isArray(p.gear.items) ? { items: p.gear.items, equipped: Array.isArray(p.gear.equipped) ? p.gear.equipped : [] } : d.gear,
   };
 }
 

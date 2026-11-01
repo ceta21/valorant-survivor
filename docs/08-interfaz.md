@@ -3,7 +3,7 @@
 ## Pantallas
 
 `App.tsx` decide qué pantalla se ve (`screen`): `loading`, `auth`, `menu`, `agents`, `meta`, `stats`,
-`settings`, `ranking`, `market`, `news`, `coop`, `support`, `game`.
+`settings`, `ranking`, `market`, `news`, `coop`, `support`, `daily`, `shop`, `pets`, `gear`, `game`.
 
 | Pantalla | Componente | Qué hay |
 |---|---|---|
@@ -11,10 +11,11 @@
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar, Jugar en pareja y Apoyo a todo el ancho; el resto en dos columnas), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
 | Tienda | `ShopScreen` | Pestañas de estilos de héroes (con selector del héroe en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
+| Equipo | `GearScreen` | 3 huecos con lo puesto e inventario ordenado por rareza: equipar/quitar, mejorar con créditos y desmontar |
 | Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Héroes | `AgentSelection` | Elegir héroe (con su poder), zona, dificultad; desbloquear héroes (los no disponibles, con candado y "Próximamente"); estilo del héroe comprado en la Tienda |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir héroe, listo, empezar |
-| Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado y publicar marca |
+| Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
 | Mercado de la Grieta | `MarketScreen` | Cartas del día |
 | Ranking global | `RankingScreen` | Tabla filtrable por héroe y dificultad |

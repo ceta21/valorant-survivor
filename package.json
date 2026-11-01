@@ -22,7 +22,8 @@
     "test:pets": "tsx scripts/pet-test.ts",
     "test:crates": "tsx scripts/crate-test.ts",
     "test:kinds": "tsx scripts/ability-test.ts",
-    "test:evo": "tsx scripts/evo-test.ts"
+    "test:evo": "tsx scripts/evo-test.ts",
+    "test:gear": "tsx scripts/gear-test.ts"
   },
   "keywords": [],
   "author": "",

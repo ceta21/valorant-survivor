@@ -1,3 +1,5 @@
+import { gearBonus } from '../data/gear';
+import type { Stats } from '../game/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AGENTS, AGENT_BY_ID, isAvailable } from '../data/agents';
 import { Looks, looksFor } from '../data/shop';
@@ -10,7 +12,7 @@ import { audio } from '../utils/audio';
 import { t } from '../i18n';
 
 /** Lo que cada jugador lleva a la partida (viaja por la red). */
-export interface CoopSetup { agentId: string; meta: MetaLevels; name: string; looks?: Looks }
+export interface CoopSetup { agentId: string; meta: MetaLevels; name: string; looks?: Looks; gear?: Partial<Stats> }
 /** seed: semilla del mundo, para que anfitrión e invitado vean el mismo mapa. */
 export interface CoopStart { mapId: string; difficulty: string; setups: CoopSetup[]; seed: number }
 interface LobbyState extends CoopSetup { ready: boolean; mapId?: string; difficulty?: string }
@@ -40,7 +42,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const [peerState, setPeerState] = useState<LobbyState | null>(null);
   const started = useRef(false);
 
-  const mine: LobbyState = { agentId, meta: save.meta, name, looks: looksFor(save.shop, agentId), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
+  const mine: LobbyState = { agentId, meta: save.meta, name, looks: looksFor(save.shop, agentId), gear: gearBonus(save.gear), ready: link?.role === 'host' ? true : ready, mapId, difficulty };
 
   // al salir de la pantalla sin empezar, se cierra la sala
   useEffect(() => () => { if (!started.current) link?.close(); }, [link]);
@@ -82,7 +84,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const start = () => {
     if (!link || !peerState) return;
     audio.play('click');
-    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, meta: s.meta, name: s.name, looks: s.looks });
+    const strip = (s: LobbyState): CoopSetup => ({ agentId: s.agentId, meta: s.meta, name: s.name, looks: s.looks, gear: s.gear });
     const st: CoopStart = { mapId, difficulty, setups: [strip(mine), strip(peerState)], seed: Math.floor(Math.random() * 2147483647) };
     link.send({ type: 'start', start: st });
     started.current = true;

@@ -10,7 +10,7 @@ import { MenuHub } from './MenuHub';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 
-type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets';
+type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'gear';
 
 interface Props {
   save: SaveData; go: (s: Screen) => void;
@@ -51,6 +51,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn btn-coop wide" onClick={click('coop')} onMouseEnter={hover}><b><Emo e="👥" />{t('Jugar en pareja')}</b></button>
           <button className="btn" onClick={click('agents')} onMouseEnter={hover}><b><Emo e="🦸" />{t('Héroes')}</b></button>
           <button className="btn" onClick={click('pets')} onMouseEnter={hover}><b><Emo e="🐾" />{t('Mascotas')}</b></button>
+          <button className="btn" onClick={click('gear')} onMouseEnter={hover}><b><Emo e="🎒" />{t('Equipo')}</b></button>
           <button className="btn btn-daily" onClick={click('daily')} onMouseEnter={hover}><b><Emo e="📅" />{t('Diario')}{hasDailyReward(save.daily, save.login, save.unlocked) && <i className="news-badge">!</i>}</b></button>
           <button className="btn btn-shop" onClick={click('shop')} onMouseEnter={hover}><b><Emo e="🧺" />{t('Tienda')}</b></button>
           <button className="btn" onClick={click('meta')} onMouseEnter={hover}><b><Emo e="💪" />{t('Mejoras')}</b></button>

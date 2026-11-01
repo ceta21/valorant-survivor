@@ -8,6 +8,7 @@ import { RankingScreen } from './components/RankingScreen';
 import { DIFFICULTY_BY_ID } from './data/difficulty';
 import { GameScreen } from './components/GameScreen';
 import { AGENTS, AGENT_BY_ID, isAvailable } from './data/agents';
+import { gearBonus } from './data/gear';
 import { MAP_BY_ID } from './data/maps';
 import { ACHIEVEMENTS } from './data/goals';
 import { metaCost } from './data/meta';
@@ -28,10 +29,11 @@ import { audio } from './utils/audio';
 import { DailyScreen } from './components/DailyScreen';
 import { ShopScreen } from './components/ShopScreen';
 import { PetsScreen } from './components/PetsScreen';
+import { GearScreen } from './components/GearScreen';
 import { PET_POWER_PRICES, ShopSave, looksFor } from './data/shop';
 import { LOGIN_REWARD, STREAK_REWARDS, addRun, dailyMissions, dayKey, todayProgress, touchLogin } from './data/daily';
 
-type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'game';
+type Screen = 'loading' | 'auth' | 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'gear' | 'game';
 
 export default function App() {
   // Invitado: empieza con el progreso antiguo de este navegador (si lo hay) y no se guarda.
@@ -82,7 +84,7 @@ export default function App() {
   /** Empieza una partida cooperativa con lo acordado en la sala. */
   const startCoop = useCallback((link: CoopLink, st: CoopStart, local: number) => {
     const setups: PlayerSetup[] = st.setups.map(c => ({
-      agent: AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.zephyr, meta: c.meta, name: c.name, looks: c.looks,
+      agent: AGENT_BY_ID[c.agentId] ?? AGENT_BY_ID.zephyr, meta: c.meta, name: c.name, looks: c.looks, gear: c.gear,
     }));
     setRun(r => ({ agentId: st.setups[local].agentId, mapId: st.mapId, difficulty: st.difficulty, key: r.key + 1, coop: { link, setups, local, seed: st.seed } }));
     setScreen('game');
@@ -151,7 +153,9 @@ export default function App() {
         const [c, t] = a.progress(stats);
         if (c >= t && !achievements.includes(a.id)) { achievements.push(a.id); names.push(a.name); }
       }
-      return { ...s, credits: s.credits + r.credits, stats, records, achievements, daily: addRun(s.daily, r) };
+      // botín de los jefes al inventario de equipo
+      const items = [...s.gear.items, ...(r.loot ?? []).map((l, i) => ({ uid: `${Date.now().toString(36)}${i}${Math.random().toString(36).slice(2, 6)}`, id: l.id, rarity: l.rarity, lvl: 1 }))];
+      return { ...s, credits: s.credits + r.credits, stats, records, achievements, daily: addRun(s.daily, r), gear: { ...s.gear, items } };
     });
     return names;
   };
@@ -201,12 +205,13 @@ export default function App() {
       {screen === 'news' && <NewsScreen back={() => go('menu')} />}
       {screen === 'support' && <SupportScreen back={() => go('menu')} />}
       {screen === 'shop' && <ShopScreen save={save} back={() => go('menu')} buy={buyShop} />}
+      {screen === 'gear' && <GearScreen save={save} back={() => go('menu')} change={fn => update(s => { const r = fn(s.gear, s.credits); return r ? { ...s, gear: r.gear, credits: r.credits } : s; })} />}
       {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}
       {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
       {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} goPets={() => go('pets')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} keys={prefs.keys} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

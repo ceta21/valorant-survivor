@@ -22,6 +22,7 @@ export const NEWS: NewsEntry[] = [
       'Cada zona tiene su jefe: Coloso mecánico, Reina araña, Elemental de energía y Dragón cibernético; y cuidado con el Sabio oscuro.',
       'Los bots y los jefes se mueven de verdad: andan, se giran y se ven de frente, de espaldas y de perfil.',
       'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.',
+      'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.',
       'Juega en pareja, completa misiones diarias, mantén tu racha y compite en el ranking global.',
       'Personaliza a tus héroes con estilos y llévate una mascota con poderes de la Tienda o del Mercado de la Grieta.',
     ],

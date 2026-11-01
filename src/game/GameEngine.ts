@@ -2,6 +2,7 @@ import {
   AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, ProjLook, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
 import { POWERS, POWER_LIST, heroPower, MAX_LEVEL, EVO_LEVEL } from '../data/powers';
+import { GEAR_BY_ID, GEAR_RARITY_COLORS, rollLoot } from '../data/gear';
 import {
   BOSS_SCHEDULE, BOT_KINDS, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, TIERS, WAVE_TIMES, ZONE_BOSS, ZONE_TIER,
 } from '../data/enemies';
@@ -106,7 +107,7 @@ export type Buffs = {
 /** Charco del rastro: daña cada 0,4 s (y frena) a los enemigos que lo pisan. */
 export interface Puddle { x: number; y: number; r: number; t: number; dmg: number; slow: number; tick: number; owner: number }
 /** Datos con los que entra cada jugador a la partida. */
-export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; name: string; looks?: Looks }
+export interface PlayerSetup { agent: AgentDef; meta: MetaLevels; name: string; looks?: Looks; /** Ventajas del equipo (gearBonus). */ gear?: Partial<Stats> }
 /** Mascota que acompaña a un jugador. Si cae, vuelve a los PET_RESPAWN segundos. */
 export interface PetState {
   id: string; x: number; y: number; hp: number; maxHp: number; flash: number; dead: boolean;
@@ -190,6 +191,8 @@ export class GameEngine {
   eprojs: EProj[] = [];
   shells: Shell[] = [];
   gems: Gem[] = [];
+  /** Objetos de equipo ganados en la partida (los sueltan los jefes). */
+  loot: { id: string; rarity: 0 | 1 | 2 | 3 }[] = [];
   puddles: Puddle[] = [];
   crates: Crate[] = [];
   crateT = 4;
@@ -228,7 +231,7 @@ export class GameEngine {
 
   /** coop: varios jugadores; local = índice del de esta pantalla. Sin coop, partida en solitario. */
   constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal,
-    coop?: { setups: PlayerSetup[]; local: number; seed?: number }, looks: Looks = {}) {
+    coop?: { setups: PlayerSetup[]; local: number; seed?: number }, looks: Looks = {}, gear: Partial<Stats> = {}) {
     this.map = map;
     this.ev = ev;
     this.diff = diff;
@@ -236,7 +239,7 @@ export class GameEngine {
     // en cooperativo los dos jugadores generan el mismo mundo a partir de la semilla del anfitrión
     this.world = new World(map, coop?.seed);
     for (let i = 0; i < GRID * GRID; i++) this.grid.push([]);
-    const setups = coop?.setups ?? [{ agent, meta, name: '', looks }];
+    const setups = coop?.setups ?? [{ agent, meta, name: '', looks, gear }];
     this.players = setups.map((st, i) => this.makePlayer(i, st));
     this.local = coop?.local ?? 0;
     this.use(this.players[this.local]);
@@ -252,6 +255,8 @@ export class GameEngine {
       xp: 1 + m('xp'), chain: 0, drones: 0, maxShield: 0, killExplode: 0, regen: 0.5, magnet: 1, burn: 0, ult: 1, lifeOnKill: 0,
     };
     for (const k of Object.keys(a.trait.mods) as (keyof Stats)[]) stats[k] += a.trait.mods[k] as number;
+    // equipo: la velocidad sube en porcentaje; lo demás se suma
+    for (const k of Object.keys(st.gear ?? {}) as (keyof Stats)[]) { const v = st.gear![k] as number; if (k === 'speed') stats.speed *= 1 + v; else stats[k] += v; }
     const w = heroPower(a.id).id;   // cada héroe empieza con su poder (ya no hay armas)
     const sp = this.world.spawn;
     const droneCd: number[] = [];
@@ -1233,6 +1238,10 @@ export class GameEngine {
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
+      // botín de equipo: mejor cuanto más dura la zona; el jefe final asegura épico o legendario
+      const drop = rollLoot(ZONE_TIER[this.zoneIdAt(e.x, e.y)] ?? 0, !!e.def.final);
+      this.loot.push(drop);
+      this.text(e.x, e.y - e.r - 30, `🎁 ${GEAR_BY_ID[drop.id].name}`, GEAR_RARITY_COLORS[drop.rarity], 18);
       if (e.def.final && !this.finalKilled) {
         this.finalKilled = true;
         this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
@@ -2000,7 +2009,7 @@ export class GameEngine {
     const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id,
+      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot],
     };
   }
   /** Termina la partida desde fuera (p. ej. se pierde la conexión en cooperativo). */

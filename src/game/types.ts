@@ -157,6 +157,8 @@ export interface PowerDef {
 export interface RunResult {
   win: boolean; time: number; kills: number; level: number; damage: number;
   bossKills: number; credits: number; agentId: string; mapId: string; difficulty: string;
+  /** Objetos de equipo que soltaron los jefes en la partida. */
+  loot?: { id: string; rarity: 0 | 1 | 2 | 3 }[];
 }
 
 export interface UpgradeChoice {

@@ -50,6 +50,7 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `newsSeen` | Última versión de Novedades vista (para la etiqueta "Nuevo") |
 | `daily` | Lo hecho **hoy** (partidas, bajas, jefes, daño, mejores marcas, partidas por héroe/mapa, en Difícil+) y las misiones diarias cobradas |
 | `shop` | Tienda: lo comprado (`owned`), estilo de cada héroe, mascota que acompaña y nivel del poder de cada mascota |
+| `gear` | Equipo: objetos ganados (`items`: id, rareza, nivel) y los que se llevan puestos (`equipped`, hasta 3) |
 | `login` | Racha de conexión: último día, días seguidos, mejor racha, último premio diario cobrado e hitos cobrados |
 
 - `normalizeSave()` completa cualquier guardado con los valores por defecto, así que añadir campos nuevos no
