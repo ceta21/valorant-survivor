@@ -464,6 +464,11 @@ export const EN: Record<string, string> = {
   'Elemental de energía': 'Energy Elemental',
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
+  /* ------------------------------------------------------------------ app instalable */
+  'Instálalo como app: desde el navegador, «Instalar» o «Añadir a pantalla de inicio»; se abre a pantalla completa con su icono, carga más rápido y se actualiza solo.': 'Install it as an app: from your browser, “Install” or “Add to Home Screen”; it opens full screen with its own icon, loads faster and updates itself.',
+  'Hay una versión nueva del juego.': 'A new version of the game is available.',
+  'Actualizar': 'Update',
+  'Más tarde': 'Later',
   /* ------------------------------------------------------------------ eventos */
   'Estadísticas anónimas de uso: al abrir el juego y en cada partida se envía qué ha pasado (héroe, zona, cuánto duró, si se usó el tutorial, tipo de dispositivo e idioma) con un identificador al azar que se borra al cerrar la página. No llevan tu cuenta, tu nombre ni tu IP, y sirven solo para mejorar el juego. Puedes desactivarlas en Configuración.': 'Anonymous usage statistics: when you open the game and in every run, what happened is sent (hero, zone, how long it lasted, whether the tutorial was used, device type and language) with a random identifier that is deleted when you close the page. They do not include your account, name or IP, and are only used to improve the game. You can turn them off in Settings.',
   'Enviar estadísticas anónimas de uso (ayudan a mejorar el juego)': 'Send anonymous usage statistics (they help improve the game)',

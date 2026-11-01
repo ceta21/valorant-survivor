@@ -139,6 +139,21 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Móvil: joystick virtual arrastrando el dedo sobre el canvas; habilidades con los botones del HUD.
 - En cooperativo, el invitado no lanza habilidades en su motor: las envía al anfitrión (`castFn`).
 
+## App instalable (PWA)
+
+`vite-plugin-pwa` (en `vite.config.ts`) genera el manifiesto (`manifest.webmanifest`: nombre, iconos, pantalla
+completa en horizontal, colores) y un service worker (`sw.js`, Workbox) que guarda en el dispositivo todo el juego
+(JS, CSS, HTML, imágenes y fuentes) para que cargue rápido y abra sin conexión. Las llamadas a Supabase no se
+guardan: siempre van a la red.
+
+- Actualizaciones (`registerType: 'prompt'`): al subir una versión, el service worker nuevo se descarga solo. Si la
+  app está cerrada, la siguiente vez que se abre ya es la nueva; si está abierta, `UpdateToast` avisa «Hay una
+  versión nueva» con un botón para recargar (no sale durante la partida). Con la app abierta se comprueba cada 30
+  min. Las cachés viejas se borran solas.
+- Iconos en `public/icons/`, generados desde `art/LOGO.png` con `npx tsx scripts/make-icons.ts` (512, 192,
+  "maskable" con margen para móviles que recortan en círculo, 180 para iPhone y favicons de 32 y 64).
+- En desarrollo (`npm run dev`) no hay service worker; para probarlo: `npm run build` y `npm run preview`.
+
 ## Audio (`utils/audio.ts`)
 
 Todo sintetizado con WebAudio, sin archivos. Se desbloquea tras el primer clic o tecla. Hay una reverberación

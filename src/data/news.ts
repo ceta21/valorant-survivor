@@ -26,6 +26,7 @@ export const NEWS: NewsEntry[] = [
       'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.',
       'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.',
       'Eventos del domingo: cada domingo hay uno distinto (Fiebre del oro, Lluvia de cajas, Caza de jefes, Gran horda o Semana del saber); entre semana el menú te dice cuál toca.',
+      'Instálalo como app: desde el navegador, «Instalar» o «Añadir a pantalla de inicio»; se abre a pantalla completa con su icono, carga más rápido y se actualiza solo.',
       'Juega en pareja, completa misiones diarias, mantén tu racha y compite en el ranking global.',
       'Personaliza a tus héroes con estilos y llévate una mascota con poderes de la Tienda o del Mercado de la Grieta.',
     ],

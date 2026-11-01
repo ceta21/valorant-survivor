@@ -43,6 +43,11 @@ Las pruebas pueden fijar el evento con `globalThis.RIFT_EVENT = 'id'` (o `'none'
 
 ## Publicar
 
+La web es una app instalable (PWA, ver [03](03-arquitectura.md#app-instalable-pwa)): quien la tenga instalada recibe
+la versión nueva sola (al volver a abrirla, o con el aviso «Hay una versión nueva» si la tenía abierta).
+Si cambia el logo (`art/LOGO.png`), regenerar los iconos con `npx tsx scripts/make-icons.ts`.
+
+
 1. Commit y push a `main` (Gabriel confirma antes de cada subida).
 2. Vercel publica solo en ~1 minuto en https://endless-rift.vercel.app/.
 3. Comprobar que la versión publicada incluye el cambio (por ejemplo, buscando un texto nuevo en el JS servido).

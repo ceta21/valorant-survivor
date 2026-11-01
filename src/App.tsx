@@ -21,6 +21,7 @@ import { MarketScreen } from './components/MarketScreen';
 import { NewsScreen } from './components/NewsScreen';
 import { SupportScreen } from './components/SupportScreen';
 import { deviceKind, setAnalytics, track } from './utils/analytics';
+import { UpdateToast } from './components/UpdateToast';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { CoopScreen, CoopStart } from './components/CoopScreen';
 import type { CoopLink } from './net/coopLink';
@@ -189,6 +190,7 @@ export default function App() {
   return (
     <div className="app">
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
+      <UpdateToast inGame={screen === 'game'} />
       {screen === 'loading' && <div className="screen auth"><p className="rank-msg">{t('Cargando…')}</p></div>}
       {screen === 'auth' && (
         <AuthScreen privacy={openPrivacy} back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}
