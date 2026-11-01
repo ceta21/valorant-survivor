@@ -323,3 +323,46 @@ export function spriteCanvas(id: string, make: (w: number, h: number) => any, sc
   cache.set(key, c);
   return c;
 }
+
+/* ------------------------------------------------------------------ héroe al tamaño de la partida */
+// Los dibujos de los héroes miden ~120 px de alto pero en partida ocupan ~30 px del lienzo. Reducirlos saltando píxeles
+// los llena de «ruido»; aquí se reducen mezclando colores (a mitades, para que quede limpio) y luego se recupera lo que
+// la mezcla emborrona: borde duro (sin semitransparencias), un poco más de contraste y contorno oscuro de 1 px.
+const small = new Map<string, any>();
+/** Héroes cuya hoja no trae vista de espaldas de verdad: de espaldas se usa la de perfil. */
+export const NO_BACK = new Set(['tink']);
+/** Sprite del héroe listo para la partida (outW × outH más 1 px de contorno por lado), o null si aún carga. */
+export function heroGameSprite(id: string, dir: Dir, skin: string, make: (w: number, h: number) => any, outW: number, outH: number) {
+  const key = `${id}|${dir}|${skin}|${outW}x${outH}`;
+  const hit = small.get(key);
+  if (hit) return hit;
+  if (!sheetOf(id)) return null;
+  let src = spriteCanvas(id, make, 1, IDLE, dir, 0, skin), w = src.width, h = src.height;
+  while (w / 2 > outW * 1.4) {
+    const n = make(Math.round(w / 2), Math.round(h / 2)), g = n.getContext('2d');
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    g.drawImage(src, 0, 0, n.width, n.height);
+    src = n; w = n.width; h = n.height;
+  }
+  const W = outW + 2, H = outH + 2, c = make(W, H), g = c.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(src, 1, 1, outW, outH);
+  const im = g.getImageData(0, 0, W, H), d = im.data, solid = new Uint8Array(W * H);
+  for (let i = 0; i < W * H; i++) {
+    const a = d[i * 4 + 3];
+    if (a < 110) { d[i * 4 + 3] = 0; continue; }
+    solid[i] = 1;
+    for (let j = 0; j < 3; j++) d[i * 4 + j] = Math.max(0, Math.min(255, ((d[i * 4 + j] * 255) / a - 128) * 1.18 + 128));
+    d[i * 4 + 3] = 255;
+  }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = y * W + x;
+    if (solid[i]) continue;
+    if ((x > 0 && solid[i - 1]) || (x < W - 1 && solid[i + 1]) || (y > 0 && solid[i - W]) || (y < H - 1 && solid[i + W])) {
+      d[i * 4] = 18; d[i * 4 + 1] = 10; d[i * 4 + 2] = 28; d[i * 4 + 3] = 255;
+    }
+  }
+  g.putImageData(im, 0, 0);
+  small.set(key, c);
+  return c;
+}

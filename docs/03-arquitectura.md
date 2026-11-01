@@ -96,6 +96,13 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
     `public/agents/<id>.png` (una fila por vista —frente, espalda, lado— y una columna por paso) y sus medidas en
     `src/data/agentImages/<id>.json` (`px` = escala para que todos midan ~58 unidades). El juego las precarga
     al crear el `Renderer`; los retratos del menú usan la misma hoja.
+    En partida no se dibujan tal cual: miden ~120 px y ocupan ~30 px del lienzo, y reducirlos saltando píxeles los
+    llenaba de «ruido». `heroGameSprite()` (`sprites.ts`) los reduce mezclando colores (a mitades) y recupera el borde
+    duro, algo de contraste y un contorno oscuro de 1 px; se guarda en caché por héroe, vista, estilo y tamaño.
+    Como cada vista tiene un solo dibujo, el andar se anima por código en `drawPlayer`: el cuerpo sube y baja con el
+    ciclo de pasos y el último 26 % (las piernas) se pinta en dos mitades que se levantan por turnos (de frente y de
+    espaldas) o se adelantan y atrasan (de perfil). Héroes sin vista de espaldas de verdad (`NO_BACK`: Tink) usan la
+    de perfil. Capturas: `npx tsx scripts/hero-shot.ts` (`shots/heroes-andando.png`).
   - **Dibujados por código** (aspecto genérico `default`, solo si un héroe no tiene hoja de sprites): rejilla 22×30 con poses (reposo, andar, correr, lanzar).
   - El cuerpo mira hacia donde se mueve: de frente (bajando o quieto), de espaldas (subiendo) o de lado (la
     izquierda es el espejo de la derecha). No llevan arma: al lanzar el poder sale un destello de su color en la mano.

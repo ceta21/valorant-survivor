@@ -1,7 +1,7 @@
 import { elemLook, GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { POWERS } from '../data/powers';
-import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
+import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, heroGameSprite, hasImage, NO_BACK, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
 import { renderChunk, treeSprite, CPX, U } from './MapArt';
 import { enemyArt, enemyFlash } from './enemyArt';
 import { botSprite, hasBotSprite } from './botSprites';
@@ -731,19 +731,40 @@ export class Renderer {
     const mvx = dashing ? p.dashVx : e.inputMove.x, mvy = dashing ? p.dashVy : e.inputMove.y;
     const dir: Dir = !(moving || dashing) ? 'front' : Math.abs(mvy) > Math.abs(mvx) * 1.1 ? (mvy < 0 ? 'back' : 'front') : 'side';
     const flip = dir === 'side' && mvx < 0;
-    const bob = casting ? -3 : moving ? (frame % 2) * 2 : Math.sin(t * 3) * 0.8;
+    const ph = t * (sprint || dashing ? 15 : 10), step = Math.sin(ph);   // ciclo de pasos
+    const bob = casting ? -3 : moving ? Math.abs(step) * 3 : Math.sin(t * 3) * 0.8;
     let lean = moving ? Math.max(-1, Math.min(1, e.inputMove.x)) * (sprint ? 0.16 : 0.07) : 0;
     let sx = 1, sy = moving || casting ? 1 : 1 + Math.sin(t * 3) * 0.018;
     if (dashing) { lean = Math.sign(p.dashVx) * 0.3; sx = 1.2; sy = 0.88; }
     if (casting) { const s = 1 + Math.sin(castK * Math.PI) * 0.12; sx = s; sy = s; }
     const looks = e.looksOf();
-    const spr = spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame, looks.agent ?? '');
+    // héroes con dibujo: reducido nítido (con contorno) y, al andar, piernas que se alternan y cuerpo que sube y baja
+    const imgDir: Dir = dir === 'back' && NO_BACK.has(a.id) ? 'side' : dir;
+    const tw = Math.round(dw / PX), th = Math.round(dh / PX);
+    const hero = hasImage(a.id) ? heroGameSprite(a.id, imgDir, looks.agent ?? '', this.makeCanvas, tw, th) : null;
+    const spr = hero ?? spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame, looks.agent ?? '');
     const baseY = p.y + 15 - bob;
     const drawBody = (ox: number, oy: number, alpha: number) => {
       g.save(); g.globalAlpha = alpha; g.translate(p.x + ox, baseY + oy); g.rotate(lean);
       if (flip) g.scale(-1, 1);
       g.scale(sx, sy); g.imageSmoothingEnabled = false;
-      g.drawImage(spr, -dw / 2, -dh, dw, dh);
+      if (hero) {
+        // el dibujo lleva 1 px de contorno por lado; las piernas (último 26 %) se pintan aparte, en dos mitades
+        const W = hero.width, H = hero.height, ww = W * PX, hh = H * PX, cut = Math.round(H * 0.74);
+        const walk = moving || dashing, up = (v: number) => Math.round(Math.max(0, v) * 2) * PX / 2;
+        g.drawImage(hero, 0, 0, W, cut, -ww / 2, -hh, ww, cut * PX);
+        const half = Math.floor(W / 2), legH = H - cut;
+        if (walk && imgDir === 'side') {
+          // de perfil: una pierna adelante y otra atrás
+          const k = Math.round(step * 1.5) * PX;
+          g.drawImage(hero, 0, cut, half, legH, -ww / 2 - k, -hh + cut * PX, half * PX, legH * PX);
+          g.drawImage(hero, half, cut, W - half, legH, -ww / 2 + half * PX + k, -hh + cut * PX, (W - half) * PX, legH * PX);
+        } else {
+          // de frente o de espaldas: cada pierna se levanta por turnos
+          g.drawImage(hero, 0, cut, half, legH, -ww / 2, -hh + cut * PX - (walk ? up(step) * 2 : 0), half * PX, legH * PX);
+          g.drawImage(hero, half, cut, W - half, legH, -ww / 2 + half * PX, -hh + cut * PX - (walk ? up(-step) * 2 : 0), (W - half) * PX, legH * PX);
+        }
+      } else g.drawImage(spr, -dw / 2, -dh, dw, dh);
       g.restore();
     };
     // estelas de velocidad (dash / sprint)
