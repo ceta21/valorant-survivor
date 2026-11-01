@@ -45,7 +45,10 @@ Las pruebas pueden fijar el evento con `globalThis.RIFT_EVENT = 'id'` (o `'none'
 
 La web es una app instalable (PWA, ver [03](03-arquitectura.md#app-instalable-pwa)): quien la tenga instalada recibe
 la versión nueva sola (al volver a abrirla, o con el aviso «Hay una versión nueva» si la tenía abierta).
-Si cambia el logo (`art/LOGO.png`), regenerar los iconos con `npx tsx scripts/make-icons.ts`.
+Si cambia el logo (`art/LOGO.png`), regenerar los iconos y la imagen para compartir (`public/og.jpg`, 1200×630, JPEG
+para que pese poco: WhatsApp no enseña vistas previas de más de ~300 KB) con `npx tsx scripts/make-icons.ts`.
+La vista previa al compartir el enlace sale de las etiquetas `og:*` y `twitter:*` de `index.html` (URL absoluta a
+`https://endless-rift.vercel.app/og.jpg`; si cambia el dominio, cambiarla ahí).
 
 
 1. Commit y push a `main` (Gabriel confirma antes de cada subida).
