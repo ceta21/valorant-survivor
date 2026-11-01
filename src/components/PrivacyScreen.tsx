@@ -2,6 +2,7 @@ import { audio } from '../utils/audio';
 import { t } from '../i18n';
 
 const LINKEDIN = 'https://www.linkedin.com/in/gabrielvigorodriguez';
+const EMAIL = 'fnceta@gmail.com';
 
 /** Privacidad y aviso legal: qué datos usa el juego, para qué y cómo pedir que se borren. */
 export function PrivacyScreen({ back }: { back: () => void }) {
@@ -36,7 +37,7 @@ export function PrivacyScreen({ back }: { back: () => void }) {
         ])}
         {sec('Tus derechos', [
           'Puedes borrar tu progreso cuando quieras en Configuración → Borrar progreso.',
-          'Para borrar tu cuenta o tus marcas del ranking, o para cualquier duda sobre tus datos, escríbeme por LinkedIn indicando tu nombre de usuario. Tus datos se conservan mientras la cuenta exista.',
+          'Para borrar tu cuenta o tus marcas del ranking, o para cualquier duda sobre tus datos, escríbeme a fnceta@gmail.com (o por LinkedIn) indicando tu nombre de usuario. Tus datos se conservan mientras la cuenta exista.',
           'Si crees que no se han respetado tus derechos, puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).',
         ])}
         {sec('Aviso legal', [
@@ -44,6 +45,9 @@ export function PrivacyScreen({ back }: { back: () => void }) {
           'Los personajes, enemigos, mapas y nombres son originales del juego; no está relacionado con ninguna otra compañía ni juego.',
           'Los nombres que se usan en el ranking deben ser respetuosos: los que no lo sean se pueden borrar sin aviso.',
         ])}
+        <a className="btn btn-red" href={'mailto:' + EMAIL} onClick={() => audio.play('click')}>
+          <b>✉ {t('Escribir a {e}', { e: EMAIL })}</b>
+        </a>
         <a className="btn" href={LINKEDIN} target="_blank" rel="noopener noreferrer" onClick={() => audio.play('click')}>
           <b>in · {t('Contactar por LinkedIn')}</b>
         </a>
