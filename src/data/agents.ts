@@ -1,6 +1,6 @@
 import { AbilityDef, AgentDef } from '../game/types';
 
-// Héroes originales del juego (dibujos en public/agents/<id>.png, recortados de art/heroes.png).
+// Héroes originales del juego (dibujos en public/agents/<id>.webp, recortados de art/heroes-nuevos con scripts/cut-heroes.ts).
 export const AGENTS: AgentDef[] = [
   {
     id: 'zephyr', name: 'Zephyr', role: 'Mago', color: '#5c8bff', accent: '#c9d8ff', hp: 95, speed: 190, damage: 11, cost: 0,

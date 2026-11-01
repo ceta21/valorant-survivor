@@ -1,7 +1,7 @@
 import { elemLook, GameEngine, Enemy } from './GameEngine';
 import { MapDef } from './types';
 import { POWERS } from '../data/powers';
-import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, heroGameSprite, hasImage, NO_BACK, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
+import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, heroGameSprite, hasImage, hasWalk, NO_BACK, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
 import { renderChunk, treeSprite, CPX, U } from './MapArt';
 import { enemyArt, enemyFlash } from './enemyArt';
 import { botSprite, hasBotSprite } from './botSprites';
@@ -741,7 +741,9 @@ export class Renderer {
     // héroes con dibujo: reducido nítido (con contorno) y, al andar, piernas que se alternan y cuerpo que sube y baja
     const imgDir: Dir = dir === 'back' && NO_BACK.has(a.id) ? 'side' : dir;
     const tw = Math.round(dw / PX), th = Math.round(dh / PX);
-    const hero = hasImage(a.id) ? heroGameSprite(a.id, imgDir, looks.agent ?? '', this.makeCanvas, tw, th) : null;
+    // con pasos de verdad en la hoja: reposo (columna 0) o el paso del ciclo (1-4); si no, se animan las piernas por código
+    const realWalk = hasWalk(a.id), walkCol = realWalk && (moving || dashing) ? 1 + (Math.floor(t * (sprint || dashing ? 12 : 8)) % 4) : 0;
+    const hero = hasImage(a.id) ? heroGameSprite(a.id, imgDir, looks.agent ?? '', this.makeCanvas, tw, th, walkCol) : null;
     const spr = hero ?? spriteCanvas(a.id, this.makeCanvas, 3, pose, dir, imgFrame, looks.agent ?? '');
     const baseY = p.y + 15 - bob;
     const drawBody = (ox: number, oy: number, alpha: number) => {
@@ -751,7 +753,7 @@ export class Renderer {
       if (hero) {
         // el dibujo lleva 1 px de contorno por lado; las piernas (último 26 %) se pintan aparte, en dos mitades
         const W = hero.width, H = hero.height, ww = W * PX, hh = H * PX, cut = Math.round(H * 0.74);
-        const walk = moving || dashing, up = (v: number) => Math.round(Math.max(0, v) * 2) * PX / 2;
+        const walk = (moving || dashing) && !realWalk, up = (v: number) => Math.round(Math.max(0, v) * 2) * PX / 2;
         g.drawImage(hero, 0, 0, W, cut, -ww / 2, -hh, ww, cut * PX);
         const half = Math.floor(W / 2), legH = H - cut;
         if (walk && imgDir === 'side') {

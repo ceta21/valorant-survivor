@@ -1,5 +1,5 @@
 // Generado por scripts/cut-agent.ts: héroes dibujados a partir de su hoja de sprites
-// (la imagen está en public/agents/<id>.png: una fila por vista —frente, espalda, lado— y una columna por paso).
+// (la imagen está en public/agents/<id>.webp: una fila por vista —frente, espalda, lado— y una columna por paso).
 import aqua from './aqua.json';
 import brutus from './brutus.json';
 import draco from './draco.json';
@@ -21,5 +21,5 @@ import volt from './volt.json';
 import zahir from './zahir.json';
 import zephyr from './zephyr.json';
 
-export interface AgentImage { w: number; h: number; px: number; front: number; back: number; side: number }
+export interface AgentImage { w: number; h: number; px: number; front: number; back: number; side: number; /** 1 = la primera columna es el reposo y las demás, los pasos. */ idle?: number }
 export const AGENT_IMAGES: Record<string, AgentImage> = { aqua, brutus, draco, ember, frost, grim, kael, lyra, morgan, nox, raven, seraph, sora, sylvan, talos, tink, vex, volt, zahir, zephyr };

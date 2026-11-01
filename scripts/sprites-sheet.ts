@@ -8,7 +8,7 @@ import { loadImage } from '@napi-rs/canvas';
 import { AGENTS } from '../src/data/agents';
 
 mkdirSync('shots', { recursive: true });
-for (const id of Object.keys(AGENT_IMAGES)) setAgentSheet(id, await loadImage(`public/agents/${id}.png`));
+for (const id of Object.keys(AGENT_IMAGES)) setAgentSheet(id, await loadImage(`public/agents/${id}.webp`));
 const pick = process.argv[2]?.split(',');
 const agents = pick ? AGENTS.filter(a => pick.includes(a.id)) : AGENTS;
 const S = 4, cw = 22 * S + 8, ch = 30 * S + 22;

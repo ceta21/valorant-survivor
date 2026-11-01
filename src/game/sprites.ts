@@ -212,12 +212,12 @@ export function buildSprite(id: string, pose: Pose = IDLE, dir: Dir = 'front'): 
 
 /* ------------------------------------------------------------------ héroes sacados de su hoja de sprites */
 // Fotogramas recortados de la imagen del héroe (scripts/cut-agent.ts) y guardados con sus colores exactos en
-// public/agents/<id>.png: una fila por vista (frente, espalda, lado) y una columna por paso. Ya traen su
+// public/agents/<id>.webp: una fila por vista (frente, espalda, lado) y una columna por paso. Ya traen su
 // contorno y su arma. "side" mira a la derecha; la izquierda es el espejo.
 const ROW: Record<Dir, number> = { front: 0, back: 1, side: 2 };
 const sheets = new Map<string, any>();   // id → imagen cargada (null mientras carga)
 /** Dirección de la hoja de un héroe. */
-export const agentSheetUrl = (id: string) => `${(import.meta as any).env?.BASE_URL ?? './'}agents/${id}.png`;
+export const agentSheetUrl = (id: string) => `${(import.meta as any).env?.BASE_URL ?? './'}agents/${id}.webp`;
 /** Columnas de la hoja (el máximo de pasos entre las tres vistas). */
 export const sheetCols = (id: string) => { const A = AGENT_IMAGES[id]; return Math.max(A.front, A.back, A.side); };
 /** Da la hoja ya cargada (las herramientas de Node la pasan a mano). */
@@ -249,6 +249,8 @@ export function spriteSize(id: string) {
   const A = AGENT_IMAGES[id];
   return A ? { w: A.w, h: A.h, px: A.px } : { w: SW, h: SH, px: 2 };
 }
+/** Hoja con pasos de andar de verdad: columna 0 = reposo, 1-4 = pasos (hojas nuevas, scripts/cut-heroes.ts). */
+export const hasWalk = (id: string) => (AGENT_IMAGES[id]?.idle ?? 0) > 0 && (AGENT_IMAGES[id]?.front ?? 1) >= 5;
 /** Número de fotogramas de andar de una vista (1 = se anima con la pose). */
 export const walkFrames = (id: string, dir: Dir) => AGENT_IMAGES[id]?.[dir] ?? 1;
 
@@ -329,15 +331,15 @@ export function spriteCanvas(id: string, make: (w: number, h: number) => any, sc
 // los llena de «ruido»; aquí se reducen mezclando colores (a mitades, para que quede limpio) y luego se recupera lo que
 // la mezcla emborrona: borde duro (sin semitransparencias), un poco más de contraste y contorno oscuro de 1 px.
 const small = new Map<string, any>();
-/** Héroes cuya hoja no trae vista de espaldas de verdad: de espaldas se usa la de perfil. */
-export const NO_BACK = new Set(['tink']);
+/** Héroes cuya hoja no trae vista de espaldas de verdad: de espaldas se usa la de perfil (ahora ninguno). */
+export const NO_BACK = new Set<string>();
 /** Sprite del héroe listo para la partida (outW × outH más 1 px de contorno por lado), o null si aún carga. */
-export function heroGameSprite(id: string, dir: Dir, skin: string, make: (w: number, h: number) => any, outW: number, outH: number) {
-  const key = `${id}|${dir}|${skin}|${outW}x${outH}`;
+export function heroGameSprite(id: string, dir: Dir, skin: string, make: (w: number, h: number) => any, outW: number, outH: number, frame = 0) {
+  const key = `${id}|${dir}|${frame}|${skin}|${outW}x${outH}`;
   const hit = small.get(key);
   if (hit) return hit;
   if (!sheetOf(id)) return null;
-  let src = spriteCanvas(id, make, 1, IDLE, dir, 0, skin), w = src.width, h = src.height;
+  let src = spriteCanvas(id, make, 1, IDLE, dir, frame, skin), w = src.width, h = src.height;
   while (w / 2 > outW * 1.4) {
     const n = make(Math.round(w / 2), Math.round(h / 2)), g = n.getContext('2d');
     g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';

@@ -91,7 +91,15 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   avisos de jefes → torretas → enemigos → proyectiles → efectos de habilidad → jugadores (con drones) →
   efectos sobre el personaje → ondas y partículas → nombres en cooperativo → números de daño → viñeta.
 - Personajes: dos tipos (`sprites.ts`).
-  - **Con imagen** (los 20 héroes): fotogramas recortados de la hoja de sprites que da Gabriel
+  - **Hojas nuevas** (los 20 héroes, noviembre de 2026): `art/heroes-nuevos/<id>.png|jpg`, generadas con la guía
+    `art/heroes-nuevos/GUIA.md` y las referencias de `scripts/hero-references.ts`: 3 filas (frente, espalda, perfil
+    a la derecha) × 5 columnas (reposo y 4 pasos). `npx tsx scripts/cut-heroes.ts [id…]` las recorta: endereza las
+    hojas giradas, quita el fondo (tolerancia más baja en las JPG para no comerse el contorno), descarta motas,
+    cambia casillas mal dibujadas por otras de la misma fila (`FIX`), reduce todo con la misma escala (reposo de
+    frente = 150 px) y alinea por los pies y el torso. Guarda `public/agents/<id>.png` y su JSON con `idle: 1`; con
+    eso (`hasWalk`) el juego usa el reposo quieto y los 4 pasos al andar, sin animar las piernas por código.
+    Revisión: `shots/heroes-recortados.png` y `npx tsx scripts/hero-shot.ts`.
+  - **Con imagen (antes)**: fotogramas recortados de la hoja de sprites que da Gabriel
     (`art/heroes.png`, una vista de lado, de frente y de espaldas por héroe) con `scripts/cut-agent.ts`. Se guardan con sus colores exactos en
     `public/agents/<id>.png` (una fila por vista —frente, espalda, lado— y una columna por paso) y sus medidas en
     `src/data/agentImages/<id>.json` (`px` = escala para que todos midan ~58 unidades). El juego las precarga
@@ -102,7 +110,7 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
     Como cada vista tiene un solo dibujo, el andar se anima por código en `drawPlayer`: el cuerpo sube y baja con el
     ciclo de pasos y el último 26 % (las piernas) se pinta en dos mitades que se levantan por turnos (de frente y de
     espaldas) o se adelantan y atrasan (de perfil). Héroes sin vista de espaldas de verdad (`NO_BACK`: Tink) usan la
-    de perfil. Capturas: `npx tsx scripts/hero-shot.ts` (`shots/heroes-andando.png`).
+    de perfil (ya ninguno). Capturas: `npx tsx scripts/hero-shot.ts` (`shots/heroes-andando.png`).
   - **Dibujados por código** (aspecto genérico `default`, solo si un héroe no tiene hoja de sprites): rejilla 22×30 con poses (reposo, andar, correr, lanzar).
   - El cuerpo mira hacia donde se mueve: de frente (bajando o quieto), de espaldas (subiendo) o de lado (la
     izquierda es el espejo de la derecha). No llevan arma: al lanzar el poder sale un destello de su color en la mano.

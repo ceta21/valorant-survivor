@@ -5,7 +5,7 @@ import { writeFileSync } from 'node:fs';
 import { AGENT_IMAGES } from '../src/data/agentImages';
 const [id, rowS, out] = process.argv.slice(2), row = +rowS, A = AGENT_IMAGES[id], S = 7;
 const n = [A.front, A.back, A.side][row];
-const sh = await loadImage(`public/agents/${id}.png`);
+const sh = await loadImage(`public/agents/${id}.webp`);
 const c = createCanvas(n * (A.w * S + 30), A.h * S + 20); const g = c.getContext('2d') as any;
 g.fillStyle = '#8a90a0'; g.fillRect(0, 0, c.width, c.height); g.imageSmoothingEnabled = false;
 for (let i = 0; i < n; i++) {

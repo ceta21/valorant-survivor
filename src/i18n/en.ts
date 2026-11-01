@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Dibujos nuevos de los 20 héroes: más detalle y pasos de andar de verdad, de frente, de espaldas y de perfil.': 'New art for all 20 heroes: more detail and real walking steps, from the front, the back and the side.',
   'Héroes más nítidos en partida, con contorno, y animación de andar: el cuerpo sube y baja y las piernas se mueven a cada paso.': 'Sharper heroes in game, with an outline, and a walking animation: the body bobs and the legs move with every step.',
   'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.': 'Sunday ranking: every Sunday there is a separate leaderboard with that day’s runs; on Monday, the top 3 win up to ◈ 5,000 and a medal.',
   'Siempre': 'All time',

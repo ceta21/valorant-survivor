@@ -10,11 +10,11 @@ import { AGENT_BY_ID } from '../src/data/agents';
 import { MAP_BY_ID } from '../src/data/maps';
 
 mkdirSync('shots', { recursive: true });
-for (const id of Object.keys(AGENT_IMAGES)) setAgentSheet(id, await loadImage(`public/agents/${id}.png`));
+for (const id of Object.keys(AGENT_IMAGES)) setAgentSheet(id, await loadImage(`public/agents/${id}.webp`));
 const VW = 160, VH = 120, Z = 4;   // trozo del lienzo alrededor del héroe y ampliación
 const heroes = ['ember', 'kael', 'draco', 'tink'];
 const moves: [string, number, number][] = [['quieto', 0, 0], ['frente', 0, 1], ['perfil', 1, 0], ['espalda', 0, -1]];
-const steps = [0, 0.05, 0.1, 0.15];
+const steps = [0, 0.13, 0.26, 0.39];
 const out = createCanvas(moves.length * steps.length * (40 * Z + 4) + 20, heroes.length * (64 * Z + 4) + 20), og = out.getContext('2d') as any;
 og.fillStyle = '#1a1424'; og.fillRect(0, 0, out.width, out.height); og.imageSmoothingEnabled = false;
 heroes.forEach((id, hi) => {
