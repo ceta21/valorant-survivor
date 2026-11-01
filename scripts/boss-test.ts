@@ -43,6 +43,7 @@ for (const [id, k] of [['coloso', 'shield'], ['reina', 'web'], ['elemental', 'st
   ok(webs.length >= 3, `la Reina lanza ${webs.length} telarañas`);
   ok(e.inWeb(p.x, p.y), 'una cae justo donde estás');
   // andar dentro de la telaraña es más lento
+  e.world.terrainAt = () => 0; e.resolve = () => {};   // suelo normal y sin choques: solo cuenta la telaraña
   const sx = p.x; e.me.inputMove.x = -1; e.me.inputMove.y = 0;
   const speedIn = (() => { const x0 = p.x; e.updatePlayer(0.1); return Math.abs(p.x - x0); })();
   p.x = sx + 2000; const speedOut = (() => { const x0 = p.x; e.updatePlayer(0.1); return Math.abs(p.x - x0); })();

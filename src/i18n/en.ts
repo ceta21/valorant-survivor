@@ -490,6 +490,7 @@ export const EN: Record<string, string> = {
   'Contactar por LinkedIn': 'Contact on LinkedIn',
   'Última actualización: noviembre de 2026.': 'Last updated: November 2026.',
   /* ------------------------------------------------------------------ equipo */
+  'Sonido nuevo: cada habilidad suena a su elemento (el rayo cruje y truena, el fuego sopla y chisporrotea, el hielo tintinea…) y cada zona tiene su música ambiental, con pájaros en el Reino, viento en el Glaciar, lluvia en la Ciudad y fuego en el Infierno; con un jefe, la música se acelera.': 'New sound: every ability sounds like its element (lightning cracks and thunders, fire roars and crackles, ice chimes…) and every zone has its own ambient music, with birds in the Kingdom, wind in the Glacier, rain in the City and fire in the Inferno; when a boss appears, the music speeds up.',
   'Cada jefe tiene su ataque propio: el Coloso se cubre con un escudo, la Reina araña lanza telarañas que frenan, el Elemental invoca una tormenta de rayos, el Dragón escupe fuego y el Sabio oscuro salta a tu lado.': 'Every boss has its own attack: the Colossus raises a shield, the Spider Queen throws slowing webs, the Elemental summons a lightning storm, the Dragon breathes fire and the Dark Sage teleports next to you.',
   'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.': 'Gear between runs: bosses drop items (common, rare, epic and legendary); wear up to 3, upgrade them with credits or scrap them.',
   'Equipo': 'Gear',

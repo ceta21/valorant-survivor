@@ -226,7 +226,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
-    const hudTimer = window.setInterval(() => { setHud(engine.hud()); }, 100);
+    const hudTimer = window.setInterval(() => { setHud(engine.hud()); audio.setSong(engine.musicTheme()); }, 100);
 
     const auto = () => {
       // el invitado deja de moverse si cambia de pestaña (el anfitrión conserva su última dirección)
@@ -249,7 +249,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
     canvas.addEventListener('pointerdown', pd); window.addEventListener('pointermove', pm); window.addEventListener('pointerup', pu); window.addEventListener('pointercancel', pu);
 
     return () => {
-      cancelAnimationFrame(raf); clearInterval(hudTimer); ticker?.terminate(); ro.disconnect(); input.destroy(); offs.forEach(f => f());
+      cancelAnimationFrame(raf); clearInterval(hudTimer); audio.setSong('menu'); audio.setIntensity(0); ticker?.terminate(); ro.disconnect(); input.destroy(); offs.forEach(f => f());
       document.removeEventListener('visibilitychange', vis); window.removeEventListener('blur', auto);
       canvas.removeEventListener('pointerdown', pd); window.removeEventListener('pointermove', pm); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu);
       engineRef.current = null;

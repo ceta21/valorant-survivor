@@ -141,8 +141,26 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 
 ## Audio (`utils/audio.ts`)
 
-Todo sintetizado con WebAudio: efectos (disparo, golpe, explosión, nivel…) y música generativa cuya
-intensidad sube con el tiempo de partida. Se desbloquea tras el primer clic o tecla.
+Todo sintetizado con WebAudio, sin archivos. Se desbloquea tras el primer clic o tecla. Hay una reverberación
+generada (sala de ruido que se apaga) para efectos y otra para música, un eco para la música y un compresor
+suave a la salida.
+
+- **Efectos por elemento**: el motor pide `ab_<fx>` / `ult_<fx>` al usar una habilidad (según su `fx`) y
+  `shot_<look>` en cada disparo del poder (según cómo es el proyectil). Familias: rayo (`electric`: chasquido,
+  zumbido y trueno), fuego (`fire`, `hothands`: soplido, rugido y chisporroteo), explosiones (`boom`, `grenade`,
+  `rocket`, `orbital`), hielo (campanillas y cristales), agua/curación (burbujas y salpicón), viento/cuchillas,
+  luz (`holy`: acorde brillante), sombra (`soul`, `shadow`, `paranoia`, `gravity`), veneno y mecánicos
+  (`arrow`, `scan`, `turret`, `stim`, `wire`). La definitiva suena más grande y con retumbo. Los ataques de jefe
+  tienen los suyos: `thunder`, `fire_breath`, `web`, `shield`, `blink`.
+- **Música ambiental** (`SONGS`): `menu`, uno por zona y `boss`. Cada tema es un bucle de 4 acordes (un compás de
+  16 pasos cada uno): un colchón con el acorde que entra y sale despacio, notas sueltas con eco (`lead`), a veces
+  bajo y percusión suave, y un fondo propio (`bg`): pájaros (Reino), viento (Glaciar), lluvia (Ciudad), fuego que
+  chisporrotea (Infierno) y zumbido grave (menú y jefe). Patrones como texto: `0-7` nota del acorde (4-7 una
+  octava más), `x` golpe, `o` octava del bajo, `5` quinta, `.` silencio.
+- En partida, `GameScreen` pide cada 100 ms `audio.setSong(engine.musicTheme())`: el tema del jefe si hay uno vivo
+  y, si no, el de la zona del jugador (cambia al cruzar un portal). Al salir vuelve `menu`. El cambio espera al
+  final del compás y baja y sube el volumen (`fade()`). La intensidad (tiempo de partida / 9 min) acelera un
+  poco el tempo (`push`) y añade notas y charles.
 
 ## Idiomas (`src/i18n`)
 

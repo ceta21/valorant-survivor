@@ -611,7 +611,7 @@ export class GameEngine {
       const crit = Math.random() < critCh;
       this.spawnProj(p.x + Math.cos(a) * 12, p.y + Math.sin(a) * 12, a, d.speed, crit ? dmg * critMul : dmg, d.size, range, pierce, crit, d.color, { burn: ((d.burn ?? 0) + s.burn) * s.dmg, explode, chain: !!d.chain || s.chain > 0, look: d.look, homing: d.homing && !!foe, target: foe });
     }
-    this.sfx(d.size >= 6 ? 'shoot_heavy' : 'shoot', d.size >= 6 ? 0.06 : 0.045);
+    this.sfx('shot_' + (d.look ?? ''), d.size >= 6 ? 0.07 : 0.055);   // cada poder suena según su proyectil
     const mx = p.x + Math.cos(base) * 16, my = p.y + Math.sin(base) * 16;
     this.sparks(mx, my, d.color, 1, 80, 0.12);
     return true;
@@ -777,10 +777,15 @@ export class GameEngine {
     return { x: p.x + Math.cos(a) * R, y: p.y + Math.sin(a) * R };
   }
   /** Zona (id) de un punto; fuera de las islas, la del jugador. */
-  private zoneIdAt(x: number, y: number) {
+  zoneIdAt(x: number, y: number) {
     let z = this.world.zoneOfPoint(x, y);
     if (z < 0) z = this.world.zoneOfPoint(this.player.x, this.player.y);
     return MAPS[Math.max(0, z)].id;
+  }
+  /** Música que toca: la del jefe si hay uno vivo; si no, la de la zona en la que está el jugador. */
+  musicTheme() {
+    if (this.enemies.some(e => e.isBoss && !e.dead)) return 'boss';
+    return this.zoneIdAt(this.me.body.x, this.me.body.y);
   }
   /** Nivel de un bot: el de la zona, y desde el 2:30 cada vez más probable uno más (siempre a partir del 7:30). */
   tierFor(x: number, y: number, boost = 0) {
@@ -1145,7 +1150,7 @@ export class GameEngine {
         if (a.t >= a.dur) {
           e.shieldT = 4 + e.phase * 1.5;
           this.addVfx('ring', 'scan', e.x, e.y, e.r + 40, 0.5);
-          this.sfx('warn', 0.2);
+          this.sfx('shield', 0.2);
           this.endAtk(e);
         }
         return [0, 0];
@@ -1160,7 +1165,7 @@ export class GameEngine {
             this.hazards.push({ kind: 'web', x: a.x + Math.cos(ang) * off, y: a.y + Math.sin(ang) * off, r: 70, t: 0, dur: 6, dmg: 0, dead: false });
           }
           for (let i = 0; i < 4; i++) this.enemyShot(e.x, e.y, a.ang + (i - 1.5) * 0.35, 200, dm * 0.3, '#e6e9ee', 6);
-          this.sfx('warn', 0.2);
+          this.sfx('web', 0.2);
         }
         if (a.t >= a.dur) this.endAtk(e);
         return [0, 0];
@@ -1184,6 +1189,7 @@ export class GameEngine {
         a.ang += Math.max(-dt * (a.t < 0.7 ? 6 : 0.8), Math.min(dt * (a.t < 0.7 ? 6 : 0.8), da));
         if (a.t >= 0.7) {
           const L = 270, half = 0.42;
+          if (a.fired === 0) this.sfx('fire_breath', 0.5);
           if (Math.floor(a.t / 0.15) > a.fired) { a.fired = Math.floor(a.t / 0.15); this.addVfx('cone', 'fire', e.x, e.y, L, 0.3, { ang: a.ang, w: half * 2 }); }
           for (const pl of this.players) {
             if (pl.dead) continue;
@@ -1200,6 +1206,7 @@ export class GameEngine {
         // Sabio oscuro: desaparece y reaparece a tu lado soltando un anillo de disparos
         if (a.t >= 0.6 && a.fired === 0) {
           a.fired = 1;
+          this.sfx('blink', 0.2);
           this.addVfx('blast', 'gravity', e.x, e.y, e.r + 30, 0.4);
           for (let i = 0; i < 8; i++) {
             const ang = rnd(Math.PI * 2), x = p.x + Math.cos(ang) * 170, y = p.y + Math.sin(ang) * 170;
@@ -1255,7 +1262,7 @@ export class GameEngine {
         this.addVfx('blast', 'electric', h.x, h.y, h.r, 0.4);
         this.addVfx('ray', 'electric', h.x, h.y - 260, 260, 0.3, { ang: Math.PI / 2, w: 16 });
         this.sparks(h.x, h.y, '#2fe6ff', 10, 260, 0.4);
-        this.sfx('explosion', 0.06);
+        this.sfx('thunder', 0.06);
         for (const pl of this.players) {
           if (!pl.dead && Math.hypot(pl.body.x - h.x, pl.body.y - h.y) < h.r + pl.body.r) { this.use(pl); this.hurtPlayer(h.dmg); }
         }
@@ -1726,7 +1733,7 @@ export class GameEngine {
     }
     this.castT = this.time; this.castUlt = slot === 'ultimate';
     this.perform(ab, slot === 'ultimate');
-    this.sfx(slot === 'ultimate' ? 'ult' : 'ability', 0);
+    this.sfx((slot === 'ultimate' ? 'ult_' : 'ab_') + (ab.fx ?? ''), 0);   // suena según su elemento (rayo, fuego, hielo…)
     return true;
   }
 
