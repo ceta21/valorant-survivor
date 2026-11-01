@@ -27,6 +27,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada héroe usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
+| `npm run test:events` | Eventos del domingo: solo hay evento los domingos (hora local), entre semana se anuncia el del próximo, salen todos por turnos y cada uno cambia la partida como dice (créditos, experiencia, vida y botín de jefes, cajas, enemigos) y se avisa al empezar |
 | `npm run test:music` | Audio, con un WebAudio simulado: todas las habilidades suenan, cada elemento y cada proyectil suena distinto, los sonidos de jefe existen; cada tema está bien escrito, suena sin errores y cada zona tiene su fondo; la partida pide el tema de la zona o el del jefe |
 | `npm run test:bosses` | Ataques propios de los jefes: el escudo reduce el daño y se acaba, las telarañas caen donde estás, frenan y desaparecen, los rayos avisan y dañan, el aliento solo quema en el cono y tras el aviso, y el Sabio salta a tu lado |
 | `npm run test:gear` | Equipo: rarezas del botín por zona (el jefe final solo épico/legendario), solo cuentan 3 equipados, la ventaja se aplica al héroe, costes de mejorar/desmontar y que matar a un jefe da botín |
@@ -36,6 +37,8 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:world` | Mundo: zonas y abismos, determinismo, terreno de cada zona y castillos, que el agua frene y la lava queme, que todo el suelo esté conectado y que cada portal lleve a su pareja |
 | `npx tsx scripts/maps-overview.ts` | Capturas del monumento principal de cada zona en `shots/overview_<zona>.png` |
 | `npx tsx scripts/ui-smoke.tsx` | Renderiza cada pantalla de React en Node para detectar errores |
+
+Las pruebas pueden fijar el evento con `globalThis.RIFT_EVENT = 'id'` (o `'none'`); para pasar una prueba con un evento concreto: `NODE_OPTIONS="--import=data:text/javascript,globalThis.RIFT_EVENT='cajas'" npm run test:crates`. Las que cuentan cosas que un evento cambia (como el máximo de cajas) fijan `NO_EVENT`.
 
 ## Publicar
 

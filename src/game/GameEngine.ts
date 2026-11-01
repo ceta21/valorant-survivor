@@ -3,6 +3,7 @@ import {
 } from './types';
 import { POWERS, POWER_LIST, heroPower, MAX_LEVEL, EVO_LEVEL } from '../data/powers';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, rollLoot } from '../data/gear';
+import { WeeklyEvent, currentEvent } from '../data/events';
 import {
   BOSS_SCHEDULE, BOT_KINDS, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, TIERS, WAVE_TIMES, ZONE_BOSS, ZONE_TIER,
 } from '../data/enemies';
@@ -202,6 +203,8 @@ export class GameEngine {
   puddles: Puddle[] = [];
   crates: Crate[] = [];
   crateT = 4;
+  /** Evento del domingo que cambia esta partida (NO_EVENT entre semana) (créditos, experiencia, enemigos, cajas, jefes). */
+  event: WeeklyEvent = currentEvent();
   crateId = 0;
   /** Créditos de las monedas recogidas en la partida (se suman al resultado). */
   bonusCredits = 0;
@@ -364,6 +367,8 @@ export class GameEngine {
   private step(dt: number) {
     this.time += dt;
     if (this.banner.t > 0) this.banner.t -= dt;
+    // tras el «¡SOBREVIVE!», el aviso del evento de la semana
+    if (this.time >= 2.1 && this.time - dt < 2.1 && this.event.id !== 'none') this.showBanner(`${this.event.icon} EVENTO: ${this.event.name.toUpperCase()}`, this.event.color, 3, '{i} EVENTO: {n}', { i: this.event.icon, n: this.event.name });
     if (this.shakeT > 0) this.shakeT -= dt;
     this.buildGrid();
     for (const pl of this.players) {
@@ -754,7 +759,7 @@ export class GameEngine {
     const e = this.enemyPool.pop() ?? ({} as Enemy);
     const boss = def.behavior === 'boss';
     const t = this.time;
-    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) : this.hpScale;
+    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) * (this.event.bossHp ?? 1) : this.hpScale;
     e.id = this.nextId++; e.def = def; e.x = x; e.y = y; e.kx = 0; e.ky = 0;
     e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : 1 + Math.min(0.25, t / 1500)); e.dmg = def.dmg;
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
@@ -874,9 +879,9 @@ export class GameEngine {
     }
     // flujo normal
     const alive = this.alive();
-    const desired = Math.min(MAX_ENEMIES, (9 + t * 0.3) * this.diff.spawn) * (bossAlive && t < FINAL_TIME ? 0.55 : 1);
+    const desired = Math.min(MAX_ENEMIES, (9 + t * 0.3) * this.diff.spawn * (this.event.spawn ?? 1)) * (bossAlive && t < FINAL_TIME ? 0.55 : 1);
     if (alive < desired) {
-      this.spawnAcc += (2.4 + t / 40) * this.diff.spawn * dt;
+      this.spawnAcc += (2.4 + t / 40) * this.diff.spawn * (this.event.spawn ?? 1) * dt;
       while (this.spawnAcc >= 1) {
         this.spawnAcc -= 1;
         this.spawnEnemy(this.pickType(t));
@@ -1354,9 +1359,11 @@ export class GameEngine {
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
       // botín de equipo: mejor cuanto más dura la zona; el jefe final asegura épico o legendario
-      const drop = rollLoot(ZONE_TIER[this.zoneIdAt(e.x, e.y)] ?? 0, !!e.def.final);
-      this.loot.push(drop);
-      this.text(e.x, e.y - e.r - 30, `🎁 ${GEAR_BY_ID[drop.id].name}`, GEAR_RARITY_COLORS[drop.rarity], 18);
+      for (let i = 0; i < (this.event.bossLoot ?? 1); i++) {
+        const drop = rollLoot(ZONE_TIER[this.zoneIdAt(e.x, e.y)] ?? 0, !!e.def.final);
+        this.loot.push(drop);
+        this.text(e.x, e.y - e.r - 30 - i * 22, `🎁 ${GEAR_BY_ID[drop.id].name}`, GEAR_RARITY_COLORS[drop.rarity], 18);
+      }
       if (e.def.final && !this.finalKilled) {
         this.finalKilled = true;
         this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
@@ -1443,7 +1450,7 @@ export class GameEngine {
     }
   }
   addXp(v: number) {
-    this.xp += v * this.stats.xp;
+    this.xp += v * this.stats.xp * (this.event.xp ?? 1);
     while (this.xp >= this.need) {
       this.xp -= this.need;
       this.level++;
@@ -2068,9 +2075,9 @@ export class GameEngine {
     }
     this.crateT -= dt;
     if (this.crateT > 0) return;
-    this.crateT = CRATE_EVERY;
+    this.crateT = this.event.crateEvery ?? CRATE_EVERY;
     const alive = this.players.filter(pl => !pl.dead);
-    if (!alive.length || this.crates.filter(c => !c.dead).length >= CRATE_MAX) return;
+    if (!alive.length || this.crates.filter(c => !c.dead).length >= (this.event.crateMax ?? CRATE_MAX)) return;
     const b = alive[(Math.random() * alive.length) | 0].body;
     for (let t = 0; t < 12; t++) {
       const a = rnd(Math.PI * 2), d = rnd(380, 760), x = b.x + Math.cos(a) * d, y = b.y + Math.sin(a) * d;
@@ -2121,7 +2128,7 @@ export class GameEngine {
   /** Resultado de la partida para un jugador (en cooperativo, las bajas y el tiempo son del equipo). */
   resultFor(idx: number): RunResult {
     const win = this.finalKilled;
-    const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits) + Math.round(this.bonusCredits);
+    const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits * (this.event.credits ?? 1)) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
       bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot],

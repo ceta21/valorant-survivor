@@ -10,6 +10,7 @@ import { AgentPortrait } from './AgentPortrait';
 import { AgentArt } from './ShopArt';
 import { AGENT_SKINS, ShopSave } from '../data/shop';
 import { audio } from '../utils/audio';
+import { EventStrip } from './MenuHub';
 
 interface Props {
   save: SaveData;
@@ -114,6 +115,7 @@ export function AgentSelection({ save, back, start, unlock, equip, keys }: Props
             ))}
           </div>
           <p className="map-desc">{t(DIFFICULTIES.find(d => d.id === diffId)?.desc ?? '')} {t('Créditos')} ×{DIFFICULTIES.find(d => d.id === diffId)?.credits}.</p>
+          <EventStrip />
           {soon ? (
             <button className="btn btn-red btn-xl" disabled><b>{t('No disponible en estos momentos · Próximamente')}</b></button>
           ) : isOpen ? (

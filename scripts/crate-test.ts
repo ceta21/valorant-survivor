@@ -3,9 +3,10 @@
 import { GameEngine, Gem } from '../src/game/GameEngine';
 import { AGENT_BY_ID } from '../src/data/agents';
 import { MAP_BY_ID } from '../src/data/maps';
+import { NO_EVENT } from '../src/data/events';
 let fails = 0; const ok = (c: boolean, msg: string) => { console.log((c ? 'OK   ' : 'FALLO'), msg); if (!c) fails++; };
 const noop = { onLevelUp() {}, onEnd() {}, sfx() {} }, meta = { dmg: 0, hp: 0, speed: 0, xp: 0 };
-const mk = () => { const e = new GameEngine(AGENT_BY_ID.zephyr, MAP_BY_ID.reino, meta, noop); e.player.invuln = 1e9; return e; };
+const mk = () => { const e = new GameEngine(AGENT_BY_ID.zephyr, MAP_BY_ID.reino, meta, noop); e.player.invuln = 1e9; e.event = NO_EVENT; return e; };   // sin evento: la Lluvia de cajas cambia el máximo
 
 // 1. aparecen solas, cerca del jugador y sin pasar del máximo
 {

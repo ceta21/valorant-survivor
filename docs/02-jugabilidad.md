@@ -201,6 +201,22 @@ Con `m = minutos`, `extra = segundos desde el minuto 9`:
 - Modo infinito: jefes al azar cada vez más seguidos (de 45 s a 14 s, × dificultad), uno más a la vez cada
   5 minutos, máximo 6 vivos.
 
+## Evento del domingo
+
+`src/data/events.ts`: **solo los domingos** (todo el día, según la hora del jugador) hay un evento; cada domingo uno
+distinto, por turnos (`sundayEvent()`), calculado con la fecha, sin servidor. `currentEvent()` devuelve el del día o
+`NO_EVENT` de lunes a sábado. Se ve en el menú (arriba del panel central) y al elegir héroe (`EventStrip`): el
+domingo, el evento y cuánto le queda; entre semana, el del próximo domingo (más apagado) y cuánto falta. Al empezar
+una partida en domingo sale su aviso tras «¡SOBREVIVE!». En pareja manda el del anfitrión.
+
+| Evento | Efecto |
+|---|---|
+| 💰 Fiebre del oro | Créditos ×1,5 |
+| 📦 Lluvia de cajas | Una caja cada 3,5 s (en vez de 7) y hasta 10 a la vez (en vez de 6) |
+| 👑 Caza de jefes | Jefes con ×1,5 de vida que sueltan 2 objetos de equipo |
+| 🧟 Gran horda | Enemigos ×1,35 y experiencia ×1,35 |
+| 📘 Semana del saber | Experiencia ×1,5 (el nombre viene de cuando eran semanales) |
+
 ## Dificultad
 
 Multiplica la vida y el daño enemigos, el ritmo de aparición, el intervalo de jefes en modo infinito y los

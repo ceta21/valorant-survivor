@@ -5,6 +5,7 @@ import { DAILY_REWARDS, dailyMissions, dayKey, todayProgress } from '../data/dai
 import { AGENT_BY_ID } from '../data/agents';
 import { DIFFICULTY_BY_ID } from '../data/difficulty';
 import { marketPeriod, msToNextRotation, MARKET_SLOTS } from '../data/market';
+import { isSunday, msToEventChange, sundayEvent } from '../data/events';
 import { ScoreEntry, fetchScores } from '../utils/leaderboard';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
@@ -36,6 +37,7 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
 
   return (
     <section className="menu-mid" aria-label={t('Resumen')}>
+      <EventStrip />
       {news && (
         <button className="hub-card hub-news" style={{ ['--hc' as any]: news.color }} onClick={open('news')}>
           <span className="hub-kicker"><Emo e="📰" />{t('Novedades')} · v{news.id}</span>
@@ -78,5 +80,18 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
         ))}
       </button>
     </section>
+  );
+}
+
+/** Evento del domingo: el de hoy y cuánto le queda o, entre semana, el del próximo domingo y cuánto falta. */
+export function EventStrip() {
+  const ev = sundayEvent(), on = isSunday(), ms = msToEventChange(), d = Math.floor(ms / 86400000), h = Math.floor((ms % 86400000) / 3600000);
+  const time = d > 0 ? t('{d} d {h} h', { d, h }) : t('{h} h', { h });
+  return (
+    <div className={`hub-event ${on ? 'on' : ''}`} style={{ ['--hc' as any]: ev.color }} title={t(ev.desc)}>
+      <span className="hub-kicker"><Emo e={ev.icon} />{on ? t('Evento del domingo · termina en {t}', { t: time }) : t('Próximo domingo · empieza en {t}', { t: time })}</span>
+      <b>{t(ev.name)}</b>
+      <small>{t(ev.desc)}</small>
+    </div>
   );
 }
