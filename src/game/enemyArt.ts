@@ -30,3 +30,17 @@ export function enemyFlash(id: string, img: Img, make: (w: number, h: number) =>
   flashes.set(id, c);
   return c;
 }
+
+// Portales entre zonas recortados de art/portales.webp (public/portals/<zona>.png, ver scripts/cut-portals.ts): cada
+// portal lleva el dibujo de la zona a la que va. Mientras no carga, el Renderer pinta el remolino hecho por código.
+const portals = new Map<string, Img | null>();
+export function setPortalArt(zone: string, img: Img) { portals.set(zone, img); }
+export function portalArt(zone: string): Img | null {
+  if (portals.has(zone)) return portals.get(zone) ?? null;
+  portals.set(zone, null);
+  if (typeof Image === 'undefined') return null;
+  const im = new Image();
+  im.onload = () => portals.set(zone, im);
+  im.src = `/portals/${zone}.png`;
+  return null;
+}

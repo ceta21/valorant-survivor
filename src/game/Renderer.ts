@@ -12,6 +12,9 @@ import { MAPS } from '../data/maps';
 import { t } from '../i18n';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
 import { WEB_LAND } from './GameEngine';
+import { portalArt } from './enemyArt';
+/** Alto con el que se pinta el portal y a qué altura de su dibujo cae el centro del remolino (0 arriba, 1 abajo). */
+const PORTAL_H = 180, PORTAL_CY = 0.5;
 import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelCone, pixelField, pixelLine, pixelRay, snapAng, sprite } from './vfx';
 
 type Ctx = CanvasRenderingContext2D;
@@ -275,16 +278,30 @@ export class Renderer {
     const L = cx - 60, T = cy - 60, R = cx + vw + 60, B = cy + vh + 60;
     const vis = (x: number, y: number, r = 0) => x + r > L && x - r < R && y + r > T && y - r < B;
 
-    // portales entre zonas: remolino de píxeles del color de la zona a la que llevan
+    // portales entre zonas: el arco dibujado de la zona a la que llevan (verde → Reino, hielo → Glaciar, fuego →
+    // Infierno, tecnológico → Ciudad), con un resplandor que late y chispas que giran en el remolino
     for (const pt of e.world.portals) {
-      if (!vis(pt.x, pt.y, 70)) continue;
+      if (!vis(pt.x, pt.y, PORTAL_H)) continue;
       const col = MAPS[pt.to].colors.accent, ph = e.time;
+      const pulse = 0.75 + 0.25 * Math.sin(ph * 2.4 + pt.x * 0.01);
       g.globalCompositeOperation = 'lighter';
-      const gr = g.createRadialGradient(pt.x, pt.y, 4, pt.x, pt.y, 60);
-      gr.addColorStop(0, hexA(col, 0.45)); gr.addColorStop(1, hexA(col, 0));
-      g.fillStyle = gr; g.beginPath(); g.arc(pt.x, pt.y, 60, 0, 7); g.fill();
+      const gr = g.createRadialGradient(pt.x, pt.y, 4, pt.x, pt.y, 90);
+      gr.addColorStop(0, hexA(col, 0.4 * pulse)); gr.addColorStop(1, hexA(col, 0));
+      g.fillStyle = gr; g.beginPath(); g.arc(pt.x, pt.y, 90, 0, 7); g.fill();
       g.globalCompositeOperation = 'source-over';
-      // anillo de piedra con runas y remolino de energía dentro
+      const art = portalArt(MAPS[pt.to].id);
+      if (art) {
+        const H = PORTAL_H, W = (art.width / art.height) * H;
+        g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(pt.x, pt.y + H * 0.36, W * 0.42, 14, 0, 0, 7); g.fill();
+        g.drawImage(art as any, Math.round(pt.x - W / 2), Math.round(pt.y - H * PORTAL_CY), Math.round(W), Math.round(H));
+        // remolino vivo: chispas que giran dentro del arco
+        g.globalCompositeOperation = 'lighter'; g.globalAlpha = 0.7 * pulse;
+        pixelCircle(g, pt.x, pt.y - 4, 26, '#ffffff', PX, 2, -ph * 2.2);
+        pixelCircle(g, pt.x, pt.y - 4, 14, col, PX, 2, ph * 3);
+        g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+        continue;
+      }
+      // sin dibujo (cargando o capturas): anillo de piedra con runas y remolino de energía dentro
       pixelCircle(g, pt.x, pt.y, 56, '#14102a', PX, 99);
       pixelCircle(g, pt.x, pt.y, 52, '#6a6e80', PX, 99);
       pixelCircle(g, pt.x, pt.y, 52, col, PX, 1, ph * 0.5);
@@ -616,8 +633,8 @@ export class Renderer {
     g.textAlign = 'center';
     g.font = `${Math.max(8, Math.round(z * 12 / 8) * 8)}px ${PIXEL_FONT}`;
     for (const pt of e.world.portals) {
-      if (!vis(pt.x, pt.y, 70)) continue;
-      const label = '→ ' + t(MAPS[pt.to].name), nx = Math.round((pt.x - cx) * z), ny = Math.round((pt.y - 70 - cy) * z);
+      if (!vis(pt.x, pt.y, PORTAL_H)) continue;
+      const label = '→ ' + t(MAPS[pt.to].name), nx = Math.round((pt.x - cx) * z), ny = Math.round((pt.y - PORTAL_H * PORTAL_CY - 10 - cy) * z);
       g.fillStyle = '#000';
       for (const [ox, oy] of OUTLINE) g.fillText(label, nx + ox, ny + oy);
       g.fillStyle = MAPS[pt.to].colors.accent;

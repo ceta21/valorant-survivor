@@ -16,6 +16,7 @@ export const NEWS: NewsEntry[] = [
       '¡Bienvenido a ENDLESS RIFT! Grietas infinitas de las que emergen hordas de enemigos: ¿cuánto aguantarás?',
       'Tu primera partida te guía con consejos cortos, y el juego se adapta al móvil en horizontal.',
       '20 héroes, cada uno con su poder que dispara solo y 3 habilidades propias.',
+      'Portales nuevos: cada uno tiene el aspecto de la zona a la que lleva (bosque al Reino, hielo al Glaciar, fuego al Infierno y tecnológico a la Ciudad).',
       'Un mundo con 4 zonas (Reino, Glaciar, Infierno y Ciudad) unidas por portales; el agua frena y la lava quema.',
       'Sube de nivel, aprende poderes nuevos y hazlos evolucionar; rompe cajas para conseguir premios.',
       'Bots de la grieta: 8 tipos (soldados, arañas, flotantes, torretas, escudos, asesinos, drones voladores y sanadores) en 3 niveles, más duros cuanto más peligrosa la zona y cuanto más aguantas.',

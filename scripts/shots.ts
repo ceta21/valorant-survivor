@@ -1,7 +1,7 @@
 // Genera capturas PNG del renderizado sin navegador (usa @napi-rs/canvas).
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import { readdirSync } from 'node:fs';
-import { setEnemyArt } from '../src/game/enemyArt';
+import { setEnemyArt, setPortalArt } from '../src/game/enemyArt';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { GameEngine } from '../src/game/GameEngine';
 import { Renderer } from '../src/game/Renderer';
@@ -10,6 +10,7 @@ import { MAPS } from '../src/data/maps';
 
 mkdirSync('shots', { recursive: true });
 // dibujos de los bots (en el navegador se cargan solos)
+for (const f of readdirSync('public/portals')) setPortalArt(f.replace('.png', ''), await loadImage('public/portals/' + f) as any);
 for (const f of readdirSync('public/enemies')) setEnemyArt(f.replace('.png', ''), await loadImage('public/enemies/' + f) as any);
 // como en el navegador: se dibuja a baja resolución y se amplía sin suavizado
 const W = 1100, H = 640, S = 2;

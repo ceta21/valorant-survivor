@@ -69,7 +69,12 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Obstáculos: edificio `b`, muro `w`, caja `c`, pilar/torre `p`, barril `t`, árbol `a`, roca suelta `o`, y las tiras
   de celdas `v`/`r`/`h`; el campo `s` es el estilo de dibujo (`reino-keep`, `fence`, `windmill`, `volcano`…).
 - **Portales** (`world.portals`): 12, tres por zona (uno hacia cada otra), a 1.280 de la plaza en dirección a la
-  otra zona, con su zona reservada y camino. El motor los comprueba en `updatePlayer`.
+  otra zona, con su zona reservada y camino. El motor los comprueba en `updatePlayer`. Cada uno se pinta con el
+  arco de la zona a la que lleva (bosque → Reino, hielo → Glaciar, fuego → Infierno, tecnológico → Ciudad):
+  `public/portals/<zona>.png`, recortados de `art/portales.webp` con `npx tsx scripts/cut-portals.ts` (`PICK` dice
+  qué casilla de la hoja es cada zona) y cargados con `portalArt()` (`enemyArt.ts`). Encima, un resplandor que late
+  y chispas que giran; mientras no carga el dibujo, el remolino hecho por código. Capturas:
+  `npx tsx scripts/portal-shot.ts`.
 - Colisiones con rectángulos (`hit`, `resolve`); solo se guardan en memoria los chunks cercanos (`prune`).
 - `MapArt` dibuja cada chunk a 1 píxel = 4 unidades con el tema de su zona (`THEMES`): suelo continuo con
   textura, cada tipo de celda con su dibujo (orillas, lava brillante, mesetas de roca con cara frontal, hierba alta,

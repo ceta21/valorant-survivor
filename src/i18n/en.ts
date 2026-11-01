@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ app instalable */
+  'Portales nuevos: cada uno tiene el aspecto de la zona a la que lleva (bosque al Reino, hielo al Glaciar, fuego al Infierno y tecnológico a la Ciudad).': 'New portals: each one looks like the zone it leads to (forest to the Kingdom, ice to the Glacier, fire to the Inferno and tech to the City).',
   'Instálalo como app: desde el navegador, «Instalar» o «Añadir a pantalla de inicio»; se abre a pantalla completa con su icono, carga más rápido y se actualiza solo.': 'Install it as an app: from your browser, “Install” or “Add to Home Screen”; it opens full screen with its own icon, loads faster and updates itself.',
   'Hay una versión nueva del juego.': 'A new version of the game is available.',
   'Actualizar': 'Update',
