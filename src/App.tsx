@@ -20,6 +20,7 @@ import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { NewsScreen } from './components/NewsScreen';
 import { SupportScreen } from './components/SupportScreen';
+import { deviceKind, setAnalytics, track } from './utils/analytics';
 import { PrivacyScreen } from './components/PrivacyScreen';
 import { CoopScreen, CoopStart } from './components/CoopScreen';
 import type { CoopLink } from './net/coopLink';
@@ -72,7 +73,14 @@ export default function App() {
   const doSignOut = async () => { await signOut(); setAccount(null); setSave(defaultSave()); setScreen('auth'); };
   const openAuth = () => { setAuthFromMenu(true); setScreen('auth'); };
 
-  useEffect(() => { audio.configure(save.settings); }, [save.settings]);
+  useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
+  // estadística anónima: una visita (al salir de la pantalla de carga)
+  const opened = useRef(false);
+  useEffect(() => {
+    if (opened.current || screen === 'loading') return;
+    opened.current = true;
+    track('open', { device: deviceKind(), lang: prefs.lang, nuevo: save.stats.games === 0, cuenta: !!account });
+  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const unlock = () => { audio.unlock(); audio.startMusic(); };
     window.addEventListener('pointerdown', unlock, { once: true });

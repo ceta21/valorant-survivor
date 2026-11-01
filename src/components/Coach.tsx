@@ -4,6 +4,7 @@ import { GameEngine } from '../game/GameEngine';
 import { KeyMap, keyLabel } from '../game/controls';
 import { POWERS } from '../data/powers';
 import { t } from '../i18n';
+import { track } from '../utils/analytics';
 
 interface Step { id: string; text: () => string; /** Se cumple (y pasa al siguiente) cuando devuelve true. */ done: (e: GameEngine, since: number) => boolean; show?: (e: GameEngine) => boolean }
 
@@ -40,7 +41,7 @@ export function Coach({ engine, keys, touch, finish }: Props) {
       if (st.show && !st.show(engine)) { since.current = engine.time; return; }   // espera a que tenga sentido
       if (st.done(engine, engine.time - since.current)) {
         since.current = engine.time;
-        if (n + 1 >= list.length) end();
+        if (n + 1 >= list.length) { track('tutorial', { step: 'fin', skipped: false }); end(); }
         go(n + 1);
       }
     }, 150);
@@ -52,7 +53,7 @@ export function Coach({ engine, keys, touch, finish }: Props) {
     <div className="coach" key={st.id} role="status">
       <b>{t('Consejo')} {step + 1}/{steps.length}</b>
       <span>{st.text()}</span>
-      <button className="coach-skip" onClick={() => { go(steps.length); finish(); }}>{t('Saltar')}</button>
+      <button className="coach-skip" onClick={() => { track('tutorial', { step: st.id, skipped: true }); go(steps.length); finish(); }}>{t('Saltar')}</button>
     </div>
   );
 }

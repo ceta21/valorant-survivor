@@ -22,6 +22,7 @@ import type { Looks } from '../data/shop';
 import { KeyMap } from '../game/controls';
 import { keyLabel } from '../game/controls';
 import { BigMap } from './BigMap';
+import { track } from '../utils/analytics';
 
 interface Props {
   agent: AgentDef; map: MapDef; difficulty: DifficultyDef; meta: MetaLevels; settings: Settings;
@@ -121,6 +122,7 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
       onLevelUp: (c, idx) => { if (idx === (coop?.local ?? 0)) setChoices([...c]); },
       onEnd: r => {
         if (isGuest) return;
+        track('run_end', { ...runInfo(), time: Math.round(r.time), level: r.level, kills: r.kills, bosses: r.bossKills, win: r.win, quit: false });
         const ach = onEndRef.current(r); setResult({ r, ach });
         // el anfitrión manda su resultado al invitado
         if (link) link.send({ type: 'end', r: engine.resultFor(1) });
@@ -128,6 +130,10 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
       sfx: n => audio.play(n),
     }, difficulty, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks, gear);
     if (link && !isGuest) engine.netOut = [];
+    // estadística anónima de la partida (solo quien la simula: en solitario o el anfitrión)
+    const nuevo = !settings.tutorialDone;
+    const runInfo = () => ({ hero: agent.id, map: map.id, diff: difficulty.id, coop: !!coop, event: engine.event.id, nuevo });
+    if (!isGuest) track('run_start', runInfo());
     if (import.meta.env.DEV) (window as any).__vs = engine;   // solo en desarrollo, para depurar
     const cast = (slot: 'special' | 'secondary' | 'ultimate') => {
       if (isGuest) { if (engine.state === 'playing' && !engine.me.dead) link!.send({ type: 'cast', slot }); }
@@ -249,7 +255,9 @@ export function GameScreen({ agent, map, difficulty, meta, settings, looks, gear
     canvas.addEventListener('pointerdown', pd); window.addEventListener('pointermove', pm); window.addEventListener('pointerup', pu); window.addEventListener('pointercancel', pu);
 
     return () => {
-      cancelAnimationFrame(raf); clearInterval(hudTimer); audio.setSong('menu'); audio.setIntensity(0); ticker?.terminate(); ro.disconnect(); input.destroy(); offs.forEach(f => f());
+      cancelAnimationFrame(raf); clearInterval(hudTimer); audio.setSong('menu'); audio.setIntensity(0);
+      // salir a mitad de partida (Abandonar) también cuenta, como abandonada
+      if (!isGuest && engine.state !== 'won' && engine.state !== 'lost') track('run_end', { ...runInfo(), time: Math.round(engine.time), level: engine.level, kills: engine.kills, bosses: engine.bossKills, win: false, quit: true }); ticker?.terminate(); ro.disconnect(); input.destroy(); offs.forEach(f => f());
       document.removeEventListener('visibilitychange', vis); window.removeEventListener('blur', auto);
       canvas.removeEventListener('pointerdown', pd); window.removeEventListener('pointermove', pm); window.removeEventListener('pointerup', pu); window.removeEventListener('pointercancel', pu);
       engineRef.current = null;

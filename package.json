@@ -26,7 +26,8 @@
     "test:gear": "tsx scripts/gear-test.ts",
     "test:bosses": "tsx scripts/boss-test.ts",
     "test:music": "tsx scripts/music-test.ts",
-    "test:events": "tsx scripts/event-test.ts"
+    "test:events": "tsx scripts/event-test.ts",
+    "test:analytics": "tsx scripts/analytics-test.ts"
   },
   "keywords": [],
   "author": "",

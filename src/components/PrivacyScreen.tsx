@@ -24,12 +24,13 @@ export function PrivacyScreen({ back }: { back: () => void }) {
         {sec('Qué datos se guardan', [
           'Con cuenta: tu nombre de usuario, tu contraseña (cifrada, nadie puede leerla) y tu progreso en el juego (créditos, héroes, mejoras, estadísticas y ajustes).',
           'Ranking: si publicas una marca, se guarda el nombre que se muestra, el héroe, la zona, la dificultad y los datos de la partida. Son públicos para el resto de jugadores.',
-          'Como invitado no se envía nada: el progreso se queda en el almacenamiento de este navegador.',
+          'Como invitado, tu progreso se queda en el almacenamiento de este navegador y no se envía.',
+          'Estadísticas anónimas de uso: al abrir el juego y en cada partida se envía qué ha pasado (héroe, zona, cuánto duró, si se usó el tutorial, tipo de dispositivo e idioma) con un identificador al azar que se borra al cerrar la página. No llevan tu cuenta, tu nombre ni tu IP, y sirven solo para mejorar el juego. Puedes desactivarlas en Configuración.',
           'En el navegador también se guardan tus preferencias (idioma, controles, volumen) para no tener que configurarlas cada vez.',
-          'No se pide correo, ni nombre real, ni datos de pago. No hay publicidad, ni cookies de seguimiento, ni estadísticas de terceros.',
+          'No se pide correo, ni nombre real, ni datos de pago. No hay publicidad, ni cookies de seguimiento, ni servicios de estadísticas de terceros.',
         ])}
         {sec('Para qué se usan', [
-          'Solo para que puedas jugar: entrar en tu cuenta, guardar tu progreso, mostrar el ranking y jugar en pareja. No se venden ni se comparten con nadie para otros fines.',
+          'Para que puedas jugar (entrar en tu cuenta, guardar tu progreso, mostrar el ranking y jugar en pareja) y, con las estadísticas anónimas, para ver qué mejorar. No se venden ni se comparten con nadie para otros fines.',
         ])}
         {sec('Dónde se guardan', [
           'Las cuentas, el progreso y el ranking se guardan en Supabase. La web se sirve desde Vercel.',

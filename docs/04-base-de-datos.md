@@ -93,3 +93,24 @@ Ver [06 · Cooperativo](06-cooperativo.md).
 - Pausa del proyecto tras **7 días sin uso** (reactivar con *Restore project*).
 - 500 MB de base de datos; Realtime con límites de mensajes y conexiones simultáneas (suficiente para un
   juego entre amigos; el cooperativo usa P2P para no gastar mensajes).
+
+## Estadísticas de uso (`events`, `supabase/estadisticas.sql`)
+
+Eventos anónimos que manda el juego (`src/utils/analytics.ts`) para saber dónde se atascan o abandonan los jugadores.
+Sin datos personales: cada visita lleva un identificador al azar que solo vive en memoria mientras la página está
+abierta (no se guarda en el navegador), sin cuenta, nombre ni IP. Se desactiva en Configuración
+(`settings.analytics`).
+
+| Columna | Contenido |
+|---|---|
+| `session` | Identificador al azar de la visita |
+| `kind` | `open` (abre el juego), `tutorial` (salta un consejo o lo acaba), `run_start`, `run_end` |
+| `data` | `open`: dispositivo (`pc`/`tablet`/`movil`), idioma, si es nuevo (0 partidas) y si tiene cuenta. `tutorial`: consejo (`move`, `power`, `gems`, `abilities`, `crates` o `fin`) y si se saltó. Partidas: héroe, zona, dificultad, pareja, evento, si es nuevo y, al acabar, segundos, nivel, bajas, jefes, victoria y si se abandonó (`quit`) |
+
+- Permisos: cualquiera puede **insertar**; nadie puede leer, cambiar ni borrar desde la web (RLS y sin `select`).
+  Máximo 60 eventos por visita y minuto (trigger `events_rate_limit`).
+- Se miran desde el SQL Editor con las vistas del esquema `stats` (la web no puede leerlo): `resumen_diario`,
+  `tutorial`, `duracion` (por minuto, nuevos y abandonadas), `heroes`, `zonas`, `dispositivos`.
+- El SQL trae comentada una línea para borrar los eventos de más de 6 meses.
+- Solo envía quien simula la partida (en solitario o el anfitrión en pareja). Los envíos se agrupan cada 3 s y al
+  ocultar la página; si fallan, se ignoran.

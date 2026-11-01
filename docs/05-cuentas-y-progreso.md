@@ -43,7 +43,7 @@ Todo el progreso es un objeto `SaveData` (`src/utils/storage.ts`) que, con cuent
 | `stats` | Partidas, victorias, bajas, jefes, daño, tiempo total, mejores marcas |
 | `records` | Mejor tiempo / nivel / victorias por mapa |
 | `claimed`, `achievements` | Misiones cobradas y logros conseguidos |
-| `settings` | Volumen de música y efectos, silencios, sacudida de pantalla, pausa automática |
+| `settings` | Volumen de música y efectos, silencios, sacudida de pantalla, pausa automática, consejos de la primera partida y estadísticas anónimas (`analytics`) |
 | `lastAgent`, `lastMap`, `lastDifficulty` | Última selección |
 | `playerName` | Nombre usado como invitado en el ranking |
 | `market` | Rotación del mercado y cartas ya descubiertas |

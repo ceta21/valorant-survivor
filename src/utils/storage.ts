@@ -10,6 +10,8 @@ export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
   /** Ya se vieron los consejos de la primera partida. */
   tutorialDone: boolean;
+  /** Enviar estadísticas anónimas de uso (utils/analytics.ts). */
+  analytics: boolean;
 }
 export interface MetaLevels { dmg: number; hp: number; speed: number; xp: number }
 export interface SaveStats {
@@ -56,7 +58,7 @@ export const defaultSave = (): SaveData => ({
   records: {},
   claimed: [],
   achievements: [],
-  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true, tutorialDone: false },
+  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true, tutorialDone: false, analytics: true },
   lastAgent: 'zephyr',
   lastMap: 'reino',
   lastDifficulty: 'normal',
