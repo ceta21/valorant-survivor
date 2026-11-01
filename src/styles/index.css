@@ -60,6 +60,7 @@ h3 { text-transform: uppercase; font-weight: 700; letter-spacing: .1em; font-siz
 /* logo */
 .logo { display: flex; align-items: center; gap: 16px; }
 .logo-mark { width: 74px; height: auto; flex: none; }
+.logo.big { justify-content: center; } .logo-img { width: clamp(140px, 26vh, 210px); height: auto; filter: drop-shadow(0 0 18px rgba(155,92,255,.45)); }
 .logo-text { display: flex; flex-direction: column; gap: 10px; line-height: 1; }
 .logo-top { font-family: var(--font-px); font-size: 14px; letter-spacing: .4em; color: #ffe9a0; text-shadow: 2px 2px 0 #3a1a5a; }
 .logo-bot { font-family: var(--font-px); font-size: clamp(24px, 4.2vw, 44px); text-transform: uppercase; letter-spacing: .08em; color: #f0c850; text-shadow: 3px 3px 0 #7a4a14, 5px 5px 0 #000, 7px 7px 0 #6a2ab0; }

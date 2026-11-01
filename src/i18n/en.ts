@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ app instalable */
+  'Apunta tu contraseña: como no se pide correo, no se puede recuperar.': 'Write down your password: since no email is requested, it cannot be recovered.',
   'Descargar': 'Download',
   'Descargar el juego': 'Download the game',
   'Se instala como una app: icono propio, pantalla completa, carga más rápido y se actualiza sola. Es gratis y no ocupa casi nada.': 'It installs as an app: its own icon, full screen, faster loading and automatic updates. It is free and takes up almost no space.',
@@ -508,7 +509,7 @@ export const EN: Record<string, string> = {
   'Qué datos se guardan': 'What data is stored',
   'Con cuenta: tu nombre de usuario, tu contraseña (cifrada, nadie puede leerla) y tu progreso en el juego (créditos, héroes, mejoras, estadísticas y ajustes).': 'With an account: your username, your password (encrypted, nobody can read it) and your game progress (credits, heroes, upgrades, statistics and settings).',
   'Ranking: si publicas una marca, se guarda el nombre que se muestra, el héroe, la zona, la dificultad y los datos de la partida. Son públicos para el resto de jugadores.': 'Leaderboard: if you post a score, the displayed name, hero, zone, difficulty and run data are stored. They are public to other players.',
-  'Como invitado, tu progreso se queda en el almacenamiento de este navegador y no se envía.': 'As a guest, your progress stays in this browser’s storage and is not sent anywhere.',
+  'Como invitado, tu progreso no se envía ni se guarda: se pierde al cerrar la página.': 'As a guest, your progress is neither sent nor saved: it is lost when you close the page.',
   'En el navegador también se guardan tus preferencias (idioma, controles, volumen) para no tener que configurarlas cada vez.': 'Your preferences (language, controls, volume) are also kept in the browser so you don’t have to set them every time.',
   'No se pide correo, ni nombre real, ni datos de pago. No hay publicidad, ni cookies de seguimiento, ni servicios de estadísticas de terceros.': 'No email, real name or payment details are requested. There are no ads, tracking cookies or third-party analytics services.',
   'Para qué se usan': 'What it is used for',

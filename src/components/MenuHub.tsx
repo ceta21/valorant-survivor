@@ -21,7 +21,8 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
   const [left, setLeft] = useState(msToNextRotation());
   useEffect(() => {
     let live = true;
-    fetchScores({ agent: 'all', difficulty: 'all' }, 3).then(r => { if (live) setTop(r); }).catch(() => { if (live) setTop([]); });
+    // se piden más y se quitan las marcas de héroes que ya no existen: el menú es lo primero que ve alguien nuevo
+    fetchScores({ agent: 'all', difficulty: 'all' }, 30).then(r => { if (live) setTop(r.filter(x => AGENT_BY_ID[x.agent]).slice(0, 3)); }).catch(() => { if (live) setTop([]); });
     const t = setInterval(() => setLeft(msToNextRotation()), 30000);
     return () => { live = false; clearInterval(t); };
   }, []);

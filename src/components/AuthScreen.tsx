@@ -47,7 +47,7 @@ export function AuthScreen({ privacy, back, guestHasProgress, onSignIn, onSignUp
     <div className="screen auth">
       {back && <button className="btn btn-sm auth-back" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>}
       <div className="auth-box">
-        <Logo />
+        <Logo big />
         <div className="auth-tabs" role="tablist">
           <button role="tab" aria-selected={mode === 'login'} className={`map-chip ${mode === 'login' ? 'on' : ''}`} onClick={() => swap('login')}><b>{t('Iniciar sesión')}</b></button>
           <button role="tab" aria-selected={mode === 'register'} className={`map-chip ${mode === 'register' ? 'on' : ''}`} onClick={() => swap('register')}><b>{t('Registrarse')}</b></button>
@@ -67,7 +67,7 @@ export function AuthScreen({ privacy, back, guestHasProgress, onSignIn, onSignUp
               <input type="password" value={pass2} onChange={e => setPass2(e.target.value)} autoComplete="new-password" />
             </label>
           )}
-          {mode === 'register' && <p className="auth-note">{t('Al registrarte recibirás un ID de jugador único.')}{guestHasProgress ? ' ' + t('Tu progreso como invitado se guardará en la cuenta.') : ''}</p>}
+          {mode === 'register' && <p className="auth-note">{t('Apunta tu contraseña: como no se pide correo, no se puede recuperar.')} {t('Al registrarte recibirás un ID de jugador único.')}{guestHasProgress ? ' ' + t('Tu progreso como invitado se guardará en la cuenta.') : ''}</p>}
           {error && <p className="rank-err" role="alert">{error}</p>}
           <button className="btn btn-red btn-xl" type="submit" disabled={busy}>
             <b>{busy ? t('Un momento…') : mode === 'login' ? t('Entrar') : t('Crear cuenta')}</b>

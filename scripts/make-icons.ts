@@ -40,3 +40,16 @@ icon('favicon-32.png', 32);
   writeFileSync('public/og.jpg', c.toBuffer('image/jpeg', 82));   // JPEG: WhatsApp no enseña vistas previas de más de ~300 KB
   console.log('og.jpg', W, H);
 }
+
+// Logo redondo para la pantalla de entrada y el menú: recorte circular con el borde difuminado (sin fondo cuadrado)
+for (const size of [320, 128]) {
+  const c = createCanvas(size, size), g = c.getContext('2d');
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(logo, 0, 0, size, size);
+  g.globalCompositeOperation = 'destination-in';
+  const m = g.createRadialGradient(size / 2, size / 2, size * 0.38, size / 2, size / 2, size * 0.5);
+  m.addColorStop(0, 'rgba(0,0,0,1)'); m.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = m; g.fillRect(0, 0, size, size);
+  writeFileSync(`${out}/logo-${size}.png`, c.toBuffer('image/png'));
+  console.log(`logo-${size}.png`);
+}
