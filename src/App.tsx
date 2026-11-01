@@ -10,11 +10,11 @@ import { GameScreen } from './components/GameScreen';
 import { AGENTS, AGENT_BY_ID, isAvailable } from './data/agents';
 import { gearBonus } from './data/gear';
 import { MAP_BY_ID } from './data/maps';
-import { ACHIEVEMENTS } from './data/goals';
+import { Achievement, unlockAchievements } from './data/goals';
 import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
 import { SaveData, Settings, Prefs, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
-import { setLang, t } from './i18n';
+import { nf, setLang, t } from './i18n';
 import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
@@ -75,6 +75,18 @@ export default function App() {
   const openAuth = () => { setAuthFromMenu(true); setScreen('auth'); };
 
   useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
+  const [achToast, setAchToast] = useState<Achievement[]>([]);
+  useEffect(() => {
+    // solo ya dentro (con la cuenta o como invitado): en la entrada aún no se sabe de quién es el guardado
+    if (screen === 'game' || screen === 'loading' || screen === 'auth') return;
+    const { got } = unlockAchievements(save);
+    if (!got.length) return;
+    update(s => unlockAchievements(s).save);
+    audio.play('levelup');
+    setAchToast(got);
+    const id = setTimeout(() => setAchToast([]), 4500);
+    return () => clearTimeout(id);
+  }, [save, screen]); // eslint-disable-line react-hooks/exhaustive-deps
   // estadística anónima: una visita (al salir de la pantalla de carga)
   const opened = useRef(false);
   useEffect(() => {
@@ -158,14 +170,13 @@ export default function App() {
       stats.bestKills = Math.max(stats.bestKills, r.kills); stats.credits += r.credits;
       const old = s.records[r.mapId] ?? { bestTime: 0, bestLevel: 0, wins: 0 };
       const records = { ...s.records, [r.mapId]: { bestTime: Math.max(old.bestTime, Math.floor(r.time)), bestLevel: Math.max(old.bestLevel, r.level), wins: old.wins + (r.win ? 1 : 0) } };
-      const achievements = [...s.achievements];
-      for (const a of ACHIEVEMENTS) {
-        const [c, t] = a.progress(stats);
-        if (c >= t && !achievements.includes(a.id)) { achievements.push(a.id); names.push(a.name); }
-      }
       // botín de los jefes al inventario de equipo
       const items = [...s.gear.items, ...(r.loot ?? []).map((l, i) => ({ uid: `${Date.now().toString(36)}${i}${Math.random().toString(36).slice(2, 6)}`, id: l.id, rarity: l.rarity, lvl: 1 }))];
-      return { ...s, credits: s.credits + r.credits, stats, records, achievements, daily: addRun(s.daily, r), gear: { ...s.gear, items } };
+      const next = { ...s, credits: s.credits + r.credits, stats, records, daily: addRun(s.daily, r), gear: { ...s.gear, items } };
+      // logros (con esta partida): se suman sus créditos y se enseñan en el resultado
+      const { save: withAch, got } = unlockAchievements(next, r);
+      names.splice(0, names.length, ...got.map(a => a.name));
+      return withAch;
     });
     return names;
   };
@@ -191,6 +202,12 @@ export default function App() {
     <div className="app">
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
       <UpdateToast inGame={screen === 'game'} />
+      {achToast.length > 0 && (
+        <div className="ach-toast" role="status">
+          {achToast.slice(0, achToast.length > 4 ? 3 : 4).map(a => <div key={a.id}><b>🏆 {t('Logro')}: {t(a.name)}</b><span>+◈ {nf(a.reward)}</span></div>)}
+          {achToast.length > 4 && <div><b>{t('y {n} logros más', { n: achToast.length - 3 })}</b><span>+◈ {nf(achToast.slice(3).reduce((n, a) => n + a.reward, 0))}</span></div>}
+        </div>
+      )}
       {screen === 'loading' && <div className="screen auth"><p className="rank-msg">{t('Cargando…')}</p></div>}
       {screen === 'auth' && (
         <AuthScreen privacy={openPrivacy} back={authFromMenu ? () => { setAuthFromMenu(false); go('menu'); } : undefined} guestHasProgress={save.stats.games > 0 || save.credits > 0}

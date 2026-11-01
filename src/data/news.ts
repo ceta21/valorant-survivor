@@ -26,6 +26,7 @@ export const NEWS: NewsEntry[] = [
       'Los bots y los jefes se mueven de verdad: andan, se giran y se ven de frente, de espaldas y de perfil.',
       'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.',
       'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.',
+      '29 logros con premio en créditos: por zona, por dificultad, por colección (héroes, equipo, mascotas) y por racha; los ves con su progreso en Estadísticas.',
       'Eventos del domingo: cada domingo hay uno distinto (Fiebre del oro, Lluvia de cajas, Caza de jefes, Gran horda o Semana del saber); entre semana el menú te dice cuál toca.',
       'Instálalo como app: desde el navegador, «Instalar» o «Añadir a pantalla de inicio»; se abre a pantalla completa con su icono, carga más rápido y se actualiza solo.',
       'Juega con mando (Xbox, PlayStation o compatible): stick para moverte, A/X/Y para las habilidades y la cruceta para los menús; y opción de calidad baja para móviles o PCs lentos.',

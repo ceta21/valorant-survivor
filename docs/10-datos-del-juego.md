@@ -265,11 +265,32 @@ Coste del nivel siguiente: `round(80 × (nivel + 1)^1.6)` → 80, 243, 464, 735,
 | Logro | `a_first` | Primera sangre | Elimina a tu primer enemigo | — |
 | Logro | `a_kills_1000` | Mil bajas | Acumula 1.000 eliminaciones | — |
 | Logro | `a_kills_10000` | Máquina de guerra | Acumula 10.000 eliminaciones | — |
-| Logro | `a_time_600` | Diez minutos | Sobrevive 10 minutos | — |
-| Logro | `a_level_25` | Nivel 25 | Alcanza el nivel 25 en una partida | — |
-| Logro | `a_win_3` | Imparable | Gana 3 partidas | — |
-| Logro | `a_boss_1` | Jefe caído | Derrota a un jefe | — |
+| Logro | `a_kills_50000` | Leyenda de la grieta | Acumula 50.000 eliminaciones | — |
 | Logro | `a_run_500` | Masacre | Elimina 500 enemigos en una partida | — |
+| Logro | `a_run_1500` | Exterminio | Elimina 1.500 enemigos en una partida | — |
+| Logro | `a_boss_1` | Jefe caído | Derrota a un jefe | — |
+| Logro | `a_boss_50` | Cazador de jefes | Derrota 50 jefes en total | — |
+| Logro | `a_games_50` | Incansable | Juega 50 partidas | — |
+| Logro | `a_time_600` | Diez minutos | Sobrevive 10 minutos | — |
+| Logro | `a_time_900` | Sin final | Sobrevive 15 minutos | — |
+| Logro | `a_level_25` | Nivel 25 | Alcanza el nivel 25 en una partida | — |
+| Logro | `a_level_40` | Nivel 40 | Alcanza el nivel 40 en una partida | — |
+| Logro | `a_win_3` | Imparable | Gana 3 partidas | — |
+| Logro | `a_win_reino` | Señor del Reino | Gana una partida empezando en el Reino | — |
+| Logro | `a_win_glaciar` | Corazón de hielo | Gana una partida empezando en el Glaciar | — |
+| Logro | `a_win_infierno` | A prueba de fuego | Gana una partida empezando en el Infierno | — |
+| Logro | `a_win_ciudad` | Rey de la ciudad | Gana una partida empezando en la Ciudad | — |
+| Logro | `a_win_all` | Conquistador | Gana empezando en las 4 zonas | — |
+| Logro | `a_win_hard` | Sin piedad | Gana una partida en Difícil o Pesadilla | — |
+| Logro | `a_win_nightmare` | Pesadilla superada | Gana una partida en Pesadilla | — |
+| Logro | `a_heroes_5` | Compañía | Ten 5 héroes | — |
+| Logro | `a_heroes_all` | Leyendas reunidas | Ten los 20 héroes | — |
+| Logro | `a_meta_max` | Entrenamiento completo | Lleva una mejora permanente al máximo | — |
+| Logro | `a_gear_legend` | Tesoro legendario | Consigue un objeto de equipo legendario | — |
+| Logro | `a_gear_max` | Forjado al máximo | Sube un objeto de equipo al nivel 5 | — |
+| Logro | `a_pet` | Mejor amigo | Consigue una mascota | — |
+| Logro | `a_streak_7` | Una semana seguida | Entra 7 días seguidos | — |
+| Logro | `a_streak_30` | Fiel a la grieta | Entra 30 días seguidos | — |
 
 ## Mapas
 

@@ -42,11 +42,17 @@ export function StatsScreen({ save, back, claim }: { save: SaveData; back: () =>
               );
             })}
           </ul>
-          <h3>{t('Logros')}</h3>
+          <h3>{t('Logros')} ({save.achievements.filter(id => ACHIEVEMENTS.some(a => a.id === id)).length}/{ACHIEVEMENTS.length})</h3>
           <ul className="achv">
             {ACHIEVEMENTS.map(a => {
-              const got = save.achievements.includes(a.id);
-              return <li key={a.id} className={got ? 'got' : ''}><i>{got ? '★' : '☆'}</i><div><b>{t(a.name)}</b><span>{t(a.desc)}</span></div></li>;
+              const got = save.achievements.includes(a.id), [c, n] = a.check(save);
+              return (
+                <li key={a.id} className={got ? 'got' : ''}>
+                  <i>{got ? '★' : '☆'}</i>
+                  <div><b>{t(a.name)}</b><span>{t(a.desc)}</span>{!got && n > 1 && <small className="achv-prog">{nf(Math.min(c, n))} / {nf(n)}</small>}</div>
+                  <em className="achv-reward">◈ {nf(a.reward)}</em>
+                </li>
+              );
             })}
           </ul>
         </section>

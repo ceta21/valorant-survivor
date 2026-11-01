@@ -28,7 +28,8 @@
     "test:music": "tsx scripts/music-test.ts",
     "test:events": "tsx scripts/event-test.ts",
     "test:analytics": "tsx scripts/analytics-test.ts",
-    "test:gamepad": "tsx scripts/gamepad-test.ts"
+    "test:gamepad": "tsx scripts/gamepad-test.ts",
+    "test:achievements": "tsx scripts/achievement-test.ts"
   },
   "keywords": [],
   "author": "",

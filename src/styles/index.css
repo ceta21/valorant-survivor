@@ -555,3 +555,14 @@ select:focus, .rank-submit input:focus { outline: none; box-shadow: inset 0 0 0 
 
 /* mando: marco dorado en el botón con foco */
 body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+/* logros: premio y progreso en Estadísticas, y aviso al conseguir uno fuera de partida */
+.achv li { position: relative; }
+.achv-reward { margin-left: auto; font-style: normal; color: var(--gold); font-size: 13px; white-space: nowrap; align-self: center; }
+.achv li.got .achv-reward { opacity: .5; }
+.achv-prog { display: block; color: var(--mute); font-size: 12px; }
+.ach-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 55; display: grid; gap: 6px; max-width: calc(100vw - 32px); }
+.ach-toast > div { display: flex; gap: 14px; align-items: center; justify-content: space-between; padding: 10px 16px; color: var(--cream); background: var(--ink2);
+  box-shadow: inset 0 0 0 var(--p) var(--gold), var(--bevel); animation: ach-in .35s ease-out; }
+.ach-toast span { color: var(--gold); }
+@keyframes ach-in { from { transform: translateY(-20px); opacity: 0; } to { transform: none; opacity: 1; } }

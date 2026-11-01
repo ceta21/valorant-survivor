@@ -27,6 +27,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada héroe usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
+| `npm run test:achievements` | Logros: ids únicos y con premio, ninguno en una cuenta nueva, se consiguen cuando toca (por zona, por dificultad de la partida, fuera de partida) y se pagan una sola vez |
 | `npm run test:gamepad` | Mando simulado: zona muerta, stick y cruceta (diagonal), A/X/Y/RB lanzan una vez por pulsación, Start pausa, Select abre el mapa, en pausa no mueve ni lanza, y sin mando no pasa nada |
 | `npm run test:analytics` | Estadísticas anónimas: activadas por defecto (también en guardados antiguos), se agrupan y envían juntas con un mismo identificador al azar, sin nombre, cuenta ni IP, y nada si se desactivan |
 | `npm run test:events` | Eventos del domingo: solo hay evento los domingos (hora local), entre semana se anuncia el del próximo, salen todos por turnos y cada uno cambia la partida como dice (créditos, experiencia, vida y botín de jefes, cajas, enemigos) y se avisa al empezar |

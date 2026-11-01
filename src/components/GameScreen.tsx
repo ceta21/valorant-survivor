@@ -1,3 +1,4 @@
+import { ACHIEVEMENTS } from '../data/goals';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, GEAR_RARITY_NAMES } from '../data/gear';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameEngine } from '../game/GameEngine';
@@ -329,7 +330,7 @@ export function GameScreen({ low = false, agent, map, difficulty, meta, settings
               {result.r.loot!.map((l, i) => <span key={i} style={{ color: GEAR_RARITY_COLORS[l.rarity] }}>{GEAR_BY_ID[l.id]?.icon} {t(GEAR_BY_ID[l.id]?.name ?? l.id)} · {t(GEAR_RARITY_NAMES[l.rarity])}</span>)}
             </div>
           )}
-          {result.ach.length > 0 && <p className="ach">{t('Logro desbloqueado:')} {result.ach.map(a => t(a)).join(', ')}</p>}
+          {result.ach.length > 0 && <p className="ach">{t('Logro desbloqueado:')} {result.ach.map(a => `${t(a)} (+◈ ${nf(ACHIEVEMENTS.find(x => x.name === a)?.reward ?? 0)})`).join(', ')}</p>}
           <div className="pause-btns">
             {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>{t('Jugar otra vez')}</b></button>}
             <button className={`btn ${coop ? 'btn-red btn-xl' : ''}`} onClick={onMenu}><b>{t('Volver al menú')}</b></button>

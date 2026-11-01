@@ -226,7 +226,13 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
 
 - Créditos: `floor((bajas·0,4 + segundos/8 + nivel·6 + jefes·40 + (350 si mató al jefe final)) × créditos de dificultad)`.
 - Cuenta como **victoria** si se derrotó al Dragón cibernético final antes de morir.
-- Se actualizan estadísticas, récords por mapa y logros (los logros se calculan a partir de las estadísticas).
+- Se actualizan estadísticas, récords por mapa y logros.
+- **Logros** (`ACHIEVEMENTS` en `src/data/goals.ts`, 29): cada uno da créditos (◈ 50 a 5.000) una sola vez, al momento.
+  `check(save, partida?)` mira el guardado (bajas, jefes, partidas, tiempo y nivel máximos, victorias por zona en
+  `records`, héroes, mejoras, equipo, mascotas, mejor racha) y, al acabar una partida, también esa partida (ganar en
+  Difícil/Pesadilla). `unlockAchievements()` se llama al acabar cada partida (salen en el resultado con su premio) y,
+  fuera de la partida, cada vez que cambia el guardado (aviso «🏆 Logro» arriba). Los que ya se tenían de antes no se
+  pagan; los nuevos que una cuenta ya cumpla se dan (con sus créditos) al entrar.
 - Las misiones se cobran a mano en Estadísticas.
 - En solitario se puede publicar la marca en el ranking (sola con cuenta, con nombre como invitado). Las
   partidas en pareja **no** cuentan para el ranking.
