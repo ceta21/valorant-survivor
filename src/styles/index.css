@@ -561,8 +561,14 @@ body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-o
 .achv-reward { margin-left: auto; font-style: normal; color: var(--gold); font-size: 13px; white-space: nowrap; align-self: center; }
 .achv li.got .achv-reward { opacity: .5; }
 .achv-prog { display: block; color: var(--mute); font-size: 12px; }
-.ach-toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 55; display: grid; gap: 6px; max-width: calc(100vw - 32px); }
+.ach-toast { position: fixed; right: 16px; bottom: 16px; z-index: 55; display: grid; gap: 6px; width: min(340px, calc(100vw - 32px)); cursor: pointer; }
 .ach-toast > div { display: flex; gap: 14px; align-items: center; justify-content: space-between; padding: 10px 16px; color: var(--cream); background: var(--ink2);
-  box-shadow: inset 0 0 0 var(--p) var(--gold), var(--bevel); animation: ach-in .35s ease-out; }
+  box-shadow: inset 0 0 0 var(--p) var(--gold), var(--bevel); animation: ach-in .35s ease-out; font-size: 14px; }
+.ach-toast b { font-weight: normal; }
 .ach-toast span { color: var(--gold); }
-@keyframes ach-in { from { transform: translateY(-20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ach-in { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* ranking del domingo: pestañas, explicación y medallas junto al nombre */
+.rank-tabs { display: flex; gap: 8px; margin-bottom: 10px; } .rank-tabs .map-chip { flex: 0 0 auto; }
+.rank-sunday { color: #ffe9a0; }
+.medals { font-style: normal; margin-left: 8px; display: inline-flex; gap: 4px; }

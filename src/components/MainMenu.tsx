@@ -7,6 +7,7 @@ import type { Account } from '../utils/account';
 import { LATEST_NEWS } from '../data/news';
 import { hasDailyReward } from '../data/daily';
 import { MenuHub } from './MenuHub';
+import { MEDALS } from '../data/sundayRank';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
 import { InstallButton } from './InstallButton';
@@ -35,7 +36,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <div className="account-bar">
             {account ? (
               <>
-                <span>{t('Jugador')} <b>{account.username}</b> <em>#{account.playerId}</em>{account.isAdmin && <i className="admin-badge">Admin</i>}</span>
+                <span>{t('Jugador')} <b>{account.username}</b> <em>#{account.playerId}</em>{account.isAdmin && <i className="admin-badge">Admin</i>}{(save.sundayMedals?.length ?? 0) > 0 && <i className="medals" title={t('Medallas del ranking del domingo')}>{[0, 1, 2].map(p => { const n = save.sundayMedals!.filter(m => m.place === p).length; return n ? <span key={p}>{MEDALS[p]}{n > 1 ? `×${n}` : ''}</span> : null; })}</i>}</span>
                 <button className="btn btn-sm" onClick={() => { audio.play('click'); onLogout(); }}><b>{t('Cerrar sesión')}</b></button>
               </>
             ) : (

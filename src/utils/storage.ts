@@ -32,6 +32,8 @@ export interface SaveData {
   lastAgent: string;
   lastMap: string;
   lastDifficulty: string;
+  /** Medallas del ranking del domingo ya cobradas (día y puesto). */
+  sundayMedals?: { key: string; place: number }[];
   playerName: string;
   /** Cartas del mercado ya descubiertas en la rotación actual. */
   market: { period: number; revealed: number[] };

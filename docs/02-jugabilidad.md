@@ -217,6 +217,16 @@ una partida en domingo sale su aviso tras «¡SOBREVIVE!». En pareja manda el d
 | 🧟 Gran horda | Enemigos ×1,35 y experiencia ×1,35 |
 | 📘 Semana del saber | Experiencia ×1,5 (el nombre viene de cuando eran semanales) |
 
+## Ranking del domingo
+
+`src/data/sundayRank.ts`: en **Ranking → Domingo** solo cuentan las marcas publicadas ese domingo, de 00:00 a 24:00
+**UTC** (igual para todos). El domingo se ve el de hoy, en curso; entre semana, el resultado del último. No necesita
+SQL: filtra `scores` por `created_at` (`Filters.since/until`, mejor marca de cada jugador).
+
+- Desde el lunes 00:00 UTC, al entrar en el menú con cuenta, si estás entre los 3 primeros del último domingo cobras
+  🥇 ◈ 5.000, 🥈 ◈ 3.000 o 🥉 ◈ 1.500 y su medalla (`save.sundayMedals`, se ven junto a tu nombre en el menú).
+  Se cobra una vez por domingo. Los invitados no cobran.
+
 ## Dificultad
 
 Multiplica la vida y el daño enemigos, el ritmo de aparición, el intervalo de jefes en modo infinito y los

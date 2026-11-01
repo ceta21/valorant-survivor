@@ -18,7 +18,7 @@
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
 | Mercado de la Grieta | `MarketScreen` | Cartas del día |
-| Ranking global | `RankingScreen` | Tabla filtrable por héroe y dificultad |
+| Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
 | Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar) y logros (conseguidos/total, premio y progreso de cada uno) |
 | Configuración | `SettingsScreen` | Sonido y pantalla, **Idioma**, **Controles**, borrar progreso |

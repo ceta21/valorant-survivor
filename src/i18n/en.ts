@@ -464,6 +464,15 @@ export const EN: Record<string, string> = {
   'Elemental de energía': 'Energy Elemental',
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
+  /* ------------------------------------------------------------------ ranking del domingo */
+  'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.': 'Sunday ranking: every Sunday there is a separate leaderboard with that day’s runs; on Monday, the top 3 win up to ◈ 5,000 and a medal.',
+  'Siempre': 'All time',
+  'Domingo': 'Sunday',
+  'Ranking de hoy, domingo (hora UTC): solo cuentan las marcas publicadas hoy.': 'Today’s ranking, Sunday (UTC): only scores posted today count.',
+  'Resultado del domingo {d} (hora UTC).': 'Result of Sunday {d} (UTC).',
+  'El lunes, los 3 primeros con cuenta cobran al entrar:': 'On Monday, the top 3 with an account get their prize when they log in:',
+  '{m} {n}.º en el ranking del domingo': '{m} #{n} in the Sunday ranking',
+  'Medallas del ranking del domingo': 'Sunday ranking medals',
   /* ------------------------------------------------------------------ logros */
   'y {n} logros más': 'and {n} more achievements',
   'Logro': 'Achievement',

@@ -8,7 +8,7 @@ export interface ScoreEntry {
   time: number; kills: number; level: number; boss_kills: number;
   created_at?: string; player_id?: number | null; user_id?: string | null;
 }
-export interface Filters { agent: string; difficulty: string }
+export interface Filters { agent: string; difficulty: string; /** Solo marcas publicadas en [since, until) (ISO). */ since?: string; until?: string }
 
 export const isGlobal = Boolean(supabase);
 const LOCAL = 'valorant-survivors-scores-v1';
@@ -33,12 +33,15 @@ function bestPerPlayer(rows: ScoreEntry[], limit: number) {
 
 export async function fetchScores(f: Filters, limit = 50): Promise<ScoreEntry[]> {
   if (!supabase) {
-    const rows = readLocal().filter(r => (f.agent === 'all' || r.agent === f.agent) && (f.difficulty === 'all' || r.difficulty === f.difficulty));
+    const rows = readLocal().filter(r => (f.agent === 'all' || r.agent === f.agent) && (f.difficulty === 'all' || r.difficulty === f.difficulty)
+      && (!f.since || (r.created_at ?? '') >= f.since) && (!f.until || (r.created_at ?? '') < f.until));
     return bestPerPlayer(rows, limit);
   }
   let q = supabase.from('scores').select('name,agent,difficulty,map,time,kills,level,boss_kills,created_at,player_id,user_id').order('time', { ascending: false }).limit(500);
   if (f.agent !== 'all') q = q.eq('agent', f.agent);
   if (f.difficulty !== 'all') q = q.eq('difficulty', f.difficulty);
+  if (f.since) q = q.gte('created_at', f.since);
+  if (f.until) q = q.lt('created_at', f.until);
   const { data, error } = await q;
   if (error) throw new Error(`${t('Ranking no disponible')} (${error.message})`);
   return bestPerPlayer(data as ScoreEntry[], limit);

@@ -11,6 +11,8 @@ import { AGENTS, AGENT_BY_ID, isAvailable } from './data/agents';
 import { gearBonus } from './data/gear';
 import { MAP_BY_ID } from './data/maps';
 import { Achievement, unlockAchievements } from './data/goals';
+import { MEDALS, SUNDAY_PRIZES, lastFinishedSunday } from './data/sundayRank';
+import { fetchScores } from './utils/leaderboard';
 import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
 import { SaveData, Settings, Prefs, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
@@ -75,7 +77,8 @@ export default function App() {
   const openAuth = () => { setAuthFromMenu(true); setScreen('auth'); };
 
   useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
-  const [achToast, setAchToast] = useState<Achievement[]>([]);
+  /** Avisos arriba: logros conseguidos y premios del ranking del domingo. */
+  const [achToast, setAchToast] = useState<Pick<Achievement, 'id' | 'name' | 'reward'>[]>([]);
   useEffect(() => {
     // solo ya dentro (con la cuenta o como invitado): en la entrada aún no se sabe de quién es el guardado
     if (screen === 'game' || screen === 'loading' || screen === 'auth') return;
@@ -84,9 +87,29 @@ export default function App() {
     update(s => unlockAchievements(s).save);
     audio.play('levelup');
     setAchToast(got);
-    const id = setTimeout(() => setAchToast([]), 4500);
-    return () => clearTimeout(id);
   }, [save, screen]); // eslint-disable-line react-hooks/exhaustive-deps
+  // los avisos se quitan solos a los 5 s (temporizador propio: guardar los créditos del logro no lo cancela)
+  useEffect(() => {
+    if (!achToast.length) return;
+    const id = setTimeout(() => setAchToast([]), 5000);
+    return () => clearTimeout(id);
+  }, [achToast]);
+  // ranking del domingo: el lunes (o después), si la cuenta quedó entre los 3 primeros del último domingo, cobra su premio
+  const sundayChecked = useRef('');
+  useEffect(() => {
+    if (screen !== 'menu' || !account) return;
+    const sw = lastFinishedSunday();
+    if (sundayChecked.current === account.uid + sw.key || save.sundayMedals?.some(m => m.key === sw.key)) return;
+    sundayChecked.current = account.uid + sw.key;
+    fetchScores({ agent: 'all', difficulty: 'all', since: sw.start.toISOString(), until: sw.end.toISOString() }, 3).then(top => {
+      const place = top.findIndex(r => r.user_id === account.uid);
+      if (place < 0) return;
+      const prize = SUNDAY_PRIZES[place];
+      update(s => (s.sundayMedals?.some(m => m.key === sw.key) ? s : { ...s, credits: s.credits + prize, sundayMedals: [...(s.sundayMedals ?? []), { key: sw.key, place }] }));
+      audio.play('win');
+      setAchToast([{ id: 'sunday', name: t('{m} {n}.º en el ranking del domingo', { m: MEDALS[place], n: place + 1 }), reward: prize }]);
+    }).catch(() => {});
+  }, [screen, account]); // eslint-disable-line react-hooks/exhaustive-deps
   // estadística anónima: una visita (al salir de la pantalla de carga)
   const opened = useRef(false);
   useEffect(() => {
@@ -203,8 +226,8 @@ export default function App() {
       {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
       <UpdateToast inGame={screen === 'game'} />
       {achToast.length > 0 && (
-        <div className="ach-toast" role="status">
-          {achToast.slice(0, achToast.length > 4 ? 3 : 4).map(a => <div key={a.id}><b>🏆 {t('Logro')}: {t(a.name)}</b><span>+◈ {nf(a.reward)}</span></div>)}
+        <div className="ach-toast" role="status" onClick={() => setAchToast([])} title={t('Cerrar')}>
+          {achToast.slice(0, achToast.length > 4 ? 3 : 4).map(a => <div key={a.id}><b>{a.id === 'sunday' ? a.name : <>🏆 {t('Logro')}: {t(a.name)}</>}</b><span>+◈ {nf(a.reward)}</span></div>)}
           {achToast.length > 4 && <div><b>{t('y {n} logros más', { n: achToast.length - 3 })}</b><span>+◈ {nf(achToast.slice(3).reduce((n, a) => n + a.reward, 0))}</span></div>}
         </div>
       )}
