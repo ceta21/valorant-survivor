@@ -11,6 +11,7 @@ import { petCanvas, PW, PH } from './petSprites';
 import { MAPS } from '../data/maps';
 import { t } from '../i18n';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
+import { WEB_LAND } from './GameEngine';
 import { PAL, drawSprite, pixelBeam, pixelBlast, pixelBolt, pixelCircle, pixelCone, pixelField, pixelLine, pixelRay, snapAng, sprite } from './vfx';
 
 type Ctx = CanvasRenderingContext2D;
@@ -368,6 +369,29 @@ export class Renderer {
         g.globalAlpha = 1;
       }
     }
+    // peligros de los jefes: telarañas (frenan) y rayos que avisan antes de caer
+    for (const h of e.hazards) {
+      if (h.dead || !vis(h.x, h.y, h.r + 10)) continue;
+      if (h.kind === 'web') {
+        const land = Math.min(1, h.t / WEB_LAND), fade = Math.min(1, (h.dur - h.t) / 0.6), r = h.r * (0.4 + 0.6 * land);
+        if (land < 1) { pixelCircle(g, h.x, h.y, h.r, Math.floor(e.time * 14) % 2 ? '#e6e9ee' : '#9ab0c8', PX, 1, e.time); continue; }
+        g.globalAlpha = 0.75 * fade; g.strokeStyle = '#e6e9ee'; g.lineWidth = 2;
+        g.fillStyle = 'rgba(230,233,238,0.12)'; g.beginPath(); g.arc(h.x, h.y, r, 0, 7); g.fill();
+        for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2 + h.x; g.beginPath(); g.moveTo(h.x, h.y); g.lineTo(h.x + Math.cos(a) * r, h.y + Math.sin(a) * r); g.stroke(); }
+        for (const k of [0.33, 0.62, 0.9]) {
+          g.beginPath();
+          for (let i = 0; i <= 8; i++) { const a = (i / 8) * Math.PI * 2 + h.x, x = h.x + Math.cos(a) * r * k, y = h.y + Math.sin(a) * r * k; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+          g.stroke();
+        }
+        g.globalAlpha = 1;
+      } else {
+        const k = Math.min(1, h.t / h.dur);
+        g.globalAlpha = 0.4 + 0.6 * k;
+        pixelCircle(g, h.x, h.y, h.r, Math.floor(e.time * (6 + k * 18)) % 2 ? '#2fe6ff' : '#ffffff', PX, 2, e.time);
+        g.globalAlpha = 0.15 + 0.25 * k; g.fillStyle = '#2fe6ff'; g.beginPath(); g.arc(h.x, h.y, h.r * k, 0, 7); g.fill();
+        g.globalAlpha = 1;
+      }
+    }
     // obuses de los Artilleros: zona de impacto que parpadea más rápido y el proyectil volando
     for (const s of e.shells) {
       if (s.dead || !vis(s.x, s.y, s.r + 140)) continue;
@@ -399,7 +423,16 @@ export class Renderer {
         g.fillStyle = `rgba(255,70,85,${0.12 + k * 0.25})`; g.fillRect(0, -en.r, 520 * 0.55 + 140, en.r * 2);
         g.strokeStyle = '#ff4655'; g.lineWidth = 2; g.strokeRect(0, -en.r, 520 * 0.55 + 140, en.r * 2);
         g.restore();
-      } else if (a.kind === 'ring' || a.kind === 'spiral' || a.kind === 'summon') {
+      } else if (a.kind === 'flame' && a.t < 0.7) {
+        // aviso del aliento: cono que se va llenando
+        const k = a.t / 0.7, L = 270, half = 0.42;
+        g.fillStyle = `rgba(255,122,61,${0.1 + k * 0.25})`; g.strokeStyle = '#ff7a3d'; g.lineWidth = 2;
+        g.beginPath(); g.moveTo(en.x, en.y); g.arc(en.x, en.y, L, a.ang - half, a.ang + half); g.closePath(); g.fill(); g.stroke();
+      } else if (a.kind === 'blink' && a.t < 0.6) {
+        // el Sabio se desvanece en un remolino antes de saltar
+        const k = a.t / 0.6;
+        pixelCircle(g, en.x, en.y, en.r + 14 + k * 30, '#9b5cff', PX, 2, e.time * 4);
+      } else if (a.kind === 'ring' || a.kind === 'spiral' || a.kind === 'summon' || a.kind === 'shield' || a.kind === 'web' || a.kind === 'storm') {
         const k = Math.min(1, a.t / Math.max(0.4, a.kind === 'ring' ? 0.7 : 0.9));
         g.strokeStyle = hexA(en.def.color, 0.9); g.lineWidth = 3;
         g.beginPath(); g.arc(en.x, en.y, en.r + 8 + (1 - k) * 36, 0, 7); g.stroke();
@@ -425,7 +458,17 @@ export class Renderer {
     // enemigos
     for (const en of e.enemies) {
       if (en.dead || !vis(en.x, en.y, en.r + 8)) continue;
+      if (en.atk?.kind === 'blink' && en.atk.t < 0.6) g.globalAlpha = 1 - en.atk.t / 0.7;
       this.drawEnemy(g, en, e);
+      g.globalAlpha = 1;
+      if (en.shieldT > 0) {
+        // escudo del Coloso: burbuja hexagonal que brilla
+        const r = en.r * 1.5, pulse = 0.5 + 0.3 * Math.sin(e.time * 8);
+        g.globalAlpha = pulse; g.strokeStyle = '#5c8bff'; g.lineWidth = 3; g.fillStyle = 'rgba(92,139,255,0.16)';
+        g.beginPath();
+        for (let i = 0; i <= 6; i++) { const a = (i / 6) * Math.PI * 2 + e.time * 0.6, x = en.x + Math.cos(a) * r, y = en.y - en.r * 0.4 + Math.sin(a) * r; i ? g.lineTo(x, y) : g.moveTo(x, y); }
+        g.fill(); g.stroke(); g.globalAlpha = 1;
+      }
     }
     // proyectiles enemigos
     g.globalCompositeOperation = 'lighter';

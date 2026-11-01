@@ -56,12 +56,12 @@ export const ZONE_TIER: Record<string, number> = { reino: 0, glaciar: 1, ciudad:
 
 /* ------------------------------------------------------------------ jefes de la grieta */
 Object.assign(ENEMIES, {
-  coloso: { id: 'coloso', name: 'Coloso mecánico', hp: 1500, speed: 50, dmg: 24, r: 36, xp: 120, color: '#ff4655', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['ring', 'slam'], art: 'coloso' },
-  reina: { id: 'reina', name: 'Reina araña', hp: 1500, speed: 60, dmg: 22, r: 36, xp: 120, color: '#ff4a3a', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['summon', 'slam', 'charge'], art: 'reina' },
-  elemental: { id: 'elemental', name: 'Elemental de energía', hp: 1700, speed: 48, dmg: 24, r: 38, xp: 120, color: '#2fe6ff', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'ring', 'slam'], art: 'elemental' },
-  dragon: { id: 'dragon', name: 'Dragón cibernético', hp: 1600, speed: 56, dmg: 26, r: 40, xp: 120, color: '#d946ef', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'charge', 'summon'], art: 'dragon' },
-  sabio: { id: 'sabio', name: 'Sabio oscuro', hp: 3600, speed: 58, dmg: 28, r: 38, xp: 220, color: '#9b5cff', shape: 'boss', behavior: 'boss', minTime: 300, weight: 0, patterns: ['ring', 'summon', 'charge', 'spiral'], art: 'sabio' },
-  dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'ring', 'slam'], art: 'dragon', final: true },
+  coloso: { id: 'coloso', name: 'Coloso mecánico', hp: 1500, speed: 50, dmg: 24, r: 36, xp: 120, color: '#ff4655', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['ring', 'slam', 'shield'], art: 'coloso' },
+  reina: { id: 'reina', name: 'Reina araña', hp: 1500, speed: 60, dmg: 22, r: 36, xp: 120, color: '#ff4a3a', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['summon', 'web', 'charge', 'web'], art: 'reina' },
+  elemental: { id: 'elemental', name: 'Elemental de energía', hp: 1700, speed: 48, dmg: 24, r: 38, xp: 120, color: '#2fe6ff', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'ring', 'storm', 'storm'], art: 'elemental' },
+  dragon: { id: 'dragon', name: 'Dragón cibernético', hp: 1600, speed: 56, dmg: 26, r: 40, xp: 120, color: '#d946ef', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['flame', 'charge', 'summon', 'flame'], art: 'dragon' },
+  sabio: { id: 'sabio', name: 'Sabio oscuro', hp: 3600, speed: 58, dmg: 28, r: 38, xp: 220, color: '#9b5cff', shape: 'boss', behavior: 'boss', minTime: 300, weight: 0, patterns: ['ring', 'summon', 'blink', 'spiral', 'blink'], art: 'sabio' },
+  dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'flame', 'storm', 'flame'], art: 'dragon', final: true },
 } as Record<string, EnemyDef>);
 /** Jefe propio de cada zona (sale al 2:30 y, más fuerte, al 7:30). */
 export const ZONE_BOSS: Record<string, string> = { reino: 'coloso', ciudad: 'reina', glaciar: 'elemental', infierno: 'dragon' };

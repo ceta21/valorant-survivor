@@ -185,7 +185,19 @@ Con `m = minutos`, `extra = segundos desde el minuto 9`:
 - Oleadas intensas a los 100, 190, 260, 345, 420 y 490 s: anillo de `22 + 6·i` enemigos. En modo infinito, una
   oleada cada 55 s de `40 + 4·(extra/30)` enemigos.
 - Élites desde el segundo 200, cada 42 s; cada vez `1 + (segundos − 200)/130` élites.
-- Jefes: Centinela (2:30), Cazador (5:00), Titán (7:30) y Cabecilla del Protocolo (9:00).
+- Jefes (`BOSS_SCHEDULE`): el de la zona en la que estés a las 2:30 (`ZONE_BOSS`: Reino → Coloso mecánico,
+  Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético), Sabio oscuro (5:00), otra
+  vez el de la zona con ×4,5 de vida (7:30) y el Dragón cibernético final (9:00).
+- Ataques de jefe (`patterns`, `bossLogic()`): comunes — anillo de disparos, espiral, golpe en área, embestida e
+  invocar bots — y uno propio de cada jefe, siempre con aviso en el suelo:
+  - **Escudo** (Coloso): durante 4 s (5,5 s en la 2.ª fase) recibe solo el 25 % del daño; se ve una burbuja azul.
+  - **Telarañas** (Reina): 3 (4 en la 2.ª fase) donde estás y alrededor, de radio 70, durante 6 s; dentro se anda
+    al 45 % (`WEB_SLOW`). Son `hazards` del motor y se envían al invitado.
+  - **Tormenta** (Elemental): 5 (7) rayos seguidos sobre el jugador más cercano, cada uno avisa 0,9 s y daña en
+    radio 58.
+  - **Aliento** (Dragón y Dragón final): 0,7 s de aviso y 1,7 s de fuego en un cono de 270 de largo que gira
+    despacio hacia ti.
+  - **Salto** (Sabio): se desvanece, reaparece a 170 del jugador y suelta un anillo de disparos.
 - Modo infinito: jefes al azar cada vez más seguidos (de 45 s a 14 s, × dificultad), uno más a la vez cada
   5 minutos, máximo 6 vivos.
 
@@ -197,7 +209,7 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
 ## Fin de partida y recompensas
 
 - Créditos: `floor((bajas·0,4 + segundos/8 + nivel·6 + jefes·40 + (350 si mató al jefe final)) × créditos de dificultad)`.
-- Cuenta como **victoria** si se derrotó al Cabecilla del Protocolo antes de morir.
+- Cuenta como **victoria** si se derrotó al Dragón cibernético final antes de morir.
 - Se actualizan estadísticas, récords por mapa y logros (los logros se calculan a partir de las estadísticas).
 - Las misiones se cobran a mano en Estadísticas.
 - En solitario se puede publicar la marca en el ranking (sola con cuenta, con nombre como invitado). Las

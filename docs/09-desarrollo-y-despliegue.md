@@ -27,6 +27,7 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | `npm run test:shot` | Capturas de partidas en los 3 mapas |
 | `npm run test:abilities` | Hoja con cada héroe usando cada habilidad (`shots/abilities.png`) |
 | `npm run test:enemies` | Hoja con todos los robots (`shots/enemies.png`) |
+| `npm run test:bosses` | Ataques propios de los jefes: el escudo reduce el daño y se acaba, las telarañas caen donde estás, frenan y desaparecen, los rayos avisan y dañan, el aliento solo quema en el cono y tras el aviso, y el Sabio salta a tu lado |
 | `npm run test:gear` | Equipo: rarezas del botín por zona (el jefe final solo épico/legendario), solo cuentan 3 equipados, la ventaja se aplica al héroe, costes de mejorar/desmontar y que matar a un jefe da botín |
 | `npm run test:evo` | Evoluciones combinadas: sin la mejora no evoluciona; con ella la carta sale siempre, la evolución se aplica y la carta de la mejora avisa |
 | `npm run test:kinds` | Habilidades nuevas: la órbita gira y golpea, los orbes rebotan entre enemigos, la espiral dispara en todas direcciones, el bumerán vuelve y el rastro daña y ralentiza |

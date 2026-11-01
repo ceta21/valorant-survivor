@@ -1,14 +1,14 @@
 // Cooperativo en red: el anfitrión simula la partida y envía "fotos" del estado; el invitado
 // no simula: copia esas fotos en su motor, suaviza los movimientos entre una y otra y solo
 // predice su propio personaje para que responda al instante.
-import { Enemy, GameEngine, GemKind, Pl, ProjLook } from './GameEngine';
+import { Enemy, GameEngine, GemKind, Pl, ProjLook, WEB_SLOW } from './GameEngine';
 import { ENEMIES } from '../data/enemies';
 import { POWERS } from '../data/powers';
 import { BossPattern, UpgradeChoice } from './types';
 
 const ENEMY_IDS = Object.keys(ENEMIES);
 const LOOKS: ProjLook[] = ['', 'dagger', 'arrow', 'flame', 'bolt', 'leaf', 'wisp', 'ice', 'water', 'rock', 'star', 'disc'];
-const PATTERNS: BossPattern[] = ['ring', 'spiral', 'slam', 'charge', 'summon'];
+const PATTERNS: BossPattern[] = ['ring', 'spiral', 'slam', 'charge', 'summon', 'shield', 'web', 'storm', 'flame', 'blink'];
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -34,6 +34,7 @@ export interface Snap {
   sk: unknown[][]; vf: unknown[][]; cl: string[]; ev: unknown[][];
   sh?: number[];  // por obús: x, y, ox, oy, t*100, dur*100, r
   cr?: number[];  // por caja: id, x, y, vida en %, golpe (0/1)
+  hz?: number[];  // por peligro de jefe: tipo (0 telaraña, 1 rayo), x, y, r, t*100, dur*100
 }
 const EN = 14, PJ = 9, EP = 6, GM = 5;
 
@@ -47,7 +48,7 @@ export function makeSnapshot(e: GameEngine): Snap {
     if (m.dead) continue;
     const a = m.atk;
     const flags = (m.flash > 0 ? 1 : 0) | (m.stunT > 0 ? 2 : 0) | (m.markT > 0 ? 4 : 0) | (m.burnT > 0 ? 8 : 0) | (m.slowT > 0 ? 16 : 0)
-      | (m.fuse > 0 ? 32 : 0) | (m.windup > 0 ? 64 : 0) | (m.phase ? 128 : 0);
+      | (m.fuse > 0 ? 32 : 0) | (m.windup > 0 ? 64 : 0) | (m.phase ? 128 : 0) | (m.shieldT > 0 ? 256 : 0);
     en.push(m.id, ENEMY_IDS.indexOf(m.def.id), Math.round(m.x), Math.round(m.y), Math.round(m.hp), Math.round(m.maxHp), flags, Math.round(m.face * 100),
       a ? PATTERNS.indexOf(a.kind) + 1 : 0, a ? Math.round(a.t * 100) : 0, a ? Math.round(a.dur * 100) : 0, a ? Math.round(a.x) : 0, a ? Math.round(a.y) : 0, a ? Math.round(a.ang * 100) : 0);
   }
@@ -81,6 +82,7 @@ export function makeSnapshot(e: GameEngine): Snap {
     vf: e.vfx.map(v => [v.kind, v.pal, Math.round(v.x), Math.round(v.y), Math.round(v.r), r2(v.t), r2(v.dur), r2(v.ang), v.seed, v.follow ? 1 : 0, v.sprite ?? '', v.owner ?? 0, r2(v.w ?? 0)]),
     cl: colors, ev: ev.length > 400 ? ev.slice(-400) : ev,
     cr: e.crates.filter(c => !c.dead).flatMap(c => [c.id, Math.round(c.x), Math.round(c.y), Math.round((c.hp / c.max) * 100), c.flash > 0 ? 1 : 0]),
+    hz: e.hazards.filter(h => !h.dead).flatMap(h => [h.kind === 'web' ? 0 : 1, Math.round(h.x), Math.round(h.y), h.r, Math.round(h.t * 100), Math.round(h.dur * 100)]),
     sh: e.shells.filter(s => !s.dead).flatMap(s => [Math.round(s.x), Math.round(s.y), Math.round(s.ox), Math.round(s.oy), Math.round(s.t * 100), Math.round(s.dur * 100), s.r]),
   };
 }
@@ -90,7 +92,7 @@ function blankEnemy(id: number, defIdx: number, x: number, y: number): Enemy {
   const def = ENEMIES[ENEMY_IDS[defIdx]] ?? ENEMIES.grunt;
   return {
     id, def, x, y, kx: 0, ky: 0, hp: 1, maxHp: 1, r: def.r, speed: def.speed, dmg: def.dmg, flash: 0, dead: false,
-    burnT: 0, burnDps: 0, slowT: 0, slowMul: 1, stunT: 0, markT: 0, atkT: 0, windup: 0, fuse: 0, atk: null, phase: 0, isBoss: def.behavior === 'boss',
+    burnT: 0, burnDps: 0, slowT: 0, slowMul: 1, stunT: 0, markT: 0, atkT: 0, windup: 0, fuse: 0, atk: null, phase: 0, isBoss: def.behavior === 'boss', shieldT: 0,
     anim: Math.random() * 6, suicide: false, face: 0, lx: x, ly: y, stuckT: 0, sideT: 0, side: 1, esc: 0, escReset: 0, tx: x, ty: y,
   };
 }
@@ -134,7 +136,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
     m.tx = s.en[i + 2]; m.ty = s.en[i + 3]; m.hp = s.en[i + 4]; m.maxHp = s.en[i + 5];
     const fl = s.en[i + 6];
     m.flash = fl & 1 ? 0.05 : 0; m.stunT = fl & 2 ? 1 : 0; m.markT = fl & 4 ? 1 : 0; m.burnT = fl & 8 ? 1 : 0; m.slowT = fl & 16 ? 1 : 0;
-    m.fuse = fl & 32 ? 0.3 : 0; m.windup = fl & 64 ? 0.2 : 0; m.phase = fl & 128 ? 1 : 0; m.face = s.en[i + 7] / 100;
+    m.fuse = fl & 32 ? 0.3 : 0; m.windup = fl & 64 ? 0.2 : 0; m.phase = fl & 128 ? 1 : 0; m.shieldT = fl & 256 ? 1 : 0; m.face = s.en[i + 7] / 100;
     const ak = s.en[i + 8];
     m.atk = ak ? { kind: PATTERNS[ak - 1], t: s.en[i + 9] / 100, dur: s.en[i + 10] / 100, x: s.en[i + 11], y: s.en[i + 12], ang: s.en[i + 13] / 100, fired: 0 } : null;
     list.push(m);
@@ -160,6 +162,9 @@ export function applySnapshot(e: GameEngine, s: Snap) {
   const cr = s.cr ?? [];
   e.crates = [];
   for (let i = 0; i < cr.length; i += 5) e.crates.push({ id: cr[i], x: cr[i + 1], y: cr[i + 2], hp: cr[i + 3], max: 100, flash: cr[i + 4] ? 0.05 : 0, dead: false });
+  const hz = s.hz ?? [];
+  e.hazards = [];
+  for (let i = 0; i < hz.length; i += 6) e.hazards.push({ kind: hz[i] ? 'bolt' : 'web', x: hz[i + 1], y: hz[i + 2], r: hz[i + 3], t: hz[i + 4] / 100, dur: hz[i + 5] / 100, dmg: 0, dead: false });
   e.shells = [];
   const sh = s.sh ?? [];
   for (let i = 0; i < sh.length; i += 7) e.shells.push({ x: sh[i], y: sh[i + 1], ox: sh[i + 2], oy: sh[i + 3], t: sh[i + 4] / 100, dur: sh[i + 5] / 100, r: sh[i + 6], dmg: 0, dead: false });
@@ -192,6 +197,7 @@ export function mirrorTick(e: GameEngine, dt: number) {
   for (const b of e.eprojs) { b.x += b.vx * dt; b.y += b.vy * dt; }
   for (const s of e.strikes) s.t = Math.min(s.dur, s.t + dt);
   for (const s of e.shells) s.t = Math.min(s.dur, s.t + dt);
+  for (const h of e.hazards) h.t = Math.min(h.dur, h.t + dt);
   for (const v of e.vfx) v.t += dt;
   e.vfx = e.vfx.filter(v => v.t < v.dur);
   for (const pl of e.players) {
@@ -202,7 +208,7 @@ export function mirrorTick(e: GameEngine, dt: number) {
       const mv = pl.inputMove, l = Math.hypot(mv.x, mv.y);
       if (q.dashT > 0) { q.x += q.dashVx * dt; q.y += q.dashVy * dt; q.dashT -= dt; }
       else if (l > 0.01) {
-        const sp = pl.stats.speed * (pl.buffs.sprintT > 0 ? 1.6 : 1) / Math.max(1, l);
+        const sp = pl.stats.speed * (pl.buffs.sprintT > 0 ? 1.6 : 1) * (e.inWeb(q.x, q.y) ? WEB_SLOW : 1) / Math.max(1, l);
         q.x += mv.x * sp * dt; q.y += mv.y * sp * dt;
       }
       e.resolve(q, q.r);

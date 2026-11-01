@@ -93,7 +93,8 @@ export interface MapDef {
   zone: [number, number];
 }
 
-export type BossPattern = 'ring' | 'spiral' | 'slam' | 'charge' | 'summon';
+/** Ataques de jefe. Los cinco últimos son propios de cada jefe (escudo, telaraña, tormenta, aliento y salto). */
+export type BossPattern = 'ring' | 'spiral' | 'slam' | 'charge' | 'summon' | 'shield' | 'web' | 'storm' | 'flame' | 'blink';
 export interface EnemyDef {
   id: string;
   name: string;

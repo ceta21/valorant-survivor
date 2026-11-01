@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ equipo */
+  'Cada jefe tiene su ataque propio: el Coloso se cubre con un escudo, la Reina araña lanza telarañas que frenan, el Elemental invoca una tormenta de rayos, el Dragón escupe fuego y el Sabio oscuro salta a tu lado.': 'Every boss has its own attack: the Colossus raises a shield, the Spider Queen throws slowing webs, the Elemental summons a lightning storm, the Dragon breathes fire and the Dark Sage teleports next to you.',
   'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.': 'Gear between runs: bosses drop items (common, rare, epic and legendary); wear up to 3, upgrade them with credits or scrap them.',
   'Equipo': 'Gear',
   'Raro': 'Rare',

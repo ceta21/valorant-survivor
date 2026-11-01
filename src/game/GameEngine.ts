@@ -37,6 +37,8 @@ export interface Enemy {
   hp: number; maxHp: number; r: number; speed: number; dmg: number; flash: number; dead: boolean;
   burnT: number; burnDps: number; slowT: number; slowMul: number; stunT: number; markT: number;
   atkT: number; windup: number; fuse: number; atk: BossAtk | null; phase: number; isBoss: boolean;
+  /** Escudo del Coloso: mientras dura recibe un 75 % menos de daño. */
+  shieldT: number;
   anim: number; suicide: boolean; face: number;
   lx: number; ly: number; stuckT: number; sideT: number; side: number; esc: number; escReset: number;
   /** Solo en el invitado: posición recibida hacia la que se suaviza el movimiento. */
@@ -57,6 +59,9 @@ export interface Proj {
 }
 export interface EProj { x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; color: string; dead: boolean }
 /** Obús de mortero enemigo: vuela desde (ox,oy) y estalla en (x,y) al acabar dur. */
+/** Peligros que dejan los jefes en el suelo: telarañas que frenan y rayos que avisan antes de caer. */
+export interface Hazard { kind: 'web' | 'bolt'; x: number; y: number; r: number; t: number; dur: number; dmg: number; dead: boolean }
+export const WEB_LAND = 0.5, WEB_SLOW = 0.45;
 export interface Shell { x: number; y: number; ox: number; oy: number; t: number; dur: number; r: number; dmg: number; dead: boolean }
 /** Tipo de gema: 0 experiencia, 1 curación, 2 imán, 3 bomba, 4 monedas (v = créditos). */
 export type GemKind = 0 | 1 | 2 | 3 | 4;
@@ -190,6 +195,7 @@ export class GameEngine {
   projs: Proj[] = [];
   eprojs: EProj[] = [];
   shells: Shell[] = [];
+  hazards: Hazard[] = [];
   gems: Gem[] = [];
   /** Objetos de equipo ganados en la partida (los sueltan los jefes). */
   loot: { id: string; rarity: 0 | 1 | 2 | 3 }[] = [];
@@ -373,6 +379,7 @@ export class GameEngine {
     this.updateEnemies(dt);
     this.updateEProjs(dt);
     this.updateShells(dt);
+    this.updateHazards(dt);
     this.updateStrikes(dt);
     this.updatePuddles(dt);
     this.updateGems(dt);
@@ -481,6 +488,7 @@ export class GameEngine {
     } else {
       const ground = this.world.terrainAt(p.x, p.y);
       if (ground === Cell.Water) sp *= WATER_SLOW;   // el agua frena
+      if (this.inWeb(p.x, p.y)) sp *= WEB_SLOW;     // y las telarañas de la Reina araña
       p.x += mx * sp * dt; p.y += my * sp * dt;
     }
     this.resolve(p, p.r);
@@ -701,6 +709,7 @@ export class GameEngine {
     if (e.dead || dmg <= 0) return;
     if (e.markT > 0) dmg *= 1.3;
     if (e.def.armor) dmg *= 1 - e.def.armor;   // escudos y tanques bloquean parte del daño
+    if (e.shieldT > 0) dmg *= 0.25;
     e.hp -= dmg;
     e.flash = 0.09;
     this.damageDealt += dmg;
@@ -749,7 +758,7 @@ export class GameEngine {
     e.id = this.nextId++; e.def = def; e.x = x; e.y = y; e.kx = 0; e.ky = 0;
     e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : 1 + Math.min(0.25, t / 1500)); e.dmg = def.dmg;
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
-    e.atkT = boss ? 2 : rnd(0.5, 2.5); e.windup = 0; e.fuse = 0; e.atk = null; e.phase = 0; e.isBoss = boss;
+    e.atkT = boss ? 2 : rnd(0.5, 2.5); e.windup = 0; e.fuse = 0; e.atk = null; e.phase = 0; e.isBoss = boss; e.shieldT = 0;
     e.anim = rnd(6); e.suicide = false; e.face = 0;
     e.lx = x; e.ly = y; e.stuckT = 0; e.sideT = 0; e.side = Math.random() < 0.5 ? -1 : 1; e.esc = 0; e.escReset = 0;
     this.enemies.push(e);
@@ -1066,12 +1075,14 @@ export class GameEngine {
   private bossLogic(e: Enemy, dt: number, nx: number, ny: number, d: number, sp: number): [number, number] {
     const p = this.player;
     e.phase = e.hp < e.maxHp * 0.5 ? 1 : 0;
+    if (e.shieldT > 0) e.shieldT -= dt;
     if (!e.atk) {
       e.atkT -= dt;
       if (e.atkT <= 0) {
         const pats = e.def.patterns as BossPattern[];
         const kind = pats[(Math.random() * pats.length) | 0];
-        const dur = kind === 'ring' ? 0.7 : kind === 'spiral' ? 2.6 : kind === 'slam' ? (e.phase ? 0.8 : 1.0) : kind === 'charge' ? 1.5 : 0.9;
+        const dur = kind === 'ring' ? 0.7 : kind === 'spiral' ? 2.6 : kind === 'slam' ? (e.phase ? 0.8 : 1.0) : kind === 'charge' ? 1.5
+          : kind === 'shield' ? 0.6 : kind === 'web' ? 1.0 : kind === 'storm' ? 2.4 : kind === 'flame' ? 2.4 : kind === 'blink' ? 1.1 : 0.9;
         e.atk = { kind, t: 0, dur, x: p.x, y: p.y, ang: Math.atan2(p.y - e.y, p.x - e.x), fired: 0 };
         this.sfx('warn', 0.3);
       }
@@ -1129,6 +1140,79 @@ export class GameEngine {
         }
         return [0, 0];
       }
+      case 'shield': {
+        // Coloso: se cubre con un escudo que para casi todo el daño unos segundos
+        if (a.t >= a.dur) {
+          e.shieldT = 4 + e.phase * 1.5;
+          this.addVfx('ring', 'scan', e.x, e.y, e.r + 40, 0.5);
+          this.sfx('warn', 0.2);
+          this.endAtk(e);
+        }
+        return [0, 0];
+      }
+      case 'web': {
+        // Reina araña: lanza telarañas donde estás y alrededor; dentro se anda mucho más lento
+        if (a.t >= 0.5 && a.fired === 0) {
+          a.fired = 1;
+          const n = 3 + e.phase;
+          for (let i = 0; i < n; i++) {
+            const off = i === 0 ? 0 : 110, ang = (i / n) * Math.PI * 2 + rnd(0.5);
+            this.hazards.push({ kind: 'web', x: a.x + Math.cos(ang) * off, y: a.y + Math.sin(ang) * off, r: 70, t: 0, dur: 6, dmg: 0, dead: false });
+          }
+          for (let i = 0; i < 4; i++) this.enemyShot(e.x, e.y, a.ang + (i - 1.5) * 0.35, 200, dm * 0.3, '#e6e9ee', 6);
+          this.sfx('warn', 0.2);
+        }
+        if (a.t >= a.dur) this.endAtk(e);
+        return [0, 0];
+      }
+      case 'storm': {
+        // Elemental: rayos que caen uno tras otro donde estás (aviso de 0,9 s)
+        const n = 5 + e.phase * 2;
+        const total = Math.min(n, Math.floor((a.t - 0.3) / 0.3) + 1);
+        while (a.t >= 0.3 && a.fired < total) {
+          a.fired++;
+          const t = this.nearestPlayer(e.x, e.y).body, ang = rnd(Math.PI * 2), off = a.fired === 1 ? 0 : rnd(20, 70);
+          this.hazards.push({ kind: 'bolt', x: t.x + Math.cos(ang) * off, y: t.y + Math.sin(ang) * off, r: 58, t: 0, dur: 0.9, dmg: dm * 0.6, dead: false });
+        }
+        if (a.t >= a.dur) this.endAtk(e);
+        return [0, 0];
+      }
+      case 'flame': {
+        // Dragón: aliento de fuego en cono que gira despacio hacia ti
+        const want = Math.atan2(p.y - e.y, p.x - e.x);
+        let da = want - a.ang; while (da > Math.PI) da -= Math.PI * 2; while (da < -Math.PI) da += Math.PI * 2;
+        a.ang += Math.max(-dt * (a.t < 0.7 ? 6 : 0.8), Math.min(dt * (a.t < 0.7 ? 6 : 0.8), da));
+        if (a.t >= 0.7) {
+          const L = 270, half = 0.42;
+          if (Math.floor(a.t / 0.15) > a.fired) { a.fired = Math.floor(a.t / 0.15); this.addVfx('cone', 'fire', e.x, e.y, L, 0.3, { ang: a.ang, w: half * 2 }); }
+          for (const pl of this.players) {
+            if (pl.dead) continue;
+            const q = pl.body, dist = Math.hypot(q.x - e.x, q.y - e.y);
+            let d2 = Math.atan2(q.y - e.y, q.x - e.x) - a.ang; while (d2 > Math.PI) d2 -= Math.PI * 2; while (d2 < -Math.PI) d2 += Math.PI * 2;
+            if (dist < L + q.r && Math.abs(d2) < half) { this.use(pl); this.hurtPlayer(dm * 0.4); }
+          }
+          this.use(this.nearestPlayer(e.x, e.y));
+        }
+        if (a.t >= a.dur) this.endAtk(e);
+        return [0, 0];
+      }
+      case 'blink': {
+        // Sabio oscuro: desaparece y reaparece a tu lado soltando un anillo de disparos
+        if (a.t >= 0.6 && a.fired === 0) {
+          a.fired = 1;
+          this.addVfx('blast', 'gravity', e.x, e.y, e.r + 30, 0.4);
+          for (let i = 0; i < 8; i++) {
+            const ang = rnd(Math.PI * 2), x = p.x + Math.cos(ang) * 170, y = p.y + Math.sin(ang) * 170;
+            if (this.world.hit(x, y, e.r)) continue;
+            e.x = x; e.y = y; e.kx = 0; e.ky = 0;
+            break;
+          }
+          this.addVfx('blast', 'gravity', e.x, e.y, e.r + 40, 0.5);
+          this.bossRing(e, 12 + e.phase * 6, rnd(1), 200, dm * 0.45);
+        }
+        if (a.t >= a.dur) this.endAtk(e);
+        return [0, 0];
+      }
     }
     return [0, 0];
   }
@@ -1156,6 +1240,30 @@ export class GameEngine {
       e.atkT -= dt;
       if (e.atkT <= 0 && d < 520) e.windup = 0.45;
     }
+  }
+  /** ¿Está el punto dentro de una telaraña ya posada? */
+  inWeb(x: number, y: number) {
+    for (const h of this.hazards) if (h.kind === 'web' && !h.dead && h.t >= WEB_LAND && Math.hypot(x - h.x, y - h.y) < h.r) return true;
+    return false;
+  }
+  private updateHazards(dt: number) {
+    for (const h of this.hazards) {
+      if (h.dead) continue;
+      h.t += dt;
+      if (h.kind === 'bolt' && h.t >= h.dur) {
+        // el rayo cae donde avisó
+        this.addVfx('blast', 'electric', h.x, h.y, h.r, 0.4);
+        this.addVfx('ray', 'electric', h.x, h.y - 260, 260, 0.3, { ang: Math.PI / 2, w: 16 });
+        this.sparks(h.x, h.y, '#2fe6ff', 10, 260, 0.4);
+        this.sfx('explosion', 0.06);
+        for (const pl of this.players) {
+          if (!pl.dead && Math.hypot(pl.body.x - h.x, pl.body.y - h.y) < h.r + pl.body.r) { this.use(pl); this.hurtPlayer(h.dmg); }
+        }
+        this.damageTurretsIn(h.x, h.y, h.r, h.dmg);
+      }
+      if (h.t >= h.dur) h.dead = true;
+    }
+    if (this.hazards.some(h => h.dead)) this.hazards = this.hazards.filter(h => !h.dead);
   }
   private updateShells(dt: number) {
     for (const s of this.shells) {

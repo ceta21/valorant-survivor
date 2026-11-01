@@ -177,12 +177,12 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `sanador_n` | Sanador | healer | 22 | 55 | 4 | 11 | 3 | 130 | 1.6 | — |
 | `sanador_e` | Sanador élite | healer | 40 | 58 | 5 | 13 | 5.4 | 130 | 1.6 | — |
 | `sanador_l` | Sanador legendario | healer | 66 | 61 | 6 | 15 | 9 | 130 | 1.6 | — |
-| `coloso` | Coloso mecánico | boss | 1500 | 50 | 24 | 36 | 120 | 150 | 0 | ring, slam |
-| `reina` | Reina araña | boss | 1500 | 60 | 22 | 36 | 120 | 150 | 0 | summon, slam, charge |
-| `elemental` | Elemental de energía | boss | 1700 | 48 | 24 | 38 | 120 | 150 | 0 | spiral, ring, slam |
-| `dragon` | Dragón cibernético | boss | 1600 | 56 | 26 | 40 | 120 | 150 | 0 | spiral, charge, summon |
-| `sabio` | Sabio oscuro | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | ring, summon, charge, spiral |
-| `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 540 | 0 | spiral, charge, summon, ring, slam |
+| `coloso` | Coloso mecánico | boss | 1500 | 50 | 24 | 36 | 120 | 150 | 0 | ring, slam, shield |
+| `reina` | Reina araña | boss | 1500 | 60 | 22 | 36 | 120 | 150 | 0 | summon, web, charge, web |
+| `elemental` | Elemental de energía | boss | 1700 | 48 | 24 | 38 | 120 | 150 | 0 | spiral, ring, storm, storm |
+| `dragon` | Dragón cibernético | boss | 1600 | 56 | 26 | 40 | 120 | 150 | 0 | flame, charge, summon, flame |
+| `sabio` | Sabio oscuro | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | ring, summon, blink, spiral, blink |
+| `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 540 | 0 | spiral, charge, summon, flame, storm, flame |
 
 Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `asesino`, `volador`, `sanador`. Los élites salen por calendario (desde el segundo 200).
 

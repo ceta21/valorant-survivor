@@ -20,6 +20,7 @@ export const NEWS: NewsEntry[] = [
       'Sube de nivel, aprende poderes nuevos y hazlos evolucionar; rompe cajas para conseguir premios.',
       'Bots de la grieta: 8 tipos (soldados, arañas, flotantes, torretas, escudos, asesinos, drones voladores y sanadores) en 3 niveles, más duros cuanto más peligrosa la zona y cuanto más aguantas.',
       'Cada zona tiene su jefe: Coloso mecánico, Reina araña, Elemental de energía y Dragón cibernético; y cuidado con el Sabio oscuro.',
+      'Cada jefe tiene su ataque propio: el Coloso se cubre con un escudo, la Reina araña lanza telarañas que frenan, el Elemental invoca una tormenta de rayos, el Dragón escupe fuego y el Sabio oscuro salta a tu lado.',
       'Los bots y los jefes se mueven de verdad: andan, se giran y se ven de frente, de espaldas y de perfil.',
       'Evoluciones combinadas: lleva un poder al nivel 5 y consigue su mejora pareja para desbloquear su versión legendaria.',
       'Equipo entre partidas: los jefes sueltan objetos (común, raro, épico y legendario); lleva hasta 3 puestos, mejóralos con créditos o desmóntalos.',

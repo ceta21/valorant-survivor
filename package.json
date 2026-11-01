@@ -23,7 +23,8 @@
     "test:crates": "tsx scripts/crate-test.ts",
     "test:kinds": "tsx scripts/ability-test.ts",
     "test:evo": "tsx scripts/evo-test.ts",
-    "test:gear": "tsx scripts/gear-test.ts"
+    "test:gear": "tsx scripts/gear-test.ts",
+    "test:bosses": "tsx scripts/boss-test.ts"
   },
   "keywords": [],
   "author": "",
