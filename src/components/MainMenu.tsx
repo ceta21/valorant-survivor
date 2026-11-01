@@ -9,6 +9,7 @@ import { hasDailyReward } from '../data/daily';
 import { MenuHub } from './MenuHub';
 import { t, nf } from '../i18n';
 import { KeyMap, keyLabel } from '../game/controls';
+import { InstallButton } from './InstallButton';
 
 type Screen = 'menu' | 'agents' | 'meta' | 'stats' | 'settings' | 'ranking' | 'market' | 'news' | 'coop' | 'support' | 'daily' | 'shop' | 'pets' | 'gear';
 
@@ -60,6 +61,8 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
           <button className="btn" onClick={click('news')} onMouseEnter={hover}><b><Emo e="📰" />{t('Novedades')}{save.newsSeen !== LATEST_NEWS && <i className="news-badge">!</i>}</b></button>
           <button className="btn" onClick={click('stats')} onMouseEnter={hover}><b><Emo e="📊" />{t('Estadísticas')}</b></button>
           <button className="btn" onClick={click('settings')} onMouseEnter={hover}><b><Emo e="⚙️" />{t('Configuración')}</b></button>
+          {/* Descargar comparte fila con Configuración; ya instalado como app no sale */}
+          <InstallButton onHover={hover} />
           <button className="btn btn-support wide" onClick={click('support')} onMouseEnter={hover}><b><Emo e="💚" />{t('Apoyo')}</b></button>
         </nav>
         <p className="hint">{t('{move} / flechas: moverse · {abil}: habilidades · Esc: pausa', { move, abil: [keys.special, keys.secondary, keys.ultimate].map(keyLabel).join(' / ') })}</p>

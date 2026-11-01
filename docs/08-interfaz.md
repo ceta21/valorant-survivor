@@ -8,7 +8,7 @@
 | Pantalla | Componente | Qué hay |
 |---|---|---|
 | Acceso | `AuthScreen` | Iniciar sesión, registrarse, jugar como invitado |
-| Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar, Jugar en pareja y Apoyo a todo el ancho; el resto en dos columnas), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
+| Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar y Jugar en pareja a todo el ancho; el resto en dos columnas; Configuración comparte fila con **Descargar** (`InstallButton`), que instala el juego como app con un clic donde el navegador lo permite (`utils/install.ts`, evento `beforeinstallprompt`) y, si no (iPhone, Firefox, Safari en Mac), enseña los pasos; ya instalado, Descargar no sale; Apoyo a todo el ancho), panel central (novedad, mercado, top 3, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
 | Tienda | `ShopScreen` | Pestañas de estilos de héroes (con selector del héroe en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
 | Equipo | `GearScreen` | 3 huecos con lo puesto e inventario ordenado por rareza: equipar/quitar, mejorar con créditos y desmontar |
