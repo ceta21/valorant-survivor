@@ -97,5 +97,8 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
   (lo lee `Input.poll()` cada fotograma). Fuera de la partida (menús, mejoras, pausa, resultado) la cruceta o el
   stick mueven el foco al botón más cercano en esa dirección, A lo pulsa y B vuelve (botón «Volver» o Escape); si
   hay una ventana encima (`role="dialog"`), solo se mueve por sus botones.
+- **Viveza del color** (Configuración, se guarda en el dispositivo; por defecto 50 %): filtro CSS sobre el lienzo de la
+  partida (`vividFilter`: saturación ×1 a ×1,6 y contraste ×1 a ×1,08). Aviva a la vez mapa, héroes, enemigos y
+  efectos sin tocar los dibujos; 0 % deja los colores originales.
 - **Calidad baja** (Configuración, se guarda en el dispositivo): sin animaciones del mapa ni polvo ambiental y la
   mitad de chispas, para móviles o PCs lentos.

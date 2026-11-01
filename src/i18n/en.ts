@@ -522,6 +522,8 @@ export const EN: Record<string, string> = {
   'Entra 30 días seguidos': 'Log in 30 days in a row',
   /* ------------------------------------------------------------------ app instalable */
   'Juega con mando (Xbox, PlayStation o compatible): stick para moverte, A/X/Y para las habilidades y la cruceta para los menús; y opción de calidad baja para móviles o PCs lentos.': 'Play with a controller (Xbox, PlayStation or compatible): stick to move, A/X/Y for abilities and the D-pad for menus; plus a low quality option for phones or slow PCs.',
+  'Viveza del color': 'Color vibrance',
+  'Colores más vivos en la partida, y en Configuración puedes ajustar la viveza del color a tu gusto.': 'More vivid colors in game, and in Settings you can adjust color vibrance to your liking.',
   'Calidad baja (menos efectos, para móviles o PCs lentos)': 'Low quality (fewer effects, for phones or slow PCs)',
   'Apunta tu contraseña: como no se pide correo, no se puede recuperar.': 'Write down your password: since no email is requested, it cannot be recovered.',
   'Descargar': 'Download',

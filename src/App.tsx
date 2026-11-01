@@ -266,7 +266,7 @@ export default function App() {
       {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} goPets={() => go('pets')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} keys={prefs.keys} low={prefs.low} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} keys={prefs.keys} low={prefs.low} vivid={prefs.vivid} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
       )}

@@ -572,3 +572,5 @@ body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-o
 .rank-tabs { display: flex; gap: 8px; margin-bottom: 10px; } .rank-tabs .map-chip { flex: 0 0 auto; }
 .rank-sunday { color: #ffe9a0; }
 .medals { font-style: normal; margin-left: 8px; display: inline-flex; gap: 4px; }
+
+.vivid-val { min-width: 48px; text-align: right; color: var(--mute); }

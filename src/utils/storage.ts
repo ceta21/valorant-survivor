@@ -128,15 +128,20 @@ export function clearLegacySave(): void {
 /* ------------------------------------------------------------------ preferencias del dispositivo */
 // Idioma y controles se guardan en este navegador (también en modo invitado y antes de entrar).
 
-export interface Prefs { lang: Lang; keys: KeyMap; /** Calidad baja: menos efectos para móviles o PCs lentos. */ low: boolean }
+/** Viveza del color por defecto (colores algo más vivos que los dibujos originales). */
+export const VIVID_DEFAULT = 0.5;
+/** Filtro CSS de la partida para una viveza (0-1): más saturación y un poco más de contraste. */
+export const vividFilter = (v: number) => (v <= 0 ? 'none' : `saturate(${(1 + v * 0.6).toFixed(2)}) contrast(${(1 + v * 0.08).toFixed(3)})`);
+export interface Prefs { lang: Lang; keys: KeyMap; /** Calidad baja: menos efectos para móviles o PCs lentos. */ low: boolean;
+  /** Viveza del color de la partida (0 = colores originales, 1 = muy vivos). */ vivid: number }
 const PREFS = 'valorant-survivors-prefs-v1';
 
 export function loadPrefs(): Prefs {
   try {
     const p = JSON.parse(localStorage.getItem(PREFS) || '{}');
-    return { lang: p.lang === 'en' || p.lang === 'es' ? p.lang : browserLang(), keys: normalizeKeys(p.keys), low: p.low === true };
+    return { lang: p.lang === 'en' || p.lang === 'es' ? p.lang : browserLang(), keys: normalizeKeys(p.keys), low: p.low === true, vivid: typeof p.vivid === 'number' ? Math.max(0, Math.min(1, p.vivid)) : VIVID_DEFAULT };
   } catch {
-    return { lang: browserLang(), keys: normalizeKeys(), low: false };
+    return { lang: browserLang(), keys: normalizeKeys(), low: false, vivid: VIVID_DEFAULT };
   }
 }
 export function savePrefs(p: Prefs): void {

@@ -1,3 +1,4 @@
+import { VIVID_DEFAULT, vividFilter } from '../utils/storage';
 import { ACHIEVEMENTS } from '../data/goals';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, GEAR_RARITY_NAMES } from '../data/gear';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -31,6 +32,8 @@ interface Props {
   looks?: Looks;
   /** Calidad baja (preferencia del dispositivo): menos efectos. */
   low?: boolean;
+  /** Viveza del color (0-1, preferencia del dispositivo). */
+  vivid?: number;
   /** Ventajas del equipo que lleva el héroe. */
   gear?: Partial<Stats>;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
@@ -75,7 +78,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ low = false, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
+export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -279,7 +282,7 @@ export function GameScreen({ low = false, agent, map, difficulty, meta, settings
 
   return (
     <div className="game" ref={wrap}>
-      <canvas ref={canvasRef} className="game-canvas" />
+      <canvas ref={canvasRef} className="game-canvas" style={{ filter: vividFilter(vivid) }} />
       {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} onMap={toggleMap} />}
       {!coop && !settings.tutorialDone && engine && hud && !result && (
         <Coach engine={engine} keys={keys} touch={matchMedia('(pointer: coarse)').matches} finish={() => changeSettings({ tutorialDone: true })} />
