@@ -58,6 +58,8 @@ Notas:
 1. Guardar la imagen en `art/<id>.png` (fondo liso). Si varios personajes salen de la misma hoja (como
    `art/heroes.png`), poner `"src": "heroes"` en su entrada de `art/frames.json`.
 2. `npx tsx scripts/cut-agent.ts <id> --find` lista dónde está cada fotograma.
+   (Los **enemigos** salen de `art/enemigos.png` con `npx tsx scripts/cut-enemies.ts`: quita el fondo, descarta motas,
+   los reduce y deja `shots/enemigos-recortados.png` para revisarlos.)
 3. Apuntar en `art/frames.json` el centro de los fotogramas elegidos: `front`, `back` y `side` (de lado
    mirando a la **derecha**). Opcional: `tol` (tolerancia del fondo si tiene textura, p. ej. 30) y `erase`
    (rectángulos por fotograma para quitar un arma dibujada: `"c"` la borra y reperfila, `"f"`/`"F"` rellena

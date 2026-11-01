@@ -25,9 +25,52 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   mortar: { id: 'mortar', name: 'Artillero', hp: 26, speed: 48, dmg: 16, r: 12, xp: 2.8, color: '#ffd24a', shape: 'diamond', behavior: 'mortar', minTime: 120, weight: 2.4 },
 };
-export const SPAWNABLE = ['grunt', 'runner', 'tank', 'shooter', 'exploder', 'mortar'];
-export const BOSS_SCHEDULE: { time: number; id: string }[] = [
-  { time: 150, id: 'boss1' }, { time: 300, id: 'boss2' }, { time: 450, id: 'boss3' }, { time: 540, id: 'final' },
+
+/* ------------------------------------------------------------------ bots de la grieta (art/enemigos.png) */
+/** 8 tipos de bot en 3 niveles: normal (n), élite (e) y legendario (l). El nivel depende de la zona y del tiempo. */
+export const BOT_KINDS = ['soldado', 'arana', 'flotante', 'torreta', 'escudo', 'asesino', 'volador', 'sanador'];
+export const TIERS = ['n', 'e', 'l'];
+const TIER_NAME = ['', ' élite', ' legendario'];
+const TIER_MUL = { hp: [1, 1.8, 3], dmg: [1, 1.3, 1.6], xp: [1, 1.8, 3], speed: [1, 1.05, 1.1], r: [0, 2, 4] };
+type Base = Omit<EnemyDef, 'id' | 'name' | 'shape' | 'kind' | 'tier' | 'art'> & { name: string[] };
+const BOTS: Record<string, Base> = {
+  soldado:  { name: ['Dron soldado', 'Soldado élite', 'Soldado legendario'], hp: 16, speed: 56, dmg: 7, r: 11, xp: 2, color: '#ff4655', behavior: 'shooter', minTime: 30, weight: 4 },
+  arana:    { name: ['Dron araña', 'Araña élite', 'Araña legendaria'], hp: 14, speed: 70, dmg: 6, r: 11, xp: 1, color: '#ff4655', behavior: 'chase', minTime: 0, weight: 10 },
+  flotante: { name: ['Dron flotante', 'Flotante élite', 'Flotante legendario'], hp: 12, speed: 60, dmg: 6, r: 10, xp: 2, color: '#c070ff', behavior: 'shooter', shots: 3, minTime: 70, weight: 3 },
+  torreta:  { name: ['Torreta', 'Lanzacohetes', 'Lanzacohetes legendario'], hp: 30, speed: 40, dmg: 15, r: 13, xp: 3, color: '#ffd24a', behavior: 'mortar', minTime: 110, weight: 2.2 },
+  escudo:   { name: ['Escudo', 'Tanque', 'Tanque legendario'], hp: 90, speed: 42, dmg: 13, r: 16, xp: 5, color: '#9aa4b4', behavior: 'chase', armor: 0.3, minTime: 100, weight: 2.5 },
+  asesino:  { name: ['Asesino', 'Asesino élite', 'Asesino legendario'], hp: 10, speed: 120, dmg: 8, r: 10, xp: 1.5, color: '#b05cff', behavior: 'chase', minTime: 50, weight: 5 },
+  volador:  { name: ['Dron volador', 'Dron volador élite', 'Dron volador legendario'], hp: 12, speed: 95, dmg: 6, r: 10, xp: 2, color: '#ff3d81', behavior: 'shooter', minTime: 90, weight: 3 },
+  sanador:  { name: ['Sanador', 'Sanador élite', 'Sanador legendario'], hp: 22, speed: 55, dmg: 4, r: 11, xp: 3, color: '#4fd0ff', behavior: 'healer', minTime: 130, weight: 1.6 },
+};
+for (const k of BOT_KINDS) TIERS.forEach((tc, tier) => {
+  const b = BOTS[k], id = `${k}_${tc}`;
+  ENEMIES[id] = {
+    ...b, id, name: b.name[tier], shape: 'circle', kind: k, tier, art: id,
+    hp: Math.round(b.hp * TIER_MUL.hp[tier]), dmg: Math.round(b.dmg * TIER_MUL.dmg[tier]), xp: +(b.xp * TIER_MUL.xp[tier]).toFixed(1),
+    speed: Math.round(b.speed * TIER_MUL.speed[tier]), r: b.r + TIER_MUL.r[tier], armor: b.armor ? Math.min(0.6, b.armor + tier * 0.1) : undefined,
+  };
+});
+/** Nivel de los bots con el que empieza cada zona; con el tiempo suben uno (ver tierFor en el motor). */
+export const ZONE_TIER: Record<string, number> = { reino: 0, glaciar: 1, ciudad: 1, infierno: 2 };
+
+/* ------------------------------------------------------------------ jefes de la grieta */
+Object.assign(ENEMIES, {
+  coloso: { id: 'coloso', name: 'Coloso mecánico', hp: 1500, speed: 50, dmg: 24, r: 36, xp: 120, color: '#ff4655', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['ring', 'slam'], art: 'coloso' },
+  reina: { id: 'reina', name: 'Reina araña', hp: 1500, speed: 60, dmg: 22, r: 36, xp: 120, color: '#ff4a3a', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['summon', 'slam', 'charge'], art: 'reina' },
+  elemental: { id: 'elemental', name: 'Elemental de energía', hp: 1700, speed: 48, dmg: 24, r: 38, xp: 120, color: '#2fe6ff', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'ring', 'slam'], art: 'elemental' },
+  dragon: { id: 'dragon', name: 'Dragón cibernético', hp: 1600, speed: 56, dmg: 26, r: 40, xp: 120, color: '#d946ef', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'charge', 'summon'], art: 'dragon' },
+  sabio: { id: 'sabio', name: 'Sabio oscuro', hp: 3600, speed: 58, dmg: 28, r: 38, xp: 220, color: '#9b5cff', shape: 'boss', behavior: 'boss', minTime: 300, weight: 0, patterns: ['ring', 'summon', 'charge', 'spiral'], art: 'sabio' },
+  dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'ring', 'slam'], art: 'dragon', final: true },
+} as Record<string, EnemyDef>);
+/** Jefe propio de cada zona (sale al 2:30 y, más fuerte, al 7:30). */
+export const ZONE_BOSS: Record<string, string> = { reino: 'coloso', ciudad: 'reina', glaciar: 'elemental', infierno: 'dragon' };
+
+/** Tipos que salen en el flujo normal (los antiguos robots ya no salen; siguen en ENEMIES por el cooperativo). */
+export const SPAWNABLE = BOT_KINDS;
+/** Jefes: 'zona' = el jefe de la zona donde estás (hp × hpMul); al final, el Dragón cibernético. */
+export const BOSS_SCHEDULE: { time: number; id: string; hpMul?: number }[] = [
+  { time: 150, id: 'zona' }, { time: 300, id: 'sabio' }, { time: 450, id: 'zona', hpMul: 4.5 }, { time: 540, id: 'dragon_final' },
 ];
 export const WAVE_TIMES = [100, 190, 260, 345, 420, 490];
 /** Momento en que aparece el jefe final; a partir de ahí empieza el modo infinito. */
@@ -35,5 +78,5 @@ export const FINAL_TIME = 540;
 /** Modo infinito: segundos entre jefes al empezar y como mínimo (antes de aplicar la dificultad). */
 export const ENDLESS_BOSS_START = 45;
 export const ENDLESS_BOSS_MIN = 14;
-export const ENDLESS_BOSSES = ['boss1', 'boss2', 'boss3', 'final'];
+export const ENDLESS_BOSSES = ['zona', 'sabio', 'zona', 'dragon_final'];
 export const ENDLESS_MAX_BOSSES = 6;

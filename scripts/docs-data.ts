@@ -60,7 +60,7 @@ out.push(`\nAparecen de forma normal: ${SPAWNABLE.map(s => `\`${s}\``).join(', '
 out.push(`## Calendario de la partida\n`);
 out.push(table(['Segundo', 'Evento'], [
   ...WAVE_TIMES.map(t => [t, 'Oleada intensa (anillo de enemigos alrededor del jugador)']),
-  ...BOSS_SCHEDULE.map(b => [b.time, `Jefe: ${ENEMIES[b.id].name}`]),
+  ...BOSS_SCHEDULE.map(b => [b.time, b.id === 'zona' ? `Jefe de la zona${b.hpMul ? ` (vida ×${b.hpMul})` : ''}` : `Jefe: ${ENEMIES[b.id].name}`]),
 ].sort((a, b) => (a[0] as number) - (b[0] as number))));
 out.push(`\n- Jefe final a los ${FINAL_TIME} s; desde ahí empieza el **modo infinito**.
 - Modo infinito: jefes al azar entre ${ENDLESS_BOSSES.join(', ')}; el primero a los ${FINAL_TIME} + ${ENDLESS_BOSS_START} × dificultad s; el intervalo baja de ${ENDLESS_BOSS_START} s hasta un mínimo de ${ENDLESS_BOSS_MIN} s (× multiplicador de la dificultad); máximo ${ENDLESS_MAX_BOSSES} jefes vivos.

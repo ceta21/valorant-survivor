@@ -11,7 +11,7 @@ function setup(agent: string) {
   const e = new GameEngine(AGENT_BY_ID[agent], MAP_BY_ID.reino, meta, noop);
   e.player.invuln = 1e9; e.weapons.length = 0; e.enemies.length = 0; e.crates.length = 0;
   const { x, y } = e.player;
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, d = 80 + (i % 3) * 60; e.spawnEnemy('tank', x + Math.cos(a) * d, y + Math.sin(a) * d); }
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, d = 80 + (i % 3) * 60; e.spawnEnemy('escudo_n', x + Math.cos(a) * d, y + Math.sin(a) * d); }
   for (const m of e.enemies) { m.speed = 0; m.maxHp = m.hp = 1e5; }
   return e;
 }

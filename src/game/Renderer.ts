@@ -3,6 +3,8 @@ import { MapDef } from './types';
 import { POWERS } from '../data/powers';
 import { spriteCanvas, spriteSize, preloadAgentSheets, agentSkin, IDLE, WALK, RUN, CAST, Pose, Dir } from './sprites';
 import { renderChunk, treeSprite, CPX, U } from './MapArt';
+import { enemyArt, enemyFlash } from './enemyArt';
+import { botSprite, hasBotSprite } from './botSprites';
 import { Cell, CN, hash2 } from './World';
 import { CS } from './World';
 import { petCanvas, PW, PH } from './petSprites';
@@ -789,6 +791,35 @@ export class Renderer {
     const flash = en.flash > 0;
     g.fillStyle = 'rgba(0,0,0,0.14)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 1.35, r * 0.55, 0, 0, 7); g.fill();
     g.fillStyle = 'rgba(0,0,0,0.32)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 0.9, r * 0.32, 0, 0, 7); g.fill();
+    // bots y jefes de la grieta dibujados por código: de frente, de espaldas o de perfil según hacia dónde van,
+    // 4 pasos al andar, blancos al recibir un golpe y grises aturdidos
+    const botKind = d.kind ?? (d.art && hasBotSprite(d.art) ? d.art : '');
+    if (botKind && hasBotSprite(botKind)) {
+      const stunned = en.stunT > 0, s = Math.sin(en.face), c = Math.cos(en.face);
+      const dir = s > 0.55 ? 'front' : s < -0.55 ? 'back' : 'side';
+      const frame = stunned ? 0 : Math.floor(en.anim * (en.isBoss ? 5 : 8)) % 4;
+      const img = botSprite(botKind, d.tier ?? 0, dir, frame, en.flash > 0 ? 'hit' : stunned ? 'stun' : 'n', this.makeCanvas);
+      const k = Math.max(1, Math.round(((r * (en.isBoss ? 3.6 : 2.7)) / (img.height * PX)) * 2) / 2), w = img.width * PX * k, h = img.height * PX * k;
+      const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h) / PX) * PX;
+      g.save(); g.imageSmoothingEnabled = false;
+      if (dir === 'side' && c < 0) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, left, top, w, h);
+      g.restore();
+    } else
+    // bots y jefes de la grieta: su dibujo recortado, balanceándose al andar, en blanco al recibir un golpe y gris aturdido
+    {
+    const pic = d.art ? enemyArt(d.art) : null;
+    if (pic) {
+      const stunned = en.stunT > 0, step = stunned ? 0 : Math.sin(en.anim * (en.isBoss ? 4 : 9));
+      const sc = PX * (en.isBoss ? Math.max(1, r / 34) : Math.max(1, r / 13)), w = pic.width * sc, h = pic.height * sc;
+      const lift = Math.round(Math.abs(step) * 2) * PX * (d.behavior === 'shooter' && d.kind === 'volador' ? 2 : 1);
+      const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h - lift) / PX) * PX;
+      g.save();
+      g.imageSmoothingEnabled = false;
+      if (stunned) g.filter = 'grayscale(1)';
+      const flip = Math.cos(en.face) < 0, img = en.flash > 0 ? enemyFlash(d.art!, pic, this.makeCanvas) : pic;
+      if (flip) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, left, top, w, h);
+      g.restore();
+    } else {
     // robot pixel-art: anda (2 fotogramas), mira hacia su objetivo, blanco al recibir golpe, gris aturdido
     const kind = enemyKind(d.id);
     const stunned = en.stunT > 0;
@@ -807,6 +838,8 @@ export class Renderer {
     if (Math.cos(en.face) < 0) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); }
     else g.drawImage(img, left, top, w, h);
     g.restore();
+    }
+    }
     if (en.windup > 0) pixelCircle(g, x, y, r + 6, '#ffffff', PX, 1, e.time * 6);   // aviso de disparo
     if (en.markT > 0) {
       // retícula de marcado: cuatro esquinas en píxeles

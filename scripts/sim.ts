@@ -47,10 +47,10 @@ function runBot(agentId: string, mapId: string, skill: number, seed = 0) {
 }
 
 const t0 = Date.now();
-const which = process.argv[2];
+const which = process.argv[2], zoneArg = process.argv[3];
 const list = which ? AGENTS.filter(a => a.id === which) : AGENTS;
 for (const a of list) {
-  const r = runBot(a.id, MAPS[Math.floor(Math.random() * 3)].id, 1);
+  const r = runBot(a.id, zoneArg ?? MAPS[Math.floor(Math.random() * MAPS.length)].id, 1);
   console.log(JSON.stringify(r));
 }
 console.log('ms', Date.now() - t0);

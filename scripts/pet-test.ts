@@ -38,7 +38,7 @@ for (const def of PETS) {
   const e = new GameEngine(AGENT_BY_ID.zephyr, MAPS[0], meta, noop, undefined, undefined, { pet: def.id, petLv: 3 });
   e.setView(1100, 640);
   const p = e.player;
-  for (let i = 0; i < 12; i++) e.spawnEnemy('tank', p.x + 160 + (i % 4) * 30, p.y - 60 + Math.floor(i / 4) * 40);
+  for (let i = 0; i < 12; i++) e.spawnEnemy('escudo_n', p.x + 160 + (i % 4) * 30, p.y - 60 + Math.floor(i / 4) * 40);
   // su ataque se reconoce por el aspecto: llama, rayo u hojas, o la explosión de agua o hielo
   let seen = false;
   for (let i = 0; i < 60 * 4; i++) {

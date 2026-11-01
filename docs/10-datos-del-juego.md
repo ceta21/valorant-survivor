@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-10-31 · versión de Novedades: v2.0
+> Última generación: 2026-11-01 · versión de Novedades: v2.0
 
 ## Héroes base
 
@@ -153,26 +153,56 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `boss3` | Titán | boss | 7000 | 54 | 32 | 44 | 360 | 450 | 0 | spiral, slam, charge, summon |
 | `final` | Cabecilla del Protocolo | boss | 13000 | 60 | 36 | 52 | 1000 | 540 | 0 | ring, spiral, slam, charge, summon |
 | `mortar` | Artillero | mortar | 26 | 48 | 16 | 12 | 2.8 | 120 | 2.4 | — |
+| `soldado_n` | Dron soldado | shooter | 16 | 56 | 7 | 11 | 2 | 30 | 4 | — |
+| `soldado_e` | Soldado élite | shooter | 29 | 59 | 9 | 13 | 3.6 | 30 | 4 | — |
+| `soldado_l` | Soldado legendario | shooter | 48 | 62 | 11 | 15 | 6 | 30 | 4 | — |
+| `arana_n` | Dron araña | chase | 14 | 70 | 6 | 11 | 1 | 0 | 10 | — |
+| `arana_e` | Araña élite | chase | 25 | 74 | 8 | 13 | 1.8 | 0 | 10 | — |
+| `arana_l` | Araña legendaria | chase | 42 | 77 | 10 | 15 | 3 | 0 | 10 | — |
+| `flotante_n` | Dron flotante | shooter | 12 | 60 | 6 | 10 | 2 | 70 | 3 | — |
+| `flotante_e` | Flotante élite | shooter | 22 | 63 | 8 | 12 | 3.6 | 70 | 3 | — |
+| `flotante_l` | Flotante legendario | shooter | 36 | 66 | 10 | 14 | 6 | 70 | 3 | — |
+| `torreta_n` | Torreta | mortar | 30 | 40 | 15 | 13 | 3 | 110 | 2.2 | — |
+| `torreta_e` | Lanzacohetes | mortar | 54 | 42 | 20 | 15 | 5.4 | 110 | 2.2 | — |
+| `torreta_l` | Lanzacohetes legendario | mortar | 90 | 44 | 24 | 17 | 9 | 110 | 2.2 | — |
+| `escudo_n` | Escudo | chase | 90 | 42 | 13 | 16 | 5 | 100 | 2.5 | — |
+| `escudo_e` | Tanque | chase | 162 | 44 | 17 | 18 | 9 | 100 | 2.5 | — |
+| `escudo_l` | Tanque legendario | chase | 270 | 46 | 21 | 20 | 15 | 100 | 2.5 | — |
+| `asesino_n` | Asesino | chase | 10 | 120 | 8 | 10 | 1.5 | 50 | 5 | — |
+| `asesino_e` | Asesino élite | chase | 18 | 126 | 10 | 12 | 2.7 | 50 | 5 | — |
+| `asesino_l` | Asesino legendario | chase | 30 | 132 | 13 | 14 | 4.5 | 50 | 5 | — |
+| `volador_n` | Dron volador | shooter | 12 | 95 | 6 | 10 | 2 | 90 | 3 | — |
+| `volador_e` | Dron volador élite | shooter | 22 | 100 | 8 | 12 | 3.6 | 90 | 3 | — |
+| `volador_l` | Dron volador legendario | shooter | 36 | 105 | 10 | 14 | 6 | 90 | 3 | — |
+| `sanador_n` | Sanador | healer | 22 | 55 | 4 | 11 | 3 | 130 | 1.6 | — |
+| `sanador_e` | Sanador élite | healer | 40 | 58 | 5 | 13 | 5.4 | 130 | 1.6 | — |
+| `sanador_l` | Sanador legendario | healer | 66 | 61 | 6 | 15 | 9 | 130 | 1.6 | — |
+| `coloso` | Coloso mecánico | boss | 1500 | 50 | 24 | 36 | 120 | 150 | 0 | ring, slam |
+| `reina` | Reina araña | boss | 1500 | 60 | 22 | 36 | 120 | 150 | 0 | summon, slam, charge |
+| `elemental` | Elemental de energía | boss | 1700 | 48 | 24 | 38 | 120 | 150 | 0 | spiral, ring, slam |
+| `dragon` | Dragón cibernético | boss | 1600 | 56 | 26 | 40 | 120 | 150 | 0 | spiral, charge, summon |
+| `sabio` | Sabio oscuro | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | ring, summon, charge, spiral |
+| `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 540 | 0 | spiral, charge, summon, ring, slam |
 
-Aparecen de forma normal: `grunt`, `runner`, `tank`, `shooter`, `exploder`, `mortar`. Los élites salen por calendario (desde el segundo 200).
+Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `asesino`, `volador`, `sanador`. Los élites salen por calendario (desde el segundo 200).
 
 ## Calendario de la partida
 
 | Segundo | Evento |
 |---|---|
 | 100 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 150 | Jefe: Centinela |
+| 150 | Jefe de la zona |
 | 190 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 260 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 300 | Jefe: Cazador |
+| 300 | Jefe: Sabio oscuro |
 | 345 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 420 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 450 | Jefe: Titán |
+| 450 | Jefe de la zona (vida ×4.5) |
 | 490 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 540 | Jefe: Cabecilla del Protocolo |
+| 540 | Jefe: Dragón cibernético |
 
 - Jefe final a los 540 s; desde ahí empieza el **modo infinito**.
-- Modo infinito: jefes al azar entre boss1, boss2, boss3, final; el primero a los 540 + 45 × dificultad s; el intervalo baja de 45 s hasta un mínimo de 14 s (× multiplicador de la dificultad); máximo 6 jefes vivos.
+- Modo infinito: jefes al azar entre zona, sabio, zona, dragon_final; el primero a los 540 + 45 × dificultad s; el intervalo baja de 45 s hasta un mínimo de 14 s (× multiplicador de la dificultad); máximo 6 jefes vivos.
 
 ## Dificultades
 

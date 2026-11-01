@@ -43,7 +43,7 @@ const pick = (e: GameEngine, kind: Gem['kind'], v: number) => { e.gems.push({ x:
   ok(e.gems.filter(g => g.kind === 0).every(g => g.mag), 'imán: atrae todas las gemas de experiencia');
   const before = e.resultFor(0).credits; pick(e, 4, 20);
   ok(e.resultFor(0).credits === before + 20, 'monedas: suman créditos al resultado');
-  e.spawnEnemy('grunt', e.player.x + 200, e.player.y);
+  e.spawnEnemy('arana_n', e.player.x + 200, e.player.y);
   const n = e.enemies.filter(m => !m.dead).length; pick(e, 3, 0);
   ok(n > 0 && e.enemies.filter(m => !m.dead).length === 0, 'bomba: barre a los enemigos cercanos');
 }
@@ -69,7 +69,7 @@ const pick = (e: GameEngine, kind: Gem['kind'], v: number) => { e.gems.push({ x:
   e.enemies.length = 0; e.crates.length = 0;
   const { x, y } = e.player;
   e.crates.push({ id: 88, x: x + 120, y, hp: 1e6, max: 1e6, flash: 0, dead: false });
-  e.spawnEnemy('grunt', x - 300, y);
+  e.spawnEnemy('arana_n', x - 300, y);
   e.projs.length = 0; e.update(1 / 60); for (let i = 0; i < 40 && !e.projs.length; i++) e.update(1 / 60);
   ok(e.projs.length > 0 && e.projs[0].vx > 0, 'caja más cerca que el enemigo: dispara a la caja');
   e.crates[0].x = x + 380; e.enemies.forEach(m => { m.x = x - 100; m.y = y; });

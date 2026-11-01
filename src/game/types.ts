@@ -104,10 +104,20 @@ export interface EnemyDef {
   xp: number;
   color: string;
   shape: 'circle' | 'tri' | 'square' | 'diamond' | 'spike' | 'hex' | 'boss';
-  behavior: 'chase' | 'shooter' | 'mortar' | 'exploder' | 'elite' | 'boss';
+  behavior: 'chase' | 'shooter' | 'mortar' | 'exploder' | 'elite' | 'boss' | 'healer';
   minTime: number;
   weight: number;
   patterns?: BossPattern[];
+  /** Dibujo recortado de art/enemigos.png (public/enemies/<art>.png); si no, el robot dibujado por código. */
+  art?: string;
+  /** Tipo de bot y nivel (0 normal, 1 élite, 2 legendario). */
+  kind?: string; tier?: number;
+  /** Disparos por ráfaga (tiradores). */
+  shots?: number;
+  /** Fracción del daño que bloquea (escudos y tanques). */
+  armor?: number;
+  /** Jefe final: al derrotarlo se gana la partida. */
+  final?: boolean;
 }
 
 /** Aspecto de un proyectil ('' = estela de luz del color del poder). */

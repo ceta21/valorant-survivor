@@ -3,7 +3,7 @@ import {
 } from './types';
 import { POWERS, POWER_LIST, heroPower, MAX_LEVEL, EVO_LEVEL } from '../data/powers';
 import {
-  BOSS_SCHEDULE, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, WAVE_TIMES,
+  BOSS_SCHEDULE, BOT_KINDS, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, TIERS, WAVE_TIMES, ZONE_BOSS, ZONE_TIER,
 } from '../data/enemies';
 import { DIFFICULTY_BY_ID, DifficultyDef } from '../data/difficulty';
 import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
@@ -695,6 +695,7 @@ export class GameEngine {
   damageEnemy(e: Enemy, dmg: number, crit: boolean, o: { kx?: number; ky?: number; knock?: number; noText?: boolean; noChain?: boolean; blast?: boolean } = {}) {
     if (e.dead || dmg <= 0) return;
     if (e.markT > 0) dmg *= 1.3;
+    if (e.def.armor) dmg *= 1 - e.def.armor;   // escudos y tanques bloquean parte del daño
     e.hp -= dmg;
     e.flash = 0.09;
     this.damageDealt += dmg;
@@ -761,8 +762,22 @@ export class GameEngine {
     const a = rnd(Math.PI * 2);
     return { x: p.x + Math.cos(a) * R, y: p.y + Math.sin(a) * R };
   }
-  spawnEnemy(id: string, x?: number, y?: number) {
+  /** Zona (id) de un punto; fuera de las islas, la del jugador. */
+  private zoneIdAt(x: number, y: number) {
+    let z = this.world.zoneOfPoint(x, y);
+    if (z < 0) z = this.world.zoneOfPoint(this.player.x, this.player.y);
+    return MAPS[Math.max(0, z)].id;
+  }
+  /** Nivel de un bot: el de la zona, y desde el 2:30 cada vez más probable uno más (siempre a partir del 7:30). */
+  tierFor(x: number, y: number, boost = 0) {
+    const up = Math.max(0, Math.min(1, (this.time - 150) / 300));
+    return Math.min(2, (ZONE_TIER[this.zoneIdAt(x, y)] ?? 0) + (Math.random() < up ? 1 : 0) + boost);
+  }
+  /** Crea un enemigo. id puede ser un tipo de bot (se elige su nivel según la zona) o 'zona' (el jefe de la zona). */
+  spawnEnemy(id: string, x?: number, y?: number, boost = 0) {
     const pos = x === undefined ? this.edgeSpawn() : { x, y: y as number };
+    if (id === 'zona') id = ZONE_BOSS[this.zoneIdAt(this.player.x, this.player.y)] ?? 'coloso';
+    else if (BOT_KINDS.includes(id)) id = `${id}_${TIERS[this.tierFor(pos.x, pos.y, boost)]}`;
     const e = this.makeEnemy(ENEMIES[id], pos.x, pos.y);
     this.resolve(e, e.r);
     return e;
@@ -776,8 +791,9 @@ export class GameEngine {
     if (this.bossIdx < BOSS_SCHEDULE.length && t >= BOSS_SCHEDULE[this.bossIdx].time) {
       const b = BOSS_SCHEDULE[this.bossIdx++];
       const e = this.spawnEnemy(b.id);
-      if (b.id === 'final') this.finalSpawned = true;
-      this.showBanner(`¡JEFE: ${ENEMIES[b.id].name.toUpperCase()}!`, '#ff4655', 3, '¡JEFE: {n}!', { n: ENEMIES[b.id].name });
+      if (b.hpMul) { e.maxHp *= b.hpMul; e.hp = e.maxHp; }
+      if (e.def.final) this.finalSpawned = true;
+      this.showBanner(`¡JEFE: ${e.def.name.toUpperCase()}!`, '#ff4655', 3, '¡JEFE: {n}!', { n: e.def.name });
       this.sfx('boss', 0.5);
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
@@ -788,7 +804,7 @@ export class GameEngine {
       this.showBanner('¡OLEADA INTENSA!', '#ffb020', 2.6);
       this.reviveDead();
       this.sfx('wave', 0.5);
-      const types = SPAWNABLE.filter(id => ENEMIES[id].minTime <= t && id !== 'tank');
+      const types = SPAWNABLE.filter(id => ENEMIES[`${id}_n`].minTime <= t && id !== 'escudo');
       const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
       for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 40; i++) {
         const a = (i / n) * Math.PI * 2;
@@ -807,8 +823,9 @@ export class GameEngine {
         for (let i = 0; i < n; i++) {
           const id = ENDLESS_BOSSES[(Math.random() * ENDLESS_BOSSES.length) | 0];
           const e = this.spawnEnemy(id);
+          if (id === 'zona') { e.maxHp *= 4.5; e.hp = e.maxHp; }
           this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
-          this.showBanner(`¡JEFE: ${ENEMIES[id].name.toUpperCase()}!`, '#ff4655', 2.4, '¡JEFE: {n}!', { n: ENEMIES[id].name });
+          this.showBanner(`¡JEFE: ${e.def.name.toUpperCase()}!`, '#ff4655', 2.4, '¡JEFE: {n}!', { n: e.def.name });
         }
         this.sfx('boss', 0.5);
         this.shakeT = 0.5;
@@ -820,7 +837,7 @@ export class GameEngine {
       this.showBanner('¡OLEADA INTENSA!', '#ffb020', 2.2);
       this.reviveDead();
       this.sfx('wave', 0.5);
-      const types = SPAWNABLE.filter(id => id !== 'tank');
+      const types = SPAWNABLE.filter(id => id !== 'escudo');
       const p = this.spawnFocus(), R = Math.hypot(this.viewW, this.viewH) / 2 + 60;
       for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 60; i++) {
         const a = (i / n) * Math.PI * 2;
@@ -833,7 +850,7 @@ export class GameEngine {
     // élites
     if (t >= this.eliteT) {
       const n = 1 + Math.floor((t - 200) / 130);
-      for (let i = 0; i < n; i++) this.spawnEnemy('elite');
+      for (let i = 0; i < n; i++) this.spawnEnemy(SPAWNABLE[(Math.random() * SPAWNABLE.length) | 0], undefined, undefined, 1);   // un nivel más de lo normal
       this.eliteT += 42;
     }
     // flujo normal
@@ -851,14 +868,14 @@ export class GameEngine {
     let total = 0;
     const ws: number[] = [];
     for (const id of SPAWNABLE) {
-      const d = ENEMIES[id];
+      const d = ENEMIES[`${id}_n`];
       let w = t >= d.minTime ? d.weight : 0;
-      if (id === 'grunt') w *= Math.max(0.35, 1 - t / 700);
+      if (id === 'arana') w *= Math.max(0.35, 1 - t / 700);   // las arañas van dejando sitio a los demás
       ws.push(w); total += w;
     }
     let r = Math.random() * total;
     for (let i = 0; i < ws.length; i++) { r -= ws[i]; if (r <= 0) return SPAWNABLE[i]; }
-    return 'grunt';
+    return 'arana';
   }
 
   private updateEnemies(dt: number) {
@@ -917,7 +934,22 @@ export class GameEngine {
             if (d > 280) { mx = nx * sp; my = ny * sp; }
             else if (d < 200) { mx = -nx * sp * 0.8; my = -ny * sp * 0.8; }
             else { mx = -ny * sp * 0.5; my = nx * sp * 0.5; }
-            this.shootLogic(e, dt, d, 1, 0.3, 2.2, 230);
+            this.shootLogic(e, dt, d, e.def.shots ?? 1, 0.3, 2.2, 230);
+            break;
+          }
+          case 'healer': {
+            // se queda detrás de los suyos y cada 3,5 s cura a los enemigos cercanos
+            if (d > 320) { mx = nx * sp; my = ny * sp; }
+            else if (d < 240) { mx = -nx * sp; my = -ny * sp; }
+            else { mx = -ny * sp * 0.4; my = nx * sp * 0.4; }
+            e.atkT -= dt;
+            if (e.atkT <= 0) {
+              e.atkT = 3.5;
+              const R = 170, frac = 0.15 + 0.05 * (e.def.tier ?? 0);
+              let healed = 0;
+              for (const o of this.enemies) if (!o.dead && o !== e && o.hp < o.maxHp && Math.hypot(o.x - e.x, o.y - e.y) < R) { o.hp = Math.min(o.maxHp, o.hp + o.maxHp * frac); healed++; }
+              if (healed) { this.addFx(0, e.x, e.y, 0, 0, R, 0.5, '#5dff9a'); this.sparks(e.x, e.y, '#5dff9a', 8, 140, 0.5); }
+            }
             break;
           }
           case 'elite': {
@@ -1081,9 +1113,11 @@ export class GameEngine {
       }
       case 'summon': {
         if (a.t >= a.dur) {
+          // cada jefe invoca lo suyo: la Reina araña, crías; el Sabio y el Dragón, drones voladores
+          const kind = e.def.id === 'reina' ? 'arana' : e.def.id === 'sabio' || e.def.id.startsWith('dragon') ? 'volador' : 'asesino';
           for (let i = 0; i < 6 && this.alive() < MAX_ENEMIES + 60; i++) {
             const ang = (i / 6) * Math.PI * 2;
-            this.spawnEnemy(i % 3 === 0 ? 'runner' : 'grunt', e.x + Math.cos(ang) * (e.r + 30), e.y + Math.sin(ang) * (e.r + 30));
+            this.spawnEnemy(i % 3 === 0 ? kind : 'arana', e.x + Math.cos(ang) * (e.r + 30), e.y + Math.sin(ang) * (e.r + 30));
           }
           this.addFx(0, e.x, e.y, 0, 0, e.r + 60, 0.4, e.def.color);
           this.endAtk(e);
@@ -1199,7 +1233,7 @@ export class GameEngine {
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
-      if (e.def.id === 'final' && !this.finalKilled) {
+      if (e.def.final && !this.finalKilled) {
         this.finalKilled = true;
         this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
       }

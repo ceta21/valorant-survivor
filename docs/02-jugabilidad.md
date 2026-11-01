@@ -126,7 +126,34 @@ se elige cuál llevar o ninguna (`save.shop.pet`) y se desbloquea o mejora su po
 
 ## Enemigos
 
-Todos los enemigos son **robots** de entrenamiento (sprites pixel art propios, ver [03](03-arquitectura.md)).
+**Bots de la grieta** (dibujados por código a partir de `art/enemigos.png`, con vistas de frente, espaldas y perfil y
+animación al andar; ver [03](03-arquitectura.md)):
+8 tipos en 3 niveles — normal, élite (vida ×1,8, daño ×1,3, XP ×1,8) y legendario (vida ×3, daño ×1,6, XP ×3), algo más
+rápidos y grandes cuanto más nivel.
+
+| Tipo | Comportamiento | Qué hace |
+|---|---|---|
+| Soldado | `shooter` | Mantiene distancia y dispara. |
+| Araña | `chase` | Persigue y daña por contacto (la más común al principio). |
+| Flotante | `shooter` (3 balas) | Ráfagas de 3 balas en abanico. |
+| Torreta / Lanzacohetes | `mortar` | Lanza obuses en parábola a donde vas. |
+| Escudo / Tanque | `chase` + blindaje | Lento; bloquea el 30 % del daño (40 % élite, 50 % legendario). |
+| Asesino | `chase` | Muy rápido y frágil. |
+| Dron volador | `shooter` | Rápido, dispara desde lejos. |
+| Sanador | `healer` | Se queda atrás y cada 3,5 s cura un 15–25 % de la vida a los enemigos a 170. |
+
+**Nivel según la zona y el tiempo** (`tierFor`): cada zona marca el nivel con el que empiezan (`ZONE_TIER`: Reino normal,
+Glaciar y Ciudad élite, Infierno legendario) y desde el 2:30 es cada vez más probable que salgan un nivel por encima
+(siempre a partir del 7:30). Los élites periódicos (desde el 3:20) salen un nivel más. Un bot de prueba aguanta de
+media unos 170 s en el Reino, 155 s en el Glaciar y 130–135 s en la Ciudad y el Infierno.
+
+**Jefes** (`BOSS_SCHEDULE`): al 2:30, el jefe de la zona en la que estás (`ZONE_BOSS`: Reino → Coloso mecánico,
+Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético); al 5:00, el Sabio oscuro; al
+7:30, otra vez el jefe de la zona con ×4,5 de vida; y al 9:00 el jefe final, el Dragón cibernético enorme. Al invocar,
+la Reina saca crías de araña y el Sabio y el Dragón, drones voladores. En modo infinito salen al azar entre ellos.
+
+Los robots antiguos (Recluta, Corredor, Tanque, Tirador, Explosivo, Artillero, Élite y sus jefes) siguen definidos
+(el cooperativo usa el orden de `ENEMIES`) pero ya no aparecen; su tabla queda como referencia:
 
 | Comportamiento | Enemigos | Qué hace |
 |---|---|---|

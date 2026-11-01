@@ -1,5 +1,7 @@
 // Genera capturas PNG del renderizado sin navegador (usa @napi-rs/canvas).
-import { createCanvas } from '@napi-rs/canvas';
+import { createCanvas, loadImage } from '@napi-rs/canvas';
+import { readdirSync } from 'node:fs';
+import { setEnemyArt } from '../src/game/enemyArt';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { GameEngine } from '../src/game/GameEngine';
 import { Renderer } from '../src/game/Renderer';
@@ -7,6 +9,8 @@ import { AGENTS } from '../src/data/agents';
 import { MAPS } from '../src/data/maps';
 
 mkdirSync('shots', { recursive: true });
+// dibujos de los bots (en el navegador se cargan solos)
+for (const f of readdirSync('public/enemies')) setEnemyArt(f.replace('.png', ''), await loadImage('public/enemies/' + f) as any);
 // como en el navegador: se dibuja a baja resolución y se amplía sin suavizado
 const W = 1100, H = 640, S = 2;
 const low = createCanvas(W / S, H / S);
@@ -63,5 +67,18 @@ for (const [id, slot] of [['aqua', 'special'], ['nox', 'special'], ['grim', 'spe
   shot(id, 'reino', 25, 'hab_' + id, e => {
     e.cds.special = e.cds.secondary = 0; e.cast(slot);
     for (let i = 0; i < 30; i++) e.update(1 / 60);
+  });
+}
+
+// bots de cada zona y un jefe (nivel según la zona)
+for (const [mapId, boss] of [['reino', 'coloso'], ['glaciar', 'elemental'], ['infierno', 'dragon'], ['ciudad', 'reina']] as const) {
+  shot('zephyr', mapId, 1, 'bots_' + mapId, e => {
+    e.enemies.length = 0;
+    const { x, y } = e.player;
+    ['soldado', 'arana', 'flotante', 'torreta', 'escudo', 'asesino', 'volador', 'sanador'].forEach((k, i) => {
+      const a = (i / 8) * Math.PI * 2; e.spawnEnemy(k, x + Math.cos(a) * 170, y + Math.sin(a) * 120);
+    });
+    const b = e.spawnEnemy(boss, x + 330, y - 40); b.face = Math.PI;
+    for (const m of e.enemies) m.speed = 0;
   });
 }

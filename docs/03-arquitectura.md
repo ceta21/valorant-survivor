@@ -99,6 +99,15 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   hielo, agua, roca) que el Renderer dibuja con los sprites de `vfx.ts` y su paleta, al doble de tamaño (`BIG`)
   y con un halo de su color; las bombas y cohetes de habilidad usan la misma escala, y las explosiones, anillos,
   haces, rayos y conos se dibujan algo más grandes que su área de daño.
+- **Bots y jefes de la grieta** (`botSprites.ts`): dibujados por código siguiendo la estética de `art/enemigos.png`
+  (chapa gris con volumen, visores y núcleos rojos; élite más oscuro con morado; legendario casi negro con grietas
+  rojas; cada jefe con su paleta). Cada uno tiene vista de frente, de espaldas y de perfil (la izquierda es el espejo)
+  y 4 fotogramas al andar; el Renderer elige la vista según hacia dónde va (`face`) y lo escala por su radio.
+  Revisión: `npx tsx scripts/bot-sheet.ts <tipo>` → `shots/bots-<tipo>.png`.
+- Respaldo: si el enemigo tiene `art` y no hay dibujo por código, se pinta el recorte (`enemyArt.ts`: se carga de
+  `/enemies/<art>.png`; fuera del navegador se da con `setEnemyArt`), escalado por su radio, mirando a su objetivo,
+  con balanceo al andar, silueta blanca al recibir golpe (`enemyFlash`) y en gris aturdido. Mientras carga, el robot
+  dibujado por código.
 - **Mapa vivo** (`drawLiveChunk()` en el Renderer, cada fotograma encima de los chunks visibles, en píxeles de arte
   de `U` unidades): reflejos que avanzan por el agua, lava que late con burbujas que revientan, ondas en las fuentes,
   fuegos de hogueras/braseros/farolas que parpadean con chispas, aspas del molino que giran y árboles que se mecen
