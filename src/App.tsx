@@ -226,6 +226,8 @@ export default function App() {
   return (
     <div className="app">
       {screen !== 'game' && <div className="bg" aria-hidden="true"><b className="rift-swirl" /><i /><i /><i /></div>}
+      {/* transición: una franja de la grieta cruza la pantalla en cada cambio (al entrar en partida, un círculo que se abre) */}
+      {screen !== 'loading' && <div key={'wipe-' + screen} className={`scr-wipe ${screen === 'game' ? 'iris' : ''}`} aria-hidden="true" />}
       <UpdateToast inGame={screen === 'game'} />
       {achToast.length > 0 && (
         <div className="ach-toast" role="status" onClick={() => setAchToast([])} title={t('Cerrar')}>

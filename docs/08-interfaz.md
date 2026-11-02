@@ -67,6 +67,13 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
   (`.bg .rift-swirl`, gradiente cónico con máscara redonda), por debajo de los rayos.
 - Con «reducir movimiento» del sistema no se anima nada de esto.
 
+## Transiciones entre pantallas
+
+Al cambiar de pantalla (`App.tsx`), la nueva entra subiendo y apareciendo (0,3 s) y una franja violeta de la
+grieta barre la pantalla de derecha a izquierda (`.scr-wipe`, 0,45 s). Al entrar en partida, en vez de la franja, un
+negro que se abre en círculo desde el centro y la partida empieza muy iluminada y recupera su color (0,6 s). Sin
+animaciones si el sistema pide movimiento reducido.
+
 ## Estilo pixel art
 
 - Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes). Se sirven

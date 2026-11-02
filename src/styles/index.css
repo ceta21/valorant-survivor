@@ -658,3 +658,17 @@ body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-o
 .end-ach { display: flex; flex-wrap: wrap; gap: 6px 10px; justify-content: center; }
 .ach-item { --rc: var(--gold); color: var(--cream); } .ach-item em { font-style: normal; color: var(--gold); margin-left: 6px; }
 @media (prefers-reduced-motion: reduce) { .end-head, .end-stats > div, .end-item { animation: none !important; } }
+
+/* transiciones entre pantallas: la nueva entra subiendo y una franja violeta de la grieta barre la pantalla */
+.app > .screen { animation: scr-in .3s ease-out both; }
+@keyframes scr-in { from { opacity: 0; transform: translateY(16px); } }
+.scr-wipe { position: absolute; inset: 0; z-index: 50; pointer-events: none;
+  background: linear-gradient(100deg, transparent 0 30%, rgba(155,92,255,.85) 42%, #e9d8ff 50%, rgba(155,92,255,.85) 58%, transparent 70% 100%);
+  background-size: 300% 100%; animation: scr-wipe .45s ease-in-out both; }
+@keyframes scr-wipe { from { background-position: 100% 0; } to { background-position: 0 0; opacity: .0; } }
+/* entrar en partida: negro que se abre en círculo desde el centro */
+.scr-wipe.iris { background: #07040f; animation: scr-iris .6s ease-out both; }
+@keyframes scr-iris { 0% { clip-path: circle(150% at 50% 50%); } 30% { clip-path: circle(150% at 50% 50%); } 100% { clip-path: circle(0% at 50% 50%); } }
+.app > .game { animation: game-in .6s ease-out both; }
+@keyframes game-in { from { filter: brightness(2.2) saturate(.3); } }
+@media (prefers-reduced-motion: reduce) { .app > .screen, .app > .game, .scr-wipe { animation: none !important; } .scr-wipe { display: none; } }

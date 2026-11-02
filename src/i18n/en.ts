@@ -478,6 +478,7 @@ export const EN: Record<string, string> = {
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Cambiar de pantalla es más fluido: una franja de la grieta barre la pantalla y, al entrar en partida, la imagen se abre en círculo.': 'Smoother screen changes: a rift streak sweeps across the screen and, when a run starts, the view opens in a circle.',
   'Los golpes se notan más: los enemigos se aplastan un instante al recibirlos y salen algo más empujados.': 'Hits feel heavier: enemies squash for an instant when struck and get knocked back a bit more.',
   'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.': 'Flashier combat: enemies break into pieces, bosses explode with a moment of slow motion and damage numbers show the element color, with big golden crits.',
   'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.': 'Every zone has its own atmosphere: fireflies and leaves in the Kingdom, snow in the Glacier, ash and embers in the Inferno and rain in the City, each with its own light.',

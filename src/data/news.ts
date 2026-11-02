@@ -35,6 +35,7 @@ export const NEWS: NewsEntry[] = [
       'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.',
       'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.',
       'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.',
+      'Cambiar de pantalla es más fluido: una franja de la grieta barre la pantalla y, al entrar en partida, la imagen se abre en círculo.',
       'Los golpes se notan más: los enemigos se aplastan un instante al recibirlos y salen algo más empujados.',
       'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.',
       'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.',
