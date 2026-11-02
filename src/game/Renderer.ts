@@ -928,6 +928,12 @@ export class Renderer {
       const k = Math.max(1, Math.round(((r * (en.isBoss ? 3.6 : 2.7)) / (img.height * PX)) * 2) / 2), w = img.width * PX * k, h = img.height * PX * k;
       const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h) / PX) * PX;
       g.save(); g.imageSmoothingEnabled = false; squash(top + h);
+      // bot dorado: brillo bajo los pies y teñido de oro
+      if (d.behavior === 'flee') {
+        g.globalAlpha = 0.35 + 0.2 * Math.sin(e.time * 8); g.fillStyle = '#ffd24a';
+        g.beginPath(); g.ellipse(x, y + r * 0.8, r * 1.6, r * 0.6, 0, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
+        g.filter = 'sepia(1) saturate(5) hue-rotate(-8deg) brightness(1.15)';
+      }
       if (dir === 'side' && c < 0) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, left, top, w, h);
       g.restore();
     } else

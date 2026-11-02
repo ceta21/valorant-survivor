@@ -183,6 +183,7 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `dragon` | Dragón cibernético | boss | 1600 | 56 | 26 | 40 | 120 | 150 | 0 | flame, charge, summon, flame |
 | `sabio` | Sabio oscuro | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | ring, summon, blink, spiral, blink |
 | `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 540 | 0 | spiral, charge, summon, flame, storm, flame |
+| `dorado` | Bot dorado | flee | 70 | 135 | 0 | 14 | 12 | 0 | 0 | — |
 
 Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `asesino`, `volador`, `sanador`. Los élites salen por calendario (desde el segundo 200).
 

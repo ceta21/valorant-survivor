@@ -63,6 +63,9 @@ Object.assign(ENEMIES, {
   sabio: { id: 'sabio', name: 'Sabio oscuro', hp: 3600, speed: 58, dmg: 28, r: 38, xp: 220, color: '#9b5cff', shape: 'boss', behavior: 'boss', minTime: 300, weight: 0, patterns: ['ring', 'summon', 'blink', 'spiral', 'blink'], art: 'sabio' },
   dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'flame', 'storm', 'flame'], art: 'dragon', final: true },
 } as Record<string, EnemyDef>);
+/* ------------------------------------------------------------------ eventos de oleada */
+/** Bot dorado (evento): no ataca, huye del jugador y se escapa a los 14 s; si lo atrapas suelta monedas y experiencia. */
+ENEMIES.dorado = { id: 'dorado', name: 'Bot dorado', hp: 70, speed: 135, dmg: 0, r: 14, xp: 12, color: '#ffd24a', shape: 'circle', behavior: 'flee', minTime: 0, weight: 0, kind: 'volador', tier: 2, art: 'volador_l' };
 /** Jefe propio de cada zona (sale al 2:30 y, más fuerte, al 7:30). */
 /** Título de cada jefe para su presentación (cartel al aparecer). */
 export const BOSS_TITLES: Record<string, string> = {

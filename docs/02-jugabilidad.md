@@ -272,3 +272,13 @@ créditos ganados. Ver la [tabla](10-datos-del-juego.md#dificultades).
     los estilos de arma y esos héroes comprados antes se quitan y se devuelve su precio base (`LEGACY_PRICES`).
   - Mascotas (◈ 12.000–16.000). Su poder se compra en Mascotas: ◈ 5.000 / 8.000 / 12.000 por nivel.
   - Lo comprado y lo equipado va en `save.shop` y se lleva a la partida como `Looks` (también en cooperativo).
+
+## Eventos de oleada
+
+Cada 70–100 s (el primero al 1:15; nunca con un jefe vivo; en pareja, lo decide el anfitrión) sale uno al azar
+(`waveEvent` en el motor):
+
+- **Cerco**: un anillo cerrado de 16 bots (uno más cada 25 s, máximo 40) aparece a 250 px a tu alrededor (arañas, asesinos y soldados).
+- **Lluvia de cajas**: caen 5 cajas a 130–330 px, con los premios de siempre.
+- **Bot dorado**: aparece a 280 px; no ataca, huye zigzagueando y se escapa a los 14 s. Si lo atrapas suelta 6 monedas
+  de 20 ◈ y 4 gemas de experiencia. Es el enemigo `dorado` (al final de `ENEMIES`, comportamiento `flee`).

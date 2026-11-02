@@ -478,6 +478,7 @@ export const EN: Record<string, string> = {
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Eventos de oleada: de vez en cuando te rodea un cerco de bots, llueven cajas o aparece un bot dorado que huye y suelta monedas si lo atrapas.': 'Wave events: every so often a ring of bots surrounds you, crates rain down or a golden bot appears that flees and drops coins if you catch it.',
   'Cambiar de pantalla es más fluido: una franja de la grieta barre la pantalla y, al entrar en partida, la imagen se abre en círculo.': 'Smoother screen changes: a rift streak sweeps across the screen and, when a run starts, the view opens in a circle.',
   'Los golpes se notan más: los enemigos se aplastan un instante al recibirlos y salen algo más empujados.': 'Hits feel heavier: enemies squash for an instant when struck and get knocked back a bit more.',
   'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.': 'Flashier combat: enemies break into pieces, bosses explode with a moment of slow motion and damage numbers show the element color, with big golden crits.',
@@ -834,7 +835,7 @@ export const EN: Record<string, string> = {
   'Derrota': 'Defeat',
   'Habéis caído los dos.': 'You both fell.', 'Has caído en combate.': 'You fell in combat.', 'Las partidas en pareja no cuentan para el ranking.': "Co-op runs don't count for the leaderboard.",
   'Logro desbloqueado:': 'Achievement unlocked:', 'Jugar otra vez': 'Play again', 'Volver al menú': 'Back to menu',
-  '¡SOBREVIVE!': 'SURVIVE!', '¡OLEADA INTENSA!': 'INTENSE WAVE!', '¡MODO INFINITO!': 'ENDLESS MODE!', '¡JEFE: {n}!': 'BOSS: {n}!', '¡{n} ELIMINADO!': '{n} DESTROYED!', '¡{n}!': '{n}!',
+  '¡SOBREVIVE!': 'SURVIVE!', '¡OLEADA INTENSA!': 'INTENSE WAVE!', '¡CERCO!': 'SURROUNDED!', '¡LLUVIA DE CAJAS!': 'CRATE SHOWER!', '¡BOT DORADO! ATRÁPALO': 'GOLDEN BOT! CATCH IT', 'Bot dorado': 'Golden bot', '¡Se escapó!': 'It got away!', '¡Atrapado!': 'Caught!', '¡MODO INFINITO!': 'ENDLESS MODE!', '¡JEFE: {n}!': 'BOSS: {n}!', '¡{n} ELIMINADO!': '{n} DESTROYED!', '¡{n}!': '{n}!',
   '¡{n} HA CAÍDO! VUELVE EN LA PRÓXIMA OLEADA': '{n} IS DOWN! BACK NEXT WAVE', '¡{n} HA VUELTO!': '{n} IS BACK!', '{n} HA SALIDO DE LA PARTIDA': '{n} LEFT THE RUN',
   'Nueva arma: {d}': 'New weapon: {d}', 'EVOLUCIÓN: {d}': 'EVOLUTION: {d}', '{w}: +22% daño y -6% de recarga': '{w}: +22% damage and -6% reload',
   'Elige una mejora': 'Choose an upgrade', '(teclas 1, 2, 3)': '(keys 1, 2, 3)', 'Relanzar': 'Reroll',

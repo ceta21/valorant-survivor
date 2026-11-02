@@ -222,6 +222,8 @@ export class GameEngine {
   crateId = 0;
   /** Créditos de las monedas recogidas en la partida (se suman al resultado). */
   bonusCredits = 0;
+  /** Próximo evento de oleada (cerco, lluvia de cajas o bot dorado). */
+  waveEvT = 75;
   turrets: Turret[] = [];
   strikes: Strike[] = [];
   vfx: Vfx[] = [];
@@ -834,6 +836,42 @@ export class GameEngine {
     this.bossIntro = { id: e.id, name: e.def.name, title: BOSS_TITLES[e.def.id] ?? '', color: e.def.color, t: this.time };
     this.slowT = Math.max(this.slowT, 1.2);
   }
+  private waveEvent(t: number) {
+    const p = this.spawnFocus(), kind = (Math.random() * 3) | 0;
+    this.sfx('wave', 0.5);
+    if (kind === 0) {
+      // cerco: un anillo cerrado de bots aparece a tu alrededor
+      this.showBanner('¡CERCO!', '#ff4655', 2.4);
+      const n = Math.min(40, 16 + Math.floor(t / 25)), R = 250;
+      const types = SPAWNABLE.filter(id => ENEMIES[`${id}_n`].minTime <= t && (id === 'arana' || id === 'asesino' || id === 'soldado'));
+      for (let i = 0; i < n && this.alive() < MAX_ENEMIES + 40; i++) {
+        const a = (i / n) * Math.PI * 2, x = p.x + Math.cos(a) * R, y = p.y + Math.sin(a) * R;
+        if (this.inObstacle(x, y, 14)) continue;
+        const e = this.spawnEnemy(types[(Math.random() * types.length) | 0] ?? 'arana', x, y);
+        this.addFx(0, e.x, e.y, 0, 0, 30, 0.3, '#c070ff');
+      }
+    } else if (kind === 1) {
+      // lluvia de cajas: caen 5 cajas cerca
+      this.showBanner('¡LLUVIA DE CAJAS!', '#ffd24a', 2.4);
+      let made = 0;
+      for (let k = 0; k < 40 && made < 5; k++) {
+        const a = rnd(Math.PI * 2), d = rnd(130, 330), x = p.x + Math.cos(a) * d, y = p.y + Math.sin(a) * d;
+        const ground = this.world.terrainAt(x, y);
+        if (this.world.hit(x, y, 22) || ground === Cell.Water || ground === Cell.Lava || ground === Cell.Sea || ground === Cell.Void) continue;
+        const hp = CRATE_HP * (1 + this.time / 600);
+        this.crates.push({ id: ++this.crateId, x, y, hp, max: hp, flash: 0, dead: false });
+        this.addFx(0, x, y, 0, 0, 50, 0.4, '#ffd24a');
+        made++;
+      }
+    } else {
+      // bot dorado: aparece cerca, huye y se escapa a los 14 s
+      this.showBanner('¡BOT DORADO! ATRÁPALO', '#ffd24a', 2.6);
+      const a = rnd(Math.PI * 2), x = p.x + Math.cos(a) * 280, y = p.y + Math.sin(a) * 280;
+      const e = this.spawnEnemy('dorado', x, y);
+      e.fuse = 14;
+      this.addFx(0, e.x, e.y, 0, 0, 60, 0.5, '#ffd24a');
+    }
+  }
   private alive() { let n = 0; for (const e of this.enemies) if (!e.dead) n++; return n; }
 
   private updateSpawner(dt: number) {
@@ -866,6 +904,11 @@ export class GameEngine {
       }
       this.waveIdx++;
       if (this.waveIdx === WAVE_TIMES.length) this.endlessWaveT = FINAL_TIME + 30;
+    }
+    // eventos de oleada (cada 70–100 s, nunca con un jefe vivo): cerco, lluvia de cajas o bot dorado
+    if (t >= this.waveEvT) {
+      this.waveEvT = t + rnd(70, 100);
+      if (!bossAlive) this.waveEvent(t);
     }
     // modo infinito: jefes cada vez más seguidos y oleadas periódicas, sin final
     if (t >= this.endlessBossT) {
@@ -974,6 +1017,14 @@ export class GameEngine {
       else {
         switch (e.def.behavior) {
           case 'chase': mx = nx * sp; my = ny * sp; break;
+          case 'flee': {
+            // bot dorado: huye zigzagueando y, si no lo atrapan a tiempo, se escapa
+            const z = Math.sin(this.time * 3 + e.id) * 0.6;
+            mx = (-nx + -ny * z) * sp; my = (-ny + nx * z) * sp;
+            e.fuse -= dt;
+            if (e.fuse <= 0) { e.dead = true; this.sparks(e.x, e.y, '#ffd24a', 14, 220, 0.5); this.text(e.x, e.y - 20, '¡Se escapó!', '#ffd24a', 14); }
+            break;
+          }
           case 'mortar': {
             // se queda a media distancia y lanza obuses a donde está el jugador
             if (d > 380) { mx = nx * sp; my = ny * sp; }
@@ -1407,6 +1458,14 @@ export class GameEngine {
         this.finalKilled = true;
         this.showBanner('¡MODO INFINITO!', '#ffd24a', 3);
       }
+    } else if (e.def.behavior === 'flee') {
+      // bot dorado atrapado: lluvia de monedas y experiencia
+      for (let i = 0; i < 6; i++) {
+        const a = rnd(Math.PI * 2);
+        this.gems.push({ x: e.x, y: e.y, v: 20, kind: 4, mag: false, dead: false, t: 0, box: true, z: 8, vz: rnd(260, 380), vx: Math.cos(a) * rnd(40, 110), vy: Math.sin(a) * rnd(25, 70) });
+      }
+      for (let i = 0; i < 4; i++) this.dropGem(e.x + rnd(-16, 16), e.y + rnd(-10, 10), v, 0);
+      this.text(e.x, e.y - 30, '¡Atrapado!', '#ffd24a', 18);
     } else {
       this.dropGem(e.x, e.y, v, e.def.behavior === 'elite' ? 1 : Math.random() < 0.008 ? 1 : 0, e.def.behavior === 'elite' ? 0.2 : 0.1);
       if (e.def.behavior === 'elite') this.dropGem(e.x + 10, e.y, v, 0);
