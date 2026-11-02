@@ -25,6 +25,13 @@
 | Apoyo | `SupportScreen` | Creador del juego (Gabriel Vigo Rodríguez) y enlace a su LinkedIn |
 | Privacidad y aviso legal | `PrivacyScreen` | Qué datos se guardan y dónde, para qué, cómo borrarlos (Configuración o pedirlo por correo a fnceta@gmail.com o LinkedIn) y aviso legal. Se abre con un enlace desde el acceso, Apoyo y Configuración, y vuelve a la pantalla de origen. **Revisarla si cambia qué datos se guardan** |
 
+### Pantalla de final de partida
+
+Arriba, el retrato del héroe con «¡Victoria!» (dorado) o «Derrota» (rojo) y el tiempo; los números (tiempo, bajas,
+nivel, daño, jefes y créditos) entran en cascada y suben contando (`CountUp`); los créditos, al final y con brillo.
+Después aparecen uno a uno, como tarjetas, el botín de los jefes (del color de su rareza) y los logros con su premio.
+Con «reducir movimiento» del sistema sale todo directamente.
+
 ### HUD de la partida
 
 Efectos (`useHudFx` en `GameHUD`, que recuerda los valores de la vez anterior porque el HUD se redibuja cada 100 ms):

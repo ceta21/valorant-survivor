@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ jefes: presentación */
+  'Pantalla de final renovada: tu héroe, «¡Victoria!» o «Derrota», números que suben contando y el botín y los logros apareciendo uno a uno.': 'Revamped end screen: your hero, “Victory!” or “Defeat”, numbers that count up and boss loot and achievements popping in one by one.',
   'HUD más vivo: la vida tiembla y deja un rastro al recibir daño, la experiencia brilla y las habilidades muestran su recarga como un reloj.': 'Livelier HUD: health shakes and leaves a trail when you take damage, experience shines and abilities show their cooldown like a clock.',
   'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.': 'Livelier background: the rift’s energy spiral swirls behind the screens.',
   'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.': 'Revamped upgrade cards: they flip in and their frame changes with rarity, with pulsing epics and shining golden legendaries.',
@@ -825,7 +826,9 @@ export const EN: Record<string, string> = {
   'Se perdió la conexión con el anfitrión.': 'The connection to the host was lost.', 'Esperando a que tu compañero elija su mejora…': 'Waiting for your teammate to choose their upgrade…',
   'Has caído · vuelves en la próxima oleada': "You're down · you'll be back next wave", 'La partida sigue en marcha mientras tanto.': 'The run keeps going in the meantime.',
   'Volver a la partida': 'Back to the run', 'Reanudar': 'Resume', 'Reiniciar': 'Restart', 'Abandonar': 'Quit', 'Resultado': 'Result',
-  'Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.': 'You defeated the Protocol Overlord and held out in endless mode.',
+  'Derrotaste al Dragón cibernético y aguantaste el modo infinito.': 'You defeated the Cyber Dragon and held out in endless mode.',
+  '¡Victoria!': 'Victory!',
+  'Derrota': 'Defeat',
   'Habéis caído los dos.': 'You both fell.', 'Has caído en combate.': 'You fell in combat.', 'Las partidas en pareja no cuentan para el ranking.': "Co-op runs don't count for the leaderboard.",
   'Logro desbloqueado:': 'Achievement unlocked:', 'Jugar otra vez': 'Play again', 'Volver al menú': 'Back to menu',
   '¡SOBREVIVE!': 'SURVIVE!', '¡OLEADA INTENSA!': 'INTENSE WAVE!', '¡MODO INFINITO!': 'ENDLESS MODE!', '¡JEFE: {n}!': 'BOSS: {n}!', '¡{n} ELIMINADO!': '{n} DESTROYED!', '¡{n}!': '{n}!',

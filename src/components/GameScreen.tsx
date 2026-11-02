@@ -2,6 +2,7 @@ import { VIVID_DEFAULT, vividFilter } from '../utils/storage';
 import { ACHIEVEMENTS } from '../data/goals';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, GEAR_RARITY_NAMES } from '../data/gear';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AgentPortrait } from './AgentPortrait';
 import { GameEngine } from '../game/GameEngine';
 import { Renderer, PX } from '../game/Renderer';
 import { Input } from '../game/Input';
@@ -311,29 +312,40 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
       )}
       {result && (
         <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label={t('Resultado')}>
-          <h1>{fmt(result.r.time)}</h1>
-          <p className="sub">
-            {lost || (result.r.win ? t('Derrotaste al Cabecilla del Protocolo y aguantaste el modo infinito.') : coop ? t('Habéis caído los dos.') : t('Has caído en combate.'))}
-            {' '}<span style={{ color: difficulty.color }}>{t(difficulty.name)}</span>
-          </p>
+          <div className="end-head">
+            <div className="end-portrait" style={{ ['--ac' as any]: agent.color }}><AgentPortrait agent={agent} /></div>
+            <div>
+              <h2 className="end-title">{result.r.win ? t('¡Victoria!') : t('Derrota')}</h2>
+              <h1><CountUp to={result.r.time} fmt={fmt} delay={0} /></h1>
+              <p className="sub">
+                {lost || (result.r.win ? t('Derrotaste al Dragón cibernético y aguantaste el modo infinito.') : coop ? t('Habéis caído los dos.') : t('Has caído en combate.'))}
+                {' '}<span style={{ color: difficulty.color }}>{t(difficulty.name)}</span>
+              </p>
+            </div>
+          </div>
           {coop
             ? <p className="sub">{t('Las partidas en pareja no cuentan para el ranking.')}</p>
             : <SubmitScore r={result.r} account={account} name={playerName} setName={setPlayerName} />}
           <dl className="end-stats">
-            <div><dt>{t('Tiempo')}</dt><dd>{fmt(result.r.time)}</dd></div>
-            <div><dt>{t('Eliminaciones')}</dt><dd>{nf(result.r.kills)}</dd></div>
-            <div><dt>{t('Nivel')}</dt><dd>{result.r.level}</dd></div>
-            <div><dt>{t('Daño')}</dt><dd>{nf(result.r.damage)}</dd></div>
-            <div><dt>{t('Jefes')}</dt><dd>{result.r.bossKills}</dd></div>
-            <div className="reward"><dt>{t('Créditos')}</dt><dd>+◈ {nf(result.r.credits)}</dd></div>
+            {/* cada número sube contando, uno detrás de otro; los créditos, al final y con brillo */}
+            <div style={{ ['--i' as any]: 0 }}><dt>{t('Tiempo')}</dt><dd><CountUp to={result.r.time} fmt={fmt} delay={0.1} /></dd></div>
+            <div style={{ ['--i' as any]: 1 }}><dt>{t('Eliminaciones')}</dt><dd><CountUp to={result.r.kills} fmt={nf} delay={0.25} /></dd></div>
+            <div style={{ ['--i' as any]: 2 }}><dt>{t('Nivel')}</dt><dd><CountUp to={result.r.level} fmt={String} delay={0.4} /></dd></div>
+            <div style={{ ['--i' as any]: 3 }}><dt>{t('Daño')}</dt><dd><CountUp to={result.r.damage} fmt={nf} delay={0.55} /></dd></div>
+            <div style={{ ['--i' as any]: 4 }}><dt>{t('Jefes')}</dt><dd><CountUp to={result.r.bossKills} fmt={String} delay={0.7} /></dd></div>
+            <div className="reward" style={{ ['--i' as any]: 5 }}><dt>{t('Créditos')}</dt><dd>+◈ <CountUp to={result.r.credits} fmt={nf} delay={0.85} /></dd></div>
           </dl>
           {(result.r.loot?.length ?? 0) > 0 && (
             <div className="end-loot">
               <b>{t('Botín de los jefes')}</b>
-              {result.r.loot!.map((l, i) => <span key={i} style={{ color: GEAR_RARITY_COLORS[l.rarity] }}>{GEAR_BY_ID[l.id]?.icon} {t(GEAR_BY_ID[l.id]?.name ?? l.id)} · {t(GEAR_RARITY_NAMES[l.rarity])}</span>)}
+              {result.r.loot!.map((l, i) => <span key={i} className="end-item" style={{ ['--rc' as any]: GEAR_RARITY_COLORS[l.rarity], ['--i' as any]: i }}>{GEAR_BY_ID[l.id]?.icon} {t(GEAR_BY_ID[l.id]?.name ?? l.id)} · {t(GEAR_RARITY_NAMES[l.rarity])}</span>)}
             </div>
           )}
-          {result.ach.length > 0 && <p className="ach">{t('Logro desbloqueado:')} {result.ach.map(a => `${t(a)} (+◈ ${nf(ACHIEVEMENTS.find(x => x.name === a)?.reward ?? 0)})`).join(', ')}</p>}
+          {result.ach.length > 0 && (
+            <div className="end-ach">
+              {result.ach.map((a, i) => <span key={a} className="end-item ach-item" style={{ ['--i' as any]: i + (result.r.loot?.length ?? 0) }}>🏆 {t(a)} <em>+◈ {nf(ACHIEVEMENTS.find(x => x.name === a)?.reward ?? 0)}</em></span>)}
+            </div>
+          )}
           <div className="pause-btns">
             {!coop && <button className="btn btn-red btn-xl" onClick={onRestart}><b>{t('Jugar otra vez')}</b></button>}
             <button className={`btn ${coop ? 'btn-red btn-xl' : ''}`} onClick={onMenu}><b>{t('Volver al menú')}</b></button>
@@ -342,4 +354,21 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
       )}
     </div>
   );
+}
+
+/** Número que sube contando desde 0 (con un pequeño retraso para que vayan uno detrás de otro). */
+function CountUp({ to, fmt, delay = 0, dur = 0.9 }: { to: number; fmt: (n: number) => string; delay?: number; dur?: number }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) { setV(to); return; }
+    let raf = 0; const t0 = performance.now() + delay * 1000;
+    const tick = (now: number) => {
+      const k = Math.max(0, Math.min(1, (now - t0) / (dur * 1000)));
+      setV(to * (1 - Math.pow(1 - k, 3)));   // frena al final
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, delay, dur]);
+  return <>{fmt(Math.round(v))}</>;
 }
