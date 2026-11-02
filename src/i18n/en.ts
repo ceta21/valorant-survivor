@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.': 'Every zone has its own atmosphere: fireflies and leaves in the Kingdom, snow in the Glacier, ash and embers in the Inferno and rain in the City, each with its own light.',
   'Poderes con efectos nuevos: el rayo deja un zigzag eléctrico, el agua es una burbuja que salpica, el hielo una esquirla con escarcha, la hoja gira, la roca rueda, la estrella destella y el alma ondula; cada uno con su impacto al golpear.': 'Powers with new effects: lightning leaves an electric zigzag, water is a splashing bubble, ice a frosty shard, the leaf spins, the rock rolls, the star sparkles and the soul waves; each with its own hit effect.',
   'Dibujos nuevos de los 20 héroes: más detalle y pasos de andar de verdad, de frente, de espaldas y de perfil.': 'New art for all 20 heroes: more detail and real walking steps, from the front, the back and the side.',
   'Héroes más nítidos en partida, con contorno, y animación de andar: el cuerpo sube y baja y las piernas se mueven a cada paso.': 'Sharper heroes in game, with an outline, and a walking animation: the body bobs and the legs move with every step.',

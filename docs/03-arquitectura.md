@@ -159,6 +159,22 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Móvil: joystick virtual arrastrando el dedo sobre el canvas; habilidades con los botones del HUD.
 - En cooperativo, el invitado no lanza habilidades en su motor: las envía al anfitrión (`castFn`).
 
+## Ambiente de cada zona (`game/weather.ts`)
+
+Encima del mundo y antes de los números flotantes, el Renderer pinta el ambiente de la zona en la que está el jugador:
+partículas en pantalla (deterministas, calculadas con el tiempo y su índice; con algo de paralaje respecto a la
+cámara) y un tinte de luz suave que cambia poco a poco al cruzar de zona (`blendTint`).
+
+| Zona | Partículas | Tinte |
+|---|---|---|
+| Reino | Luciérnagas que laten y hojas que caen meciéndose | Cálido de tarde |
+| Glaciar | Nieve de dos tamaños, con sombra azulada para verse sobre la nieve | Frío azulado |
+| Infierno | Ceniza que cae y ascuas que suben parpadeando | Brillo de lava |
+| Ciudad | Lluvia en diagonal y salpicaduras en el suelo | Noche lluviosa (más oscuro) |
+
+En calidad baja hay un tercio de partículas y sin halos. Capturas: `npx tsx scripts/weather-shot.ts`
+(`shots/ambiente-zonas.png`).
+
 ## Proyectiles de los poderes (`game/fancyProj.ts`)
 
 Los proyectiles de los poderes automáticos (rayo, agua, hielo, hoja, roca, estrella, daga, flecha y alma) se pintan a

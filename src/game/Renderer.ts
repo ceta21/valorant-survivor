@@ -13,6 +13,7 @@ import { t } from '../i18n';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
 import { WEB_LAND } from './GameEngine';
 import { FANCY_LOOKS, drawFancyProj, drawImpact } from './fancyProj';
+import { blendTint, drawWeather } from './weather';
 import { portalArt } from './enemyArt';
 /** Alto con el que se pinta el portal y a qué altura de su dibujo cae el centro del remolino (0 arriba, 1 abajo). */
 const PORTAL_H = 180, PORTAL_CY = 0.5;
@@ -151,6 +152,9 @@ export class Renderer {
   /** Modo pixel-art: w,h = tamaño del lienzo en píxeles de juego (cada uno = PX unidades de mundo). */
   /** Calidad baja: sin animaciones del mapa (agua, lava, árboles…) ni polvo ambiental. */
   low = false;
+  /** Ambiente: tinte actual (va hacia el de la zona) y último tiempo dibujado. */
+  private wxTint = [0, 0, 0, 0];
+  private wxT = 0;
   resizePixels(w: number, h: number) {
     this.dpr = 1;
     this.zoom = 1 / PX;
@@ -667,6 +671,13 @@ export class Renderer {
           g.fillStyle = '#000'; g.fillRect(ax - 1, ay - 1, 2, 2);
         }
       }
+    }
+    // ambiente de la zona en la que está el jugador (partículas y tinte de luz que cambia poco a poco)
+    {
+      const zone = e.zoneIdAt(e.player.x, e.player.y), dt = Math.max(0, Math.min(0.1, e.time - this.wxT));
+      this.wxT = e.time;
+      blendTint(this.wxTint, zone, dt || 1);
+      drawWeather(g, zone, e.time, this.camX, this.camY, this.vw, this.vh, Math.max(1, Math.round(this.dpr * z * PX)), this.low, this.wxTint);
     }
     // números flotantes: en pantalla, fuente pixelada a tamaño entero y contorno de 1 píxel
     g.textAlign = 'center';
