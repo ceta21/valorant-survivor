@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ jefes: presentación */
+  'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.': 'Revamped upgrade cards: they flip in and their frame changes with rarity, with pulsing epics and shining golden legendaries.',
   'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.': 'Bosses get an introduction: when one appears, the camera moves to it for a moment in slow motion and a banner shows its name and title.',
   'Guardián de hierro del Reino': 'Iron Guardian of the Kingdom',
   'Señora de las telarañas': 'Mistress of Webs',

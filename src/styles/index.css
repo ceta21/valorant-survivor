@@ -34,7 +34,7 @@ img, svg, canvas { image-rendering: pixelated; shape-rendering: crispEdges; }
 .bg::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 2px, transparent 2px 4px); pointer-events: none; }
 @keyframes drift { from { transform: translateY(-8%); } to { transform: translateY(8%); } }
 @keyframes rift { 50% { filter: brightness(1.6); } }
-@media (prefers-reduced-motion: reduce) { .bg i, .ucard, .banner, .ab.ult.ready { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .bg i, .ucard, .ucard *, .banner, .ab.ult.ready, .boss-intro { animation: none !important; } }
 
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: clamp(14px, 3vw, 40px); overflow: auto; }
 
@@ -586,3 +586,27 @@ body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-o
   0% { transform: translateX(-60%); opacity: 0; } 12% { transform: translateX(0); opacity: 1; }
   80% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(30%); opacity: 0; }
 }
+
+/* tarjetas de mejora: entran dándose la vuelta una tras otra, con marco y brillo según su rareza */
+.ucard { animation: card-in .45s cubic-bezier(.2,.9,.3,1.3) var(--d, 0ms) both; overflow: hidden; }
+@keyframes card-in { 0% { opacity: 0; transform: translateY(30px) rotateY(90deg) scale(.9); } 60% { opacity: 1; } 100% { transform: none; } }
+.ucard .ucard-icon { transition: transform .15s steps(3); }
+.ucard:hover .ucard-icon, .ucard:focus-visible .ucard-icon { transform: scale(1.15) rotate(-6deg); }
+/* poco común: doble marco */
+.ucard.r1 { box-shadow: inset 0 0 0 var(--p) var(--rc), inset 0 0 0 calc(var(--p) * 2) #000, inset 0 0 0 calc(var(--p) * 3) color-mix(in srgb, var(--rc) 55%, transparent), var(--bevel); }
+/* épica: marco que late y gemas en las esquinas */
+.ucard.r2 { box-shadow: inset 0 0 0 var(--p) var(--rc), inset 0 0 22px color-mix(in srgb, var(--rc) 45%, transparent), var(--bevel); animation: card-in .45s cubic-bezier(.2,.9,.3,1.3) var(--d, 0ms) both, card-pulse 1.6s ease-in-out calc(var(--d, 0ms) + .45s) infinite; }
+.ucard.r2::before, .ucard.r2::after { content: ""; position: absolute; width: 8px; height: 8px; background: var(--rc); box-shadow: 0 0 0 2px #000; transform: rotate(45deg); top: 10px; }
+.ucard.r2::before { left: 10px; } .ucard.r2::after { right: 10px; }
+@keyframes card-pulse { 50% { box-shadow: inset 0 0 0 var(--p) var(--rc), inset 0 0 36px color-mix(in srgb, var(--rc) 70%, transparent), var(--bevel); } }
+/* legendaria: marco dorado, fondo más brillante y un destello que la recorre */
+.ucard.r3 { box-shadow: inset 0 0 0 var(--p) var(--rc), inset 0 0 0 calc(var(--p) * 2) #000, inset 0 0 0 calc(var(--p) * 3) #fff2b0, inset 0 0 40px color-mix(in srgb, var(--rc) 55%, transparent), var(--bevel);
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--rc) 38%, var(--ink2)) 0 33%, color-mix(in srgb, var(--rc) 18%, var(--ink2)) 33% 50%, var(--ink2) 50%); }
+.ucard.r3 .ucard-rar { text-shadow: 0 0 8px var(--rc); }
+.ucard-shine { position: absolute; inset: -40% auto -40% -60%; width: 40%; pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.28), transparent); transform: skewX(-18deg); animation: card-shine 2.4s ease-in-out calc(var(--d, 0ms) + .5s) infinite; }
+.ucard.r2 .ucard-shine { animation-duration: 3.6s; opacity: .6; }
+@keyframes card-shine { 0%, 55% { left: -60%; } 100% { left: 130%; } }
+
+/* la evolución conserva su marco dorado aunque la tarjeta tenga rareza */
+.ucard.evo.evo { box-shadow: inset 0 0 0 var(--p) var(--gold), inset 0 0 30px rgba(240, 200, 80, .45), var(--bevel); }

@@ -15,7 +15,7 @@
 | Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Héroes | `AgentSelection` | Elegir héroe (con su poder), zona, dificultad; desbloquear héroes (los no disponibles, con candado y "Próximamente"); estilo del héroe comprado en la Tienda |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir héroe, listo, empezar |
-| Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |
+| Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` (tarjetas de mejora que entran girando una tras otra; marco según rareza: común sencillo, poco común doble, épica que late con gemas en las esquinas, legendaria dorada con un destello que la recorre; las evoluciones, siempre doradas) | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
 | Mercado de la Grieta | `MarketScreen` | Cartas del día |
 | Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad |

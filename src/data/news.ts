@@ -29,6 +29,7 @@ export const NEWS: NewsEntry[] = [
       '29 logros con premio en créditos: por zona, por dificultad, por colección (héroes, equipo, mascotas) y por racha; los ves con su progreso en Estadísticas.',
       'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.',
       'Colores más vivos en la partida, y en Configuración puedes ajustar la viveza del color a tu gusto.',
+      'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.',
       'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.',
       'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.',
       'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.',
