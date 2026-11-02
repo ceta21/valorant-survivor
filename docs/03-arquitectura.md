@@ -234,6 +234,11 @@ guardan: siempre van a la red.
 
 ## Audio (`utils/audio.ts`)
 
+**Sonidos del menú** (en `App.tsx`, salvo las cartas): `hover` al pasar el ratón por cualquier botón (una vez al
+entrar; solo con ratón y fuera de la partida), `whoosh` al cambiar de pantalla, `buy` cuando bajan los créditos
+(comprar) y `coin` cuando suben (cobrar misiones, rachas, logros…), `ach` al salir el aviso de logro y `card` al pasar
+por una carta de mejora (`UpgradeSelection`). `click` sigue en cada botón.
+
 Todo sintetizado con WebAudio, sin archivos. Se desbloquea tras el primer clic o tecla. Hay una reverberación
 generada (sala de ruido que se apaga) para efectos y otra para música, un eco para la música y un compresor
 suave a la salida.

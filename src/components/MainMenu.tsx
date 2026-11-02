@@ -26,7 +26,7 @@ export const Emo = ({ e }: { e: string }) => <span className="emo" aria-hidden="
 export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout, keys }: Props) {
   const agent = AGENT_BY_ID[playableAgent(save.lastAgent)] ?? AGENT_BY_ID.zephyr;
   const click = (s: Screen) => () => { audio.play('click'); go(s); };
-  const hover = () => audio.play('hover');
+  const hover = () => {};   // el sonido al pasar por un botón lo pone App para todo el menú
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const move = [keys.up, keys.left, keys.down, keys.right].map(keyLabel).join('');
   return (

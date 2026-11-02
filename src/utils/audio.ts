@@ -241,6 +241,12 @@ class AudioSystem {
       case 'lose': [392, 330, 262, 196].forEach((f, i) => this.tone(f, 0.8, 0.1, { type: 'triangle', f2: f * 0.97, delay: i * 0.25, rev: 0.7 })); break;
       case 'click': this.tone(800, 0.04, 0.05, { type: 'triangle', f2: 600 }); break;
       case 'hover': this.tone(1400, 0.03, 0.02); break;
+      // interfaz: cambio de pantalla (soplo de la grieta), compra, cobro de créditos, logro y carta de mejora
+      case 'whoosh': this.noise(0.22, 0.05, 900, { type: 'bandpass', f2: 2600, attack: 0.08, q: 1.5 }); break;
+      case 'buy': this.tone(1046, 0.08, 0.06, { type: 'square', cut: 3000 }); this.tone(1568, 0.22, 0.06, { type: 'square', cut: 3000, delay: 0.07, rev: 0.3 }); break;
+      case 'coin': [1318, 1760, 2093].forEach((fq, i) => this.tone(fq, 0.12, 0.05, { type: 'triangle', delay: i * 0.05, rev: 0.3 })); break;
+      case 'ach': [784, 988, 1175, 1568].forEach((fq, i) => this.tone(fq, 0.4, 0.07, { type: 'triangle', delay: i * 0.09, rev: 0.6 })); break;
+      case 'card': this.tone(520 + Math.random() * 80, 0.05, 0.03, { type: 'triangle', f2: 780 }); break;
     }
   }
 

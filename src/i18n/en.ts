@@ -526,6 +526,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'El menú suena: al pasar por los botones, al cambiar de pantalla, al comprar o cobrar créditos, al conseguir un logro y al mirar las cartas de mejora.': 'The menu has sound: hovering buttons, changing screens, buying or claiming credits, unlocking achievements and browsing upgrade cards.',
   'Resumen al acabar la partida: cuánto daño hizo cada poder y en qué momentos recibiste más daño.': 'End-of-run summary: how much damage each power dealt and when you took the most damage.',
   'Más ajustes de comodidad en Configuración: puedes quitar los destellos fuertes y elegir el tamaño de los números de daño (u ocultarlos).': 'More comfort settings: you can turn off strong flashes and choose the size of damage numbers (or hide them).',
   'Marcos de retrato: tus logros desbloquean marcos de Bronce, Plata, Oro, Grieta y Leyenda para tu héroe. Elígelos en Estadísticas.': 'Portrait frames: your achievements unlock Bronze, Silver, Gold, Rift and Legend frames for your hero. Choose them in Statistics.',

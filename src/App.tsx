@@ -83,6 +83,31 @@ export default function App() {
   useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
   /** Avisos arriba: logros conseguidos y premios del ranking del domingo. */
   const [achToast, setAchToast] = useState<Pick<Achievement, 'id' | 'name' | 'reward'>[]>([]);
+  // sonidos del menú: soplo al cambiar de pantalla, monedas al gastar o cobrar créditos y fanfarria con un logro
+  const prevScreen = useRef(screen), prevCredits = useRef<number | null>(null);
+  useEffect(() => {
+    const from = prevScreen.current; prevScreen.current = screen;
+    if (from !== screen && from !== 'loading' && screen !== 'game' && from !== 'game') audio.play('whoosh');
+  }, [screen]);
+  useEffect(() => {
+    const was = prevCredits.current; prevCredits.current = save.credits;
+    if (was === null || screen === 'game' || screen === 'loading' || screen === 'auth') return;
+    if (save.credits < was) audio.play('buy'); else if (save.credits > was) audio.play('coin');
+  }, [save.credits]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (achToast.length) audio.play('ach'); }, [achToast.length > 0]); // eslint-disable-line react-hooks/exhaustive-deps
+  // pasar el ratón por cualquier botón del menú suena (una vez al entrar en él)
+  useEffect(() => {
+    if (screen === 'game') return;
+    let last: Element | null = null;
+    const over = (ev: PointerEvent) => {
+      if (ev.pointerType !== 'mouse') return;
+      const b = (ev.target as Element)?.closest?.('button:not(:disabled), .btn');
+      if (b && b !== last) audio.play('hover');
+      last = b;
+    };
+    document.addEventListener('pointerover', over);
+    return () => document.removeEventListener('pointerover', over);
+  }, [screen]);
   useEffect(() => {
     // solo ya dentro (con la cuenta o como invitado): en la entrada aún no se sabe de quién es el guardado
     if (screen === 'game' || screen === 'loading' || screen === 'auth') return;

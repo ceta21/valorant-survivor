@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { audio } from '../utils/audio';
 import { UpgradeChoice, RARITY_COLORS, RARITY_NAMES } from '../game/types';
 import { UPGRADE_BY_ID } from '../data/upgrades';
 import { MAX_LEVEL, POWERS } from '../data/powers';
@@ -38,7 +39,7 @@ export function UpgradeSelection({ choices, rerolls, pick, reroll, level, reroll
       <p>{t('Elige una mejora')} <small>{t('(teclas 1, 2, 3)')}</small></p>
       <div className="cards">
         {choices.map((c, i) => { const d = describe(c); return (
-          <button key={c.id + i + c.rarity} className={`ucard r${c.rarity} ${c.kind === 'power-evo' ? 'evo' : ''}`} style={{ ['--rc' as any]: RARITY_COLORS[c.rarity], ['--d' as any]: `${i * 110}ms` }} onClick={() => pick(i)}>
+          <button key={c.id + i + c.rarity} className={`ucard r${c.rarity} ${c.kind === 'power-evo' ? 'evo' : ''}`} style={{ ['--rc' as any]: RARITY_COLORS[c.rarity], ['--d' as any]: `${i * 110}ms` }} onClick={() => pick(i)} onMouseEnter={() => audio.play('card')}>
             <span className="ucard-rar">{t(RARITY_NAMES[c.rarity])}</span>
             <span className="ucard-icon">{c.icon}</span>
             {c.rarity >= 2 && <i className="ucard-shine" aria-hidden="true" />}

@@ -50,7 +50,7 @@ export function AgentSelection({ save, back, start, unlock, equip, keys, challen
             const open = save.unlocked.includes(a.id), later = !isAvailable(a.id);
             return (
               <button key={a.id} role="option" aria-selected={a.id === sel} className={`agent-card ${a.id === sel ? 'on' : ''} ${open && !later ? '' : 'locked'} ${later ? 'soon' : ''}`}
-                style={{ ['--ac' as any]: a.color }} onClick={() => { audio.play('click'); setSel(a.id); }} onMouseEnter={() => audio.play('hover')}>
+                style={{ ['--ac' as any]: a.color }} onClick={() => { audio.play('click'); setSel(a.id); }}>
                 <AgentPortrait agent={a} locked={!open || later} />
                 <span className="agent-card-name">{t(a.name)}</span>
                 {later
