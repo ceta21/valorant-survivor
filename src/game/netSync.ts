@@ -146,7 +146,7 @@ export function applySnapshot(e: GameEngine, s: Snap) {
   for (let i = 0; i < s.pj.length; i += PJ) {
     const look = s.pj[i + 5];
     e.projs.push({ x: s.pj[i], y: s.pj[i + 1], vx: s.pj[i + 2], vy: s.pj[i + 3], r: s.pj[i + 4] / 10, look: LOOKS[look] ?? '', crit: !!s.pj[i + 6],
-      color: s.cl[s.pj[i + 7]], pal: s.cl[s.pj[i + 8]] || undefined, dmg: 0, life: 1, pierce: 0, hit: [], homing: false, target: null, burn: 0, explode: 0, mark: 0, dead: false, chain: false, owner: 0 });
+      color: s.cl[s.pj[i + 7]], pal: s.cl[s.pj[i + 8]] || undefined, dmg: 0, life: 1, pierce: 0, hit: [], homing: false, target: null, burn: 0, explode: 0, mark: 0, dead: false, chain: false, owner: 0, src: 'other' });
   }
   e.eprojs = [];
   for (let i = 0; i < s.ep.length; i += EP) e.eprojs.push({ x: s.ep[i], y: s.ep[i + 1], vx: s.ep[i + 2], vy: s.ep[i + 3], r: s.ep[i + 4], color: s.cl[s.ep[i + 5]], dmg: 0, life: 1, dead: false });

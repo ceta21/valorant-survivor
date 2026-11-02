@@ -150,3 +150,15 @@ En Configuración (se guardan en `settings` de la partida guardada):
   clase `.game.no-flash`).
 - **Números de daño** (`dmgNums`): ocultos (0), pequeños (0,75), normales (1) o grandes (1,4). Solo afecta a los números;
   el resto de textos flotantes se ven siempre.
+
+## Resumen de la partida
+
+En la pantalla de final (`RunSummary` en `GameScreen.tsx`), debajo de los números:
+
+- **Daño por poder**: las 6 fuentes que más daño hicieron, con barra, cantidad y porcentaje. El motor apunta cada golpe
+  a su fuente (`engine.dmgBy`): el poder que lanzó el proyectil (`Proj.src`), la mascota (`pet`), las quemaduras
+  (`burn`) y el resto (`other`: habilidades, torretas, drones, explosiones de ventajas…). Los poderes evolucionados salen
+  con su nombre evolucionado.
+- **Daño recibido**: una columna por cada 30 s (`engine.hurtBy`), con la peor resaltada y «Donde más sufriste: m:ss–m:ss».
+
+Solo se cuenta al jugador local; va en `RunResult.summary`.

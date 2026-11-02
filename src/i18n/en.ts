@@ -477,6 +477,14 @@ export const EN: Record<string, string> = {
   'Terror alado del Infierno': 'Winged Terror of the Inferno',
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
+  /* ------------------------------------------------------------------ resumen de la partida */
+  'Daño por poder': 'Damage by power',
+  'Daño recibido': 'Damage taken',
+  'Daño recibido cada 30 segundos': 'Damage taken every 30 seconds',
+  'Donde más sufriste: {a}–{b}': 'Toughest moment: {a}–{b}',
+  '¡Sin un rasguño!': 'Not a scratch!',
+  'Quemaduras': 'Burns',
+  'Habilidades y otros': 'Abilities and other',
   /* ------------------------------------------------------------------ comodidad */
   'Destellos fuertes': 'Strong flashes',
   'Números de daño': 'Damage numbers',
@@ -518,6 +526,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Resumen al acabar la partida: cuánto daño hizo cada poder y en qué momentos recibiste más daño.': 'End-of-run summary: how much damage each power dealt and when you took the most damage.',
   'Más ajustes de comodidad en Configuración: puedes quitar los destellos fuertes y elegir el tamaño de los números de daño (u ocultarlos).': 'More comfort settings: you can turn off strong flashes and choose the size of damage numbers (or hide them).',
   'Marcos de retrato: tus logros desbloquean marcos de Bronce, Plata, Oro, Grieta y Leyenda para tu héroe. Elígelos en Estadísticas.': 'Portrait frames: your achievements unlock Bronze, Silver, Gold, Rift and Legend frames for your hero. Choose them in Statistics.',
   'Desafío semanal: cada semana, un reto con reglas especiales (bots más rápidos, cañón de cristal, sin curación…). Juégalo desde el Diario y, si aguantas lo pedido, gana créditos extra.': 'Weekly challenge: every week, a run with special rules (faster bots, glass cannon, no healing…). Play it from the Daily screen and, if you survive long enough, earn extra credits.',

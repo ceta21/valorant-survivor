@@ -341,6 +341,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
             <div style={{ ['--i' as any]: 4 }}><dt>{t('Jefes')}</dt><dd><CountUp to={result.r.bossKills} fmt={String} delay={0.7} /></dd></div>
             <div className="reward" style={{ ['--i' as any]: 5 }}><dt>{t('Créditos')}</dt><dd>+◈ <CountUp to={result.r.credits} fmt={nf} delay={0.85} /></dd></div>
           </dl>
+          {result.r.summary && <RunSummary s={result.r.summary} />}
           {(result.r.loot?.length ?? 0) > 0 && (
             <div className="end-loot">
               <b>{t('Botín de los jefes')}</b>
@@ -384,4 +385,34 @@ function CountUp({ to, fmt, delay = 0, dur = 0.9 }: { to: number; fmt: (n: numbe
     return () => cancelAnimationFrame(raf);
   }, [to, delay, dur]);
   return <>{fmt(Math.round(v))}</>;
+}
+
+/** Resumen de la partida: daño de cada poder (barras) y daño recibido cada 30 s (columnas, la peor resaltada). */
+function RunSummary({ s }: { s: NonNullable<RunResult['summary']> }) {
+  const total = s.dmg.reduce((n, d) => n + d.dmg, 0) || 1, top = s.dmg[0]?.dmg || 1;
+  const maxH = Math.max(1, ...s.hurt), worst = s.hurt.indexOf(maxH);
+  const mm = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+  return (
+    <div className="end-sum">
+      <section>
+        <b>{t('Daño por poder')}</b>
+        <ul className="sum-dmg">
+          {s.dmg.map((d, i) => (
+            <li key={d.id} style={{ ['--c' as any]: d.color, ['--w' as any]: `${(d.dmg / top) * 100}%`, ['--i' as any]: i }}>
+              <span>{t(d.name)}</span><i /><em>{nf(d.dmg)} · {Math.round((d.dmg / total) * 100)} %</em>
+            </li>
+          ))}
+        </ul>
+      </section>
+      {s.hurt.length > 1 && (
+        <section>
+          <b>{t('Daño recibido')}</b>
+          <div className="sum-hurt" role="img" aria-label={t('Daño recibido cada 30 segundos')}>
+            {s.hurt.map((h, i) => <i key={i} className={i === worst && h > 0 ? 'worst' : ''} style={{ height: `${Math.max(3, (h / maxH) * 100)}%` }} title={`${mm(i * 30)}: ${nf(h)}`} />)}
+          </div>
+          <small>{maxH > 0 ? t('Donde más sufriste: {a}–{b}', { a: mm(worst * 30), b: mm(worst * 30 + 30) }) : t('¡Sin un rasguño!')}</small>
+        </section>
+      )}
+    </div>
+  );
 }

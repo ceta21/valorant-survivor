@@ -52,6 +52,8 @@ export interface Proj {
   x: number; y: number; vx: number; vy: number; dmg: number; r: number; life: number; pierce: number;
   crit: boolean; color: string; hit: number[]; homing: boolean; target: Enemy | null; burn: number;
   explode: number; mark: number; dead: boolean; look: ProjLook; chain: boolean; owner: number;
+  /** Poder que lo lanzó (para el resumen de daño). */
+  src: string;
   /** Saltos que le quedan (bolas de rebote). */
   bounce?: number;
   /** Paleta del proyectil y de su estela (si no, la de su aspecto). */
@@ -175,6 +177,11 @@ export class GameEngine {
   kills = 0;
   bossKills = 0;
   damageDealt = 0;
+  /** Resumen de la partida (jugador local): daño por fuente (id del poder, 'pet', 'burn' u 'other') y daño recibido cada 30 s. */
+  dmgBy: Record<string, number> = {};
+  hurtBy: number[] = [];
+  /** Fuente del daño que se está haciendo ahora (la pone quien ataca). */
+  private src = 'other';
   level = 1;
   xp = 0;
   taken!: Record<string, number>;
@@ -554,6 +561,7 @@ export class GameEngine {
       this.text(p.x, p.y - 20, `-${Math.round(ab)}`, '#7ad7ff', 13);
     }
     if (a > 0) {
+      if (this.cur.idx === this.local) { const k = Math.floor(this.time / 30); this.hurtBy[k] = (this.hurtBy[k] ?? 0) + a; }
       p.hp -= a;
       this.text(p.x, p.y - 20, `-${Math.round(a)}`, '#ff4655', 15);
       this.sparks(p.x, p.y, '#ff4655', 8, 200);
@@ -609,8 +617,10 @@ export class GameEngine {
   private updateWeapons(dt: number) {
     for (const w of this.weapons) {
       w.cd -= dt;
+      this.src = w.id;
       if (w.cd <= 0) w.cd = this.fire(w) ? this.weaponCd(w) : 0.05;
     }
+    this.src = 'other';
   }
   private fire(w: WeaponInst): boolean {
     const d = POWERS[w.id], s = this.stats, p = this.player;
@@ -649,7 +659,7 @@ export class GameEngine {
     p.x = x; p.y = y; p.vx = Math.cos(a) * speed; p.vy = Math.sin(a) * speed; p.dmg = dmg; p.r = r;
     p.life = range / speed; p.pierce = pierce; p.crit = crit; p.color = color; p.hit.length = 0;
     p.homing = !!o.homing; p.target = o.target ?? null; p.burn = o.burn ?? 0; p.explode = o.explode ?? 0;
-    p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain; p.owner = this.cur.idx;
+    p.src = this.src; p.mark = o.mark ?? 0; p.dead = false; p.look = o.look ?? ''; p.chain = !!o.chain; p.owner = this.cur.idx;
     p.bounce = o.bounce ?? 0; p.ret = o.ret ? 1 : 0; p.turn = o.ret ? p.life / 2 : 0; p.pal = o.pal;
     this.projs.push(p);
   }
@@ -659,6 +669,7 @@ export class GameEngine {
       const p = this.projs[i];
       if (p.dead) continue;
       this.use(this.players[p.owner] ?? this.cur);
+      this.src = p.src;
       if (p.homing) {
         if (!p.target || p.target.dead) p.target = this.nearestEnemy(p.x, p.y, 600);
         if (p.target) {
@@ -741,6 +752,7 @@ export class GameEngine {
     e.hp -= dmg;
     e.flash = 0.09;
     this.damageDealt += dmg;
+    if (this.cur.idx === this.local) this.dmgBy[this.src] = (this.dmgBy[this.src] ?? 0) + dmg;
     // número de daño: los críticos, dorados y más grandes (con «!»); el resto, del color del ataque aclarado
     if (!o.noText) this.text(e.x + rnd(-6, 6), e.y - e.r - 4, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd24a' : o.color ? lighten(o.color) : '#ffffff', crit ? 20 : 12);
     if (o.knock && !e.isBoss) {
@@ -884,6 +896,17 @@ export class GameEngine {
     }
     this.use(this.players[this.local]);
   }
+  /** Daño por fuente (las 6 mayores, con nombre y color) y daño recibido cada 30 s, para la pantalla de final. */
+  private summary() {
+    const name = (id: string) => {
+      const w = this.weapons.find(x => x.id === id), d = POWERS[id];
+      if (d) return { name: w && w.lvl >= EVO_LEVEL ? d.evolved.name : d.name, color: d.color };
+      return id === 'pet' ? { name: 'Mascota', color: '#5dff9a' } : id === 'burn' ? { name: 'Quemaduras', color: '#ff7a3d' } : { name: 'Habilidades y otros', color: this.agent.color };
+    };
+    const dmg = Object.entries(this.dmgBy).filter(([, v]) => v >= 1).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([id, v]) => ({ id, dmg: Math.round(v), ...name(id) }));
+    const n = Math.ceil(this.time / 30);
+    return { dmg, hurt: Array.from({ length: n }, (_, i) => Math.round(this.hurtBy[i] ?? 0)) };
+  }
   private alive() { let n = 0; for (const e of this.enemies) if (!e.dead) n++; return n; }
 
   private updateSpawner(dt: number) {
@@ -1011,7 +1034,7 @@ export class GameEngine {
       if (e.burnT > 0) {
         e.burnT -= dt;
         const b = e.burnDps * dt;
-        e.hp -= b; this.damageDealt += b;
+        e.hp -= b; this.damageDealt += b; this.dmgBy.burn = (this.dmgBy.burn ?? 0) + b;
         if (Math.random() < 0.15) this.sparks(e.x, e.y, '#ff7a3d', 1, 50, 0.4);
         if (e.hp <= 0) { this.killEnemy(e, false); continue; }
       }
@@ -1764,7 +1787,7 @@ export class GameEngine {
         } else t.cd = 0.15;
       }
     }
-    if (this.cur.pet) this.updatePet(this.cur.pet, dt);
+    if (this.cur.pet) { this.src = 'pet'; this.updatePet(this.cur.pet, dt); this.src = 'other'; }
   }
 
   /** Estilos y mascota del jugador cargado (para el render). */
@@ -2251,7 +2274,7 @@ export class GameEngine {
     const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits * (this.event.credits ?? 1)) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot], challenge: this.event.challenge ? this.event.id : undefined,
+      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot], challenge: this.event.challenge ? this.event.id : undefined, summary: idx === this.local ? this.summary() : undefined,
     };
   }
   /** Termina la partida desde fuera (p. ej. se pierde la conexión en cooperativo). */

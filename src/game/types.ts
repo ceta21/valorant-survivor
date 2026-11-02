@@ -162,6 +162,8 @@ export interface RunResult {
   loot?: { id: string; rarity: 0 | 1 | 2 | 3 }[];
   /** Desafío semanal jugado (id), si lo era. */
   challenge?: string;
+  /** Resumen: daño por poder (mayor primero) y daño recibido cada 30 s. */
+  summary?: { dmg: { id: string; name: string; color: string; dmg: number }[]; hurt: number[] };
 }
 
 export interface UpgradeChoice {
