@@ -21,7 +21,7 @@
 | Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
 | Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar), **marcos de retrato** y logros (conseguidos/total, premio y progreso de cada uno) |
-| Configuración | `SettingsScreen` | Sonido y pantalla, **Idioma**, **Controles**, borrar progreso |
+| Configuración | `SettingsScreen` | Sonido y pantalla (con los ajustes de comodidad: sacudida, **destellos fuertes** y **tamaño de los números de daño**), **Idioma**, **Controles**, borrar progreso |
 | Apoyo | `SupportScreen` | Creador del juego (Gabriel Vigo Rodríguez) y enlace a su LinkedIn |
 | Privacidad y aviso legal | `PrivacyScreen` | Qué datos se guardan y dónde, para qué, cómo borrarlos (Configuración o pedirlo por correo a fnceta@gmail.com o LinkedIn) y aviso legal. Se abre con un enlace desde el acceso, Apoyo y Configuración, y vuelve a la pantalla de origen. **Revisarla si cambia qué datos se guardan** |
 
@@ -139,3 +139,14 @@ que cambia de violeta a cian) y Leyenda (todos, dorado que destella). Se eligen 
 ven sobre el retrato del héroe en el menú y en la pantalla de final (en solitario). Si el marco elegido deja de estar
 desbloqueado (por ejemplo, si se añaden logros), no se ve (`frameOf`). Son clases `pf-<id>` que pintan el borde
 con sombras interiores en el `::after`.
+
+## Ajustes de comodidad
+
+En Configuración (se guardan en `settings` de la partida guardada):
+
+- **Sacudida de pantalla** (`shake`): activa o no el temblor de la cámara.
+- **Destellos fuertes** (`flashes`): desactivado, las explosiones y rayos se pintan al 35 %, el aviso rojo al
+  recibir daño es más suave y no late con poca vida, y el HUD no parpadea en blanco (vida, experiencia ni habilidades;
+  clase `.game.no-flash`).
+- **Números de daño** (`dmgNums`): ocultos (0), pequeños (0,75), normales (1) o grandes (1,4). Solo afecta a los números;
+  el resto de textos flotantes se ven siempre.

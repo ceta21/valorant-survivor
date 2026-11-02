@@ -8,6 +8,10 @@ import { LEGACY_AGENT_COSTS } from '../data/agents';
 import { mapOrDefault } from '../data/maps';
 export interface Settings {
   musicVol: number; sfxVol: number; musicOn: boolean; sfxOn: boolean; shake: boolean; autoPause: boolean;
+  /** Destellos fuertes (explosiones, rayos, aviso rojo al recibir daño); sin ellos se suavizan. */
+  flashes: boolean;
+  /** Tamaño de los números de daño: 0 = ocultos, 0.75, 1 o 1.4. */
+  dmgNums: number;
   /** Ya se vieron los consejos de la primera partida. */
   tutorialDone: boolean;
   /** Enviar estadísticas anónimas de uso (utils/analytics.ts). */
@@ -64,7 +68,7 @@ export const defaultSave = (): SaveData => ({
   records: {},
   claimed: [],
   achievements: [],
-  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, autoPause: true, tutorialDone: false, analytics: true },
+  settings: { musicVol: 0.4, sfxVol: 0.7, musicOn: true, sfxOn: true, shake: true, flashes: true, dmgNums: 1, autoPause: true, tutorialDone: false, analytics: true },
   lastAgent: 'zephyr',
   lastMap: 'reino',
   lastDifficulty: 'normal',

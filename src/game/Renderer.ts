@@ -49,6 +49,9 @@ export class Renderer {
   camX = 0;
   camY = 0;
   shake = true;
+  /** Ajustes de comodidad: destellos fuertes y tamaño de los números de daño (0 = ocultos). */
+  flashes = true;
+  dmgNums = 1;
 
   constructor(ctx: Ctx, makeCanvas: MakeCanvas) {
     this.ctx = ctx;
@@ -640,12 +643,13 @@ export class Renderer {
     for (const f of e.fxs.items) {
       if (f.life <= 0) continue;
       const k = 1 - f.life / f.max;
+      const soft = this.flashes ? 1 : 0.35;   // sin destellos fuertes, explosiones y rayos más tenues
       if (f.kind === 0) {
-        g.globalAlpha = 1 - k;
+        g.globalAlpha = (1 - k) * soft;
         pixelCircle(g, f.x, f.y, f.r * (0.25 + k * 0.75), f.color, PX, 3);
         g.globalAlpha = 1;
       } else {
-        g.globalAlpha = 1 - k;
+        g.globalAlpha = (1 - k) * soft;
         pixelBolt(g, f.x, f.y, f.x2, f.y2, (f.x * 7 + Math.floor(e.time * 20)) | 0, 'electric', PX);
         g.globalAlpha = 1;
       }
@@ -704,9 +708,12 @@ export class Renderer {
     const fs = Math.max(8, Math.round(z * 16 / 8) * 8);
     for (const t of e.texts.items) {
       if (t.life <= 0 || !vis(t.x, t.y)) continue;
+      // números de daño: tamaño elegido en Configuración, u ocultos (los demás textos, siempre)
+      const num = /^d+!?$/.test(t.text), ns = num ? this.dmgNums : 1;
+      if (ns <= 0) continue;
       // tamaño según lo que pide el motor (críticos más grandes) y un rebote al aparecer (crece y vuelve)
       const pop = t.life > 0.55 ? 1 + ((t.life - 0.55) / 0.15) * (t.size >= 17 ? 0.6 : 0.25) : 1;
-      g.font = `${Math.max(8, Math.round((fs * (t.size / 12) * pop) / 8) * 8)}px ${PIXEL_FONT}`;
+      g.font = `${Math.max(8, Math.round((fs * (t.size / 12) * pop * ns) / 8) * 8)}px ${PIXEL_FONT}`;
       const tx = Math.round((t.x - cx) * z), ty = Math.round((t.y - cy) * z);
       g.globalAlpha = Math.min(1, t.life * 2.2);
       g.fillStyle = '#000';
@@ -735,7 +742,8 @@ export class Renderer {
     g.drawImage(this.vignette, 0, 0);
     const hpFrac = p.hp / e.stats.maxHp;
     if (e.hurtFlash > 0 || hpFrac < 0.3) {
-      const a = Math.max(e.hurtFlash * 1.2, hpFrac < 0.3 ? (0.3 - hpFrac) * (0.6 + 0.4 * Math.sin(e.time * 7)) : 0);
+      const a = this.flashes ? Math.max(e.hurtFlash * 1.2, hpFrac < 0.3 ? (0.3 - hpFrac) * (0.6 + 0.4 * Math.sin(e.time * 7)) : 0)
+        : Math.max(e.hurtFlash * 0.4, hpFrac < 0.3 ? (0.3 - hpFrac) * 0.6 : 0);   // sin destellos: más suave y sin latir
       const gr = g.createRadialGradient(this.vw / 2, this.vh / 2, Math.min(this.vw, this.vh) * 0.3, this.vw / 2, this.vh / 2, Math.hypot(this.vw, this.vh) * 0.6);
       gr.addColorStop(0, 'rgba(255,40,60,0)'); gr.addColorStop(1, `rgba(255,40,60,${Math.min(0.55, a)})`);
       g.fillStyle = gr; g.fillRect(0, 0, this.vw, this.vh);

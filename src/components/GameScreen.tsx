@@ -124,7 +124,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
   }, [coop, toggleMap]);
   const castRef = useRef<(slot: 'special' | 'secondary' | 'ultimate') => void>(() => {});
 
-  useEffect(() => { if (rendererRef.current) rendererRef.current.shake = settings.shake; }, [settings.shake]);
+  useEffect(() => { const r = rendererRef.current; if (r) { r.shake = settings.shake; r.flashes = settings.flashes; r.dmgNums = settings.dmgNums; } }, [settings.shake, settings.flashes, settings.dmgNums]);
 
   useEffect(() => {
     const canvas = canvasRef.current!, box = wrap.current!;
@@ -189,7 +189,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
     }
     const renderer = new Renderer(ctx, (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
     renderer.low = low; engine.lowFx = low;
-    renderer.shake = settings.shake;
+    renderer.shake = settings.shake; renderer.flashes = settings.flashes; renderer.dmgNums = settings.dmgNums;
     engineRef.current = engine; rendererRef.current = renderer;
     const input = new Input(engine, togglePause, cast, keys, () => toggleMap());
     inputRef.current = input;
@@ -288,7 +288,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
   const reroll = () => { if (isGuest) coop!.link.send({ type: 'reroll' }); else engine?.reroll(); };
 
   return (
-    <div className="game" ref={wrap}>
+    <div className={`game ${settings.flashes ? '' : 'no-flash'}`} ref={wrap}>
       <canvas ref={canvasRef} className="game-canvas" style={{ filter: vividFilter(vivid) }} />
       {hud && engine && <GameHUD hud={hud} engine={engine} onPause={togglePause} onCast={slot => castRef.current(slot)} keys={keys} onMap={toggleMap} />}
       {!coop && !settings.tutorialDone && engine && hud && !result && (

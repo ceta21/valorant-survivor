@@ -23,6 +23,15 @@ export function SettingsScreen({ settings, change, back, reset, prefs, changePre
         <h3 className="settings-h">{t('Sonido y pantalla')}</h3>
         <AudioControls settings={settings} change={change} />
         <label className="row"><span>{t('Sacudida de pantalla')}</span><input type="checkbox" checked={settings.shake} onChange={e => change({ shake: e.target.checked })} /></label>
+        <label className="row"><span>{t('Destellos fuertes')}</span><input type="checkbox" checked={settings.flashes} onChange={e => change({ flashes: e.target.checked })} /></label>
+        <div className="row">
+          <span>{t('Números de daño')}</span>
+          <div className="seg" role="group" aria-label={t('Números de daño')}>
+            {([[0, 'Ocultos'], [0.75, 'Pequeños'], [1, 'Normales'], [1.4, 'Grandes']] as const).map(([v, n]) => (
+              <button key={v} className={`btn btn-sm ${settings.dmgNums === v ? 'on' : ''}`} aria-pressed={settings.dmgNums === v} onClick={() => change({ dmgNums: v })}><b>{t(n)}</b></button>
+            ))}
+          </div>
+        </div>
         <label className="row"><span>{t('Consejos de la primera partida')}</span><input type="checkbox" checked={!settings.tutorialDone} onChange={e => change({ tutorialDone: !e.target.checked })} /></label>
         <div className="row">
           <span>{t('Viveza del color')}</span>
