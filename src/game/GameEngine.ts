@@ -147,6 +147,11 @@ export interface EngineEvents {
 }
 export type EngineState = 'playing' | 'paused' | 'levelup' | 'won' | 'lost';
 
+/** Mezcla un color con blanco (para que el número de daño se lea bien sobre cualquier fondo). */
+function lighten(hex: string, k = 0.55) {
+  const n = parseInt(hex.slice(1, 7), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v + (255 - v) * k));
+  return '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+}
 function ring<T>(n: number, make: () => T) {
   const items: T[] = [];
   for (let i = 0; i < n; i++) items.push(make());
@@ -198,6 +203,10 @@ export class GameEngine {
   shells: Shell[] = [];
   hazards: Hazard[] = [];
   gems: Gem[] = [];
+  /** Piezas de los enemigos al romperse (solo dibujo): saltan, caen con gravedad, rebotan y se desvanecen. */
+  debris: { x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; max: number; color: string; size: number; spin: number }[] = [];
+  /** Cámara lenta tras derrotar a un jefe (segundos reales que le quedan). */
+  slowT = 0;
   /** Impactos de proyectiles de elemento (solo dibujo): dónde, de qué elemento, cuándo y hacia dónde iba. */
   impacts: { x: number; y: number; look: string; t: number; ang: number; seed: number }[] = [];
   /** Objetos de equipo ganados en la partida (los sueltan los jefes). */
@@ -357,7 +366,10 @@ export class GameEngine {
   /* ------------------------------------------------------------------ bucle */
   update(dtReal: number) {
     if (this.state !== 'playing') return;
-    this.acc += Math.min(dtReal, 0.1);
+    // cámara lenta al derrotar a un jefe: el tiempo de juego va al 30 % unos instantes
+    const real = Math.min(dtReal, 0.1);
+    if (this.slowT > 0) this.slowT -= real;
+    this.acc += real * (this.slowT > 0 ? 0.3 : 1);
     let n = 0;
     while (this.acc >= DT && n < 6 && this.state === 'playing') {
       this.step(DT);
@@ -684,7 +696,7 @@ export class GameEngine {
         if (p.dead || p.hit.includes(e.id)) return;
         p.hit.push(e.id);
         const stats = this.stats;
-        this.damageEnemy(e, p.dmg, p.crit, { kx: p.vx, ky: p.vy, knock: p.dmg > 30 ? 120 : 70 });
+        this.damageEnemy(e, p.dmg, p.crit, { kx: p.vx, ky: p.vy, knock: p.dmg > 30 ? 120 : 70, color: p.look ? p.color : undefined });
         if (p.look && Math.random() < 0.7) this.sparks(e.x, e.y, p.color, 4, 170, 0.3);   // chispas del color del ataque
         if (p.look && p.look !== 'flame' && p.look !== 'disc' && !p.pal && this.impacts.length < 60)
           this.impacts.push({ x: (p.x + e.x) / 2, y: (p.y + e.y) / 2, look: p.look, t: this.time, ang: Math.atan2(p.vy, p.vx), seed: (Math.random() * 1000) | 0 });
@@ -715,7 +727,7 @@ export class GameEngine {
     }
   }
 
-  damageEnemy(e: Enemy, dmg: number, crit: boolean, o: { kx?: number; ky?: number; knock?: number; noText?: boolean; noChain?: boolean; blast?: boolean } = {}) {
+  damageEnemy(e: Enemy, dmg: number, crit: boolean, o: { kx?: number; ky?: number; knock?: number; noText?: boolean; noChain?: boolean; blast?: boolean; /** Color del ataque (el número de daño lo toma, aclarado). */ color?: string } = {}) {
     if (e.dead || dmg <= 0) return;
     if (e.markT > 0) dmg *= 1.3;
     if (e.def.armor) dmg *= 1 - e.def.armor;   // escudos y tanques bloquean parte del daño
@@ -723,7 +735,8 @@ export class GameEngine {
     e.hp -= dmg;
     e.flash = 0.09;
     this.damageDealt += dmg;
-    if (!o.noText) this.text(e.x + rnd(-6, 6), e.y - e.r - 4, `${Math.round(dmg)}`, crit ? '#ffd24a' : '#ffffff', crit ? 17 : 12);
+    // número de daño: los críticos, dorados y más grandes (con «!»); el resto, del color del ataque aclarado
+    if (!o.noText) this.text(e.x + rnd(-6, 6), e.y - e.r - 4, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd24a' : o.color ? lighten(o.color) : '#ffffff', crit ? 20 : 12);
     if (o.knock && !e.isBoss) {
       const l = Math.hypot(o.kx ?? 0, o.ky ?? 0) || 1;
       e.kx += ((o.kx ?? 0) / l) * o.knock;
@@ -1354,6 +1367,13 @@ export class GameEngine {
     const frenzy = this.buffs.frenzyT > 0 ? 3 : 1;
     if (this.stats.lifeOnKill > 0 || this.buffs.frenzyT > 0) this.heal(this.stats.lifeOnKill * frenzy + (this.buffs.frenzyT > 0 ? this.buffs.frenzyHeal * 8 : 0), true);
     this.sparks(e.x, e.y, e.def.color, e.isBoss ? 40 : 8, e.isBoss ? 420 : 200, 0.6);
+    // el bot se rompe en piezas de su color y de metal que saltan y rebotan
+    const pieces = (e.isBoss ? 34 : 7) * (this.lowFx ? 0.5 : 1);
+    for (let i = 0; i < pieces && this.debris.length < 320; i++) {
+      const a = rnd(Math.PI * 2), sp = rnd(60, e.isBoss ? 320 : 170), life = rnd(0.6, e.isBoss ? 1.4 : 1);
+      this.debris.push({ x: e.x + rnd(-e.r, e.r) * 0.5, y: e.y + rnd(-e.r, e.r) * 0.3, z: rnd(4, e.r), vx: Math.cos(a) * sp, vy: Math.sin(a) * sp * 0.6,
+        vz: rnd(90, e.isBoss ? 320 : 200), life, max: life, color: i % 3 === 0 ? '#5a5f70' : i % 3 === 1 ? e.def.color : '#9aa0b0', size: e.isBoss ? rnd(4, 8) : rnd(3, 6), spin: rnd(-12, 12) });
+    }
     this.sfx('kill', 0.05);
     const v = e.def.xp;
     if (e.isBoss) {
@@ -1362,12 +1382,16 @@ export class GameEngine {
       this.bossKills++;
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 260, 0.6, '#ffffff');
+      // gran explosión y un instante de cámara lenta
+      this.addVfx('blast', 'boom', e.x, e.y, e.r * 4, 0.9);
+      this.addVfx('ring', 'boom', e.x, e.y, e.r * 5, 1.1);
+      this.slowT = 0.7;
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
       // botín de equipo: mejor cuanto más dura la zona; el jefe final asegura épico o legendario
       for (let i = 0; i < (this.event.bossLoot ?? 1); i++) {
         const drop = rollLoot(ZONE_TIER[this.zoneIdAt(e.x, e.y)] ?? 0, !!e.def.final);
         this.loot.push(drop);
-        this.text(e.x, e.y - e.r - 30 - i * 22, `🎁 ${GEAR_BY_ID[drop.id].name}`, GEAR_RARITY_COLORS[drop.rarity], 18);
+        this.text(e.x, e.y - e.r - 30 - i * 22, `+ ${GEAR_BY_ID[drop.id].name}`, GEAR_RARITY_COLORS[drop.rarity], 18);
       }
       if (e.def.final && !this.finalKilled) {
         this.finalKilled = true;
@@ -2050,6 +2074,13 @@ export class GameEngine {
       p.vx *= 0.92; p.vy *= 0.92;
     }
     for (const t of this.texts.items) if (t.life > 0) { t.life -= dt; t.y -= 28 * dt; }
+    if (this.debris.length) {
+      for (const d of this.debris) {
+        d.life -= dt; d.x += d.vx * dt; d.y += d.vy * dt; d.vz -= 700 * dt; d.z += d.vz * dt;
+        if (d.z < 0) { d.z = 0; d.vz = -d.vz * 0.35; d.vx *= 0.6; d.vy *= 0.6; }   // rebote contra el suelo
+      }
+      this.debris = this.debris.filter(d => d.life > 0);
+    }
     for (const f of this.fxs.items) if (f.life > 0) f.life -= dt;
   }
 

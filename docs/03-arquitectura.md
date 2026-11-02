@@ -159,6 +159,18 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Móvil: joystick virtual arrastrando el dedo sobre el canvas; habilidades con los botones del HUD.
 - En cooperativo, el invitado no lanza habilidades en su motor: las envía al anfitrión (`castFn`).
 
+## Efectos de combate
+
+- **Enemigos que se rompen**: al morir, cada enemigo suelta piezas de su color y de metal (`engine.debris`, solo
+  dibujo; 7 por bot y 34 por jefe, la mitad en calidad baja, máximo 320) que saltan, caen con gravedad, rebotan una
+  vez contra el suelo y se desvanecen. Se pintan antes de los enemigos, con su sombra.
+- **Jefe derrotado**: además del destello y el temblor, una gran explosión y una onda (`addVfx`), y `slowT` = 0,7 s de
+  cámara lenta (el tiempo de juego va al 30 % en `update`).
+- **Números de daño**: el Renderer usa el tamaño que pide el motor; los críticos salen dorados, más grandes y con «!»,
+  y todos hacen un pequeño rebote al aparecer. El daño de los poderes sale del color de su elemento, aclarado para
+  leerse sobre cualquier fondo (`damageEnemy(…, { color })`).
+- Captura: `npx tsx scripts/combat-shot.ts` (`shots/combate.png`).
+
 ## Ambiente de cada zona (`game/weather.ts`)
 
 Encima del mundo y antes de los números flotantes, el Renderer pinta el ambiente de la zona en la que está el jugador:

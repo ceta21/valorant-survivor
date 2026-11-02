@@ -29,6 +29,7 @@ export const NEWS: NewsEntry[] = [
       '29 logros con premio en créditos: por zona, por dificultad, por colección (héroes, equipo, mascotas) y por racha; los ves con su progreso en Estadísticas.',
       'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.',
       'Colores más vivos en la partida, y en Configuración puedes ajustar la viveza del color a tu gusto.',
+      'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.',
       'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.',
       'Poderes con efectos nuevos: el rayo deja un zigzag eléctrico, el agua es una burbuja que salpica, el hielo una esquirla con escarcha, la hoja gira, la roca rueda, la estrella destella y el alma ondula; cada uno con su impacto al golpear.',
       'Dibujos nuevos de los 20 héroes: más detalle y pasos de andar de verdad, de frente, de espaldas y de perfil.',

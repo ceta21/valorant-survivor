@@ -2,6 +2,7 @@
 import { createCanvas, loadImage } from '@napi-rs/canvas';
 import { readdirSync } from 'node:fs';
 import { setEnemyArt, setPortalArt } from '../src/game/enemyArt';
+import { setAgentSheet } from '../src/game/sprites';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { GameEngine } from '../src/game/GameEngine';
 import { Renderer } from '../src/game/Renderer';
@@ -10,6 +11,7 @@ import { MAPS } from '../src/data/maps';
 
 mkdirSync('shots', { recursive: true });
 // dibujos de los bots (en el navegador se cargan solos)
+for (const f of readdirSync('public/agents')) setAgentSheet(f.replace(/.w+$/, ''), await loadImage('public/agents/' + f));
 for (const f of readdirSync('public/portals')) setPortalArt(f.replace('.png', ''), await loadImage('public/portals/' + f) as any);
 for (const f of readdirSync('public/enemies')) setEnemyArt(f.replace('.png', ''), await loadImage('public/enemies/' + f) as any);
 // como en el navegador: se dibuja a baja resolución y se amplía sin suavizado

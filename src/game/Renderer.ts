@@ -479,6 +479,16 @@ export class Renderer {
       drawSprite(g, sprite('barrel', 'turret', this.makeCanvas), tx + bc * 8, ty - 2 + bs * 8, PX, t.ang);
       if (t.cd > 0.25) { g.fillStyle = '#fff4b0'; g.fillRect(Math.round((tx + bc * 18) / PX) * PX - 2, Math.round((ty - 2 + bs * 18) / PX) * PX - 2, 4, 4); }
     }
+    // piezas de los enemigos rotos: cuadrados que giran, con su sombra en el suelo
+    for (const d of e.debris) {
+      if (!vis(d.x, d.y)) continue;
+      const a = Math.min(1, d.life / (d.max * 0.4)), s2 = Math.max(PX, Math.round(d.size / PX) * PX);
+      g.globalAlpha = a * 0.35; g.fillStyle = '#000'; g.fillRect(Math.round(d.x / PX) * PX - s2 / 2, Math.round(d.y / PX) * PX, s2, PX);
+      g.globalAlpha = a; g.fillStyle = d.color;
+      const w = Math.abs(Math.cos(d.spin * (d.max - d.life))) * s2 + PX;   // gira: se estrecha y ensancha
+      g.fillRect(Math.round((d.x - w / 2) / PX) * PX, Math.round((d.y - d.z - s2 / 2) / PX) * PX, Math.round(w / PX) * PX, s2);
+    }
+    g.globalAlpha = 1;
     // enemigos
     for (const en of e.enemies) {
       if (en.dead || !vis(en.x, en.y, en.r + 8)) continue;
@@ -682,9 +692,11 @@ export class Renderer {
     // números flotantes: en pantalla, fuente pixelada a tamaño entero y contorno de 1 píxel
     g.textAlign = 'center';
     const fs = Math.max(8, Math.round(z * 16 / 8) * 8);
-    g.font = `${fs}px ${PIXEL_FONT}`;
     for (const t of e.texts.items) {
       if (t.life <= 0 || !vis(t.x, t.y)) continue;
+      // tamaño según lo que pide el motor (críticos más grandes) y un rebote al aparecer (crece y vuelve)
+      const pop = t.life > 0.55 ? 1 + ((t.life - 0.55) / 0.15) * (t.size >= 17 ? 0.6 : 0.25) : 1;
+      g.font = `${Math.max(8, Math.round((fs * (t.size / 12) * pop) / 8) * 8)}px ${PIXEL_FONT}`;
       const tx = Math.round((t.x - cx) * z), ty = Math.round((t.y - cy) * z);
       g.globalAlpha = Math.min(1, t.life * 2.2);
       g.fillStyle = '#000';
