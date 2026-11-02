@@ -1,12 +1,14 @@
 import { SaveData } from '../utils/storage';
 import { MISSIONS, ACHIEVEMENTS } from '../data/goals';
 import { MAPS } from '../data/maps';
+import { FRAMES, achCount, frameOf } from '../data/frames';
 import { audio } from '../utils/audio';
 import { t, nf } from '../i18n';
 
 const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-export function StatsScreen({ save, back, claim }: { save: SaveData; back: () => void; claim: (id: string, reward: number) => void }) {
+export function StatsScreen({ save, back, claim, setFrame }: { save: SaveData; back: () => void; claim: (id: string, reward: number) => void; setFrame: (id: string) => void }) {
+  const n = achCount(save), cur = frameOf(save);
   const s = save.stats;
   const cells: [string, string][] = [
     [t('Partidas'), String(s.games)], [t('Victorias'), String(s.wins)], [t('Eliminaciones'), nf(s.kills)],
@@ -42,6 +44,21 @@ export function StatsScreen({ save, back, claim }: { save: SaveData; back: () =>
               );
             })}
           </ul>
+          <h3>{t('Marcos de retrato')}</h3>
+          <p className="daily-note">{t('Se desbloquean con logros y se ven en tu héroe del menú y al acabar cada partida.')}</p>
+          <div className="frames">
+            {FRAMES.map(f => {
+              const open = n >= f.need;
+              return (
+                <button key={f.id} className={`frame-opt ${cur === f.id ? 'on' : ''}`} disabled={!open} aria-pressed={cur === f.id}
+                  onClick={() => { audio.play('click'); setFrame(f.id); }}>
+                  <span className={`frame-sw pf-${f.id}`} />
+                  <b>{t(f.name)}</b>
+                  <small>{open ? (cur === f.id ? t('Puesto') : t('Elegir')) : `🔒 ${t('{n} logros', { n: f.need })}`}</small>
+                </button>
+              );
+            })}
+          </div>
           <h3>{t('Logros')} ({save.achievements.filter(id => ACHIEVEMENTS.some(a => a.id === id)).length}/{ACHIEVEMENTS.length})</h3>
           <ul className="achv">
             {ACHIEVEMENTS.map(a => {

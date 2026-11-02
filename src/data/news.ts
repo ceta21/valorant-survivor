@@ -35,6 +35,7 @@ export const NEWS: NewsEntry[] = [
       'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.',
       'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.',
       'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.',
+      'Marcos de retrato: tus logros desbloquean marcos de Bronce, Plata, Oro, Grieta y Leyenda para tu héroe. Elígelos en Estadísticas.',
       'Desafío semanal: cada semana, un reto con reglas especiales (bots más rápidos, cañón de cristal, sin curación…). Juégalo desde el Diario y, si aguantas lo pedido, gana créditos extra.',
       'Eventos de oleada: de vez en cuando te rodea un cerco de bots, llueven cajas o aparece un bot dorado que huye y suelta monedas si lo atrapas.',
       'Cambiar de pantalla es más fluido: una franja de la grieta barre la pantalla y, al entrar en partida, la imagen se abre en círculo.',

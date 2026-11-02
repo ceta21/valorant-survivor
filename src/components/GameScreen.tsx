@@ -42,6 +42,8 @@ interface Props {
   onEnd: (r: RunResult) => string[];
   /** Desafío semanal de la partida (solo en solitario) y si ya estaba superado esta semana. */
   challenge?: { c: Challenge; done: boolean };
+  /** Marco de retrato del jugador (pantalla de final). */
+  frame?: string;
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
   /** Partida cooperativa: conexión, jugadores e índice del de esta pantalla (0 = anfitrión). */
   coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number };
@@ -82,7 +84,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys, challenge }: Props) {
+export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys, challenge, frame = 'none' }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -317,7 +319,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
       {result && (
         <div className={`overlay end ${result.r.win ? 'win' : 'lose'}`} role="dialog" aria-label={t('Resultado')}>
           <div className="end-head">
-            <div className="end-portrait" style={{ ['--ac' as any]: agent.color }}><AgentPortrait agent={agent} /></div>
+            <div className={`end-portrait pf-${coop ? 'none' : frame}`} style={{ ['--ac' as any]: agent.color }}><AgentPortrait agent={agent} /></div>
             <div>
               <h2 className="end-title">{result.r.win ? t('¡Victoria!') : t('Derrota')}</h2>
               <h1><CountUp to={result.r.time} fmt={fmt} delay={0} /></h1>

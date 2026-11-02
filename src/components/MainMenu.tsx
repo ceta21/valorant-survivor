@@ -1,4 +1,5 @@
 import { SaveData } from '../utils/storage';
+import { frameOf } from '../data/frames';
 import { AGENTS, AGENT_BY_ID, playableAgent } from '../data/agents';
 import { AgentPortrait } from './AgentPortrait';
 import { Logo } from './Logo';
@@ -70,7 +71,7 @@ export function MainMenu({ save, go, account, accountsEnabled, onLogin, onLogout
       </div>
       <MenuHub save={save} go={go} />
       <aside className="menu-right">
-        <div className="menu-hero" style={{ ['--ac' as any]: agent.color }}>
+        <div className={`menu-hero pf-${frameOf(save)}`} style={{ ['--ac' as any]: agent.color }}>
           <AgentPortrait agent={agent} />
           <div className="hero-name"><small>{t(agent.role)}</small><strong>{t(agent.name)}</strong></div>
         </div>

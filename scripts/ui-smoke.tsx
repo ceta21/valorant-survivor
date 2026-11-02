@@ -29,7 +29,7 @@ const out: [string, string][] = [
   ['pets', renderToString(<PetsScreen save={{ ...s, shop: { ...s.shop, owned: ['pet_voltio', 'pet_copito'], pet: 'pet_voltio', power: { pet_voltio: 2 } } }} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],
   ['pets-vacio', renderToString(<PetsScreen save={s} back={noop} goShop={noop} equip={noop} buyPower={noop} />)],
   ['meta', renderToString(<MetaScreen save={s} back={noop} buy={noop} />)],
-  ['stats', renderToString(<StatsScreen save={s} back={noop} claim={noop} />)],
+  ['stats', renderToString(<StatsScreen save={s} back={noop} claim={noop} setFrame={noop} />)],
   ['settings', renderToString(<SettingsScreen privacy={noop} settings={s.settings} change={noop} back={noop} reset={noop} prefs={{ lang: 'es', keys: DEFAULT_KEYS, low: false, vivid: 0.5 }} changePrefs={noop} />)],
   ['gear', renderToString(<GearScreen save={s} back={noop} change={noop} />)],
   ['privacy', renderToString(<PrivacyScreen back={noop} />)],

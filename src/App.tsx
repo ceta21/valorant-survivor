@@ -1,4 +1,5 @@
 import { CHALLENGE_BY_ID, Challenge, challengeWeek, weeklyChallenge } from './data/challenges';
+import { frameOf } from './data/frames';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MainMenu } from './components/MainMenu';
 import { AgentSelection } from './components/AgentSelection';
@@ -266,7 +267,7 @@ export default function App() {
           })} />
       )}
       {screen === 'stats' && (
-        <StatsScreen save={save} back={() => go('menu')} claim={(id, reward) => update(s => (s.claimed.includes(id) ? s : { ...s, credits: s.credits + reward, claimed: [...s.claimed, id] }))} />
+        <StatsScreen save={save} setFrame={id => update(s => ({ ...s, frame: id }))} back={() => go('menu')} claim={(id, reward) => update(s => (s.claimed.includes(id) ? s : { ...s, credits: s.credits + reward, claimed: [...s.claimed, id] }))} />
       )}
       {screen === 'settings' && (
         <SettingsScreen privacy={openPrivacy} settings={save.settings} change={changeSettings} back={() => go('menu')} reset={() => update(() => defaultSave())} prefs={prefs} changePrefs={changePrefs} />
@@ -282,7 +283,7 @@ export default function App() {
       {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} goPets={() => go('pets')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} challenge={run.coop ? undefined : run.challenge} keys={prefs.keys} low={prefs.low} vivid={prefs.vivid} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} frame={frameOf(save)} challenge={run.coop ? undefined : run.challenge} keys={prefs.keys} low={prefs.low} vivid={prefs.vivid} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
           onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1, challenge: r.challenge && { ...r.challenge, done: save.challenge?.week === challengeWeek() && save.challenge.claimed } }))} changeSettings={changeSettings} />
       )}

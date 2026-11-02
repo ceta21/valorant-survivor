@@ -477,6 +477,17 @@ export const EN: Record<string, string> = {
   'Terror alado del Infierno': 'Winged Terror of the Inferno',
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
+  /* ------------------------------------------------------------------ marcos de retrato */
+  'Marcos de retrato': 'Portrait frames',
+  'Se desbloquean con logros y se ven en tu héroe del menú y al acabar cada partida.': 'Unlocked with achievements; shown on your hero in the menu and at the end of each run.',
+  'Sin marco': 'No frame',
+  'Bronce': 'Bronze',
+  'Plata': 'Silver',
+  'Oro': 'Gold',
+  'Grieta': 'Rift',
+  'Leyenda': 'Legend',
+  'Puesto': 'Equipped',
+  '{n} logros': '{n} achievements',
   /* ------------------------------------------------------------------ desafío semanal */
   'Desafío': 'Challenge',
   'Desafío semanal': 'Weekly challenge',
@@ -500,6 +511,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Marcos de retrato: tus logros desbloquean marcos de Bronce, Plata, Oro, Grieta y Leyenda para tu héroe. Elígelos en Estadísticas.': 'Portrait frames: your achievements unlock Bronze, Silver, Gold, Rift and Legend frames for your hero. Choose them in Statistics.',
   'Desafío semanal: cada semana, un reto con reglas especiales (bots más rápidos, cañón de cristal, sin curación…). Juégalo desde el Diario y, si aguantas lo pedido, gana créditos extra.': 'Weekly challenge: every week, a run with special rules (faster bots, glass cannon, no healing…). Play it from the Daily screen and, if you survive long enough, earn extra credits.',
   'Eventos de oleada: de vez en cuando te rodea un cerco de bots, llueven cajas o aparece un bot dorado que huye y suelta monedas si lo atrapas.': 'Wave events: every so often a ring of bots surrounds you, crates rain down or a golden bot appears that flees and drops coins if you catch it.',
   'Cambiar de pantalla es más fluido: una franja de la grieta barre la pantalla y, al entrar en partida, la imagen se abre en círculo.': 'Smoother screen changes: a rift streak sweeps across the screen and, when a run starts, the view opens in a circle.',

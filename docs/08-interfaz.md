@@ -20,7 +20,7 @@
 | Mercado de la Grieta | `MarketScreen` | Cartas del día |
 | Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
-| Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar) y logros (conseguidos/total, premio y progreso de cada uno) |
+| Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar), **marcos de retrato** y logros (conseguidos/total, premio y progreso de cada uno) |
 | Configuración | `SettingsScreen` | Sonido y pantalla, **Idioma**, **Controles**, borrar progreso |
 | Apoyo | `SupportScreen` | Creador del juego (Gabriel Vigo Rodríguez) y enlace a su LinkedIn |
 | Privacidad y aviso legal | `PrivacyScreen` | Qué datos se guardan y dónde, para qué, cómo borrarlos (Configuración o pedirlo por correo a fnceta@gmail.com o LinkedIn) y aviso legal. Se abre con un enlace desde el acceso, Apoyo y Configuración, y vuelve a la pantalla de origen. **Revisarla si cambia qué datos se guardan** |
@@ -131,3 +131,11 @@ animaciones si el sistema pide movimiento reducido.
   resto de la interfaz no cambia.
 - **Calidad baja** (Configuración, se guarda en el dispositivo): sin animaciones del mapa ni polvo ambiental y la
   mitad de chispas, para móviles o PCs lentos.
+
+## Marcos de retrato
+
+Recompensa visual de los logros (`src/data/frames.ts`): Bronce (3 logros), Plata (8), Oro (15), Grieta (22, con brillo
+que cambia de violeta a cian) y Leyenda (todos, dorado que destella). Se eligen en Estadísticas (`save.frame`) y se
+ven sobre el retrato del héroe en el menú y en la pantalla de final (en solitario). Si el marco elegido deja de estar
+desbloqueado (por ejemplo, si se añaden logros), no se ve (`frameOf`). Son clases `pf-<id>` que pintan el borde
+con sombras interiores en el `::after`.
