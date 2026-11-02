@@ -29,6 +29,7 @@ export const NEWS: NewsEntry[] = [
       '29 logros con premio en créditos: por zona, por dificultad, por colección (héroes, equipo, mascotas) y por racha; los ves con su progreso en Estadísticas.',
       'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.',
       'Colores más vivos en la partida, y en Configuración puedes ajustar la viveza del color a tu gusto.',
+      'HUD más vivo: la vida tiembla y deja un rastro al recibir daño, la experiencia brilla y las habilidades muestran su recarga como un reloj.',
       'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.',
       'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.',
       'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.',

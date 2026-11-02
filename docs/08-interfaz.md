@@ -27,6 +27,13 @@
 
 ### HUD de la partida
 
+Efectos (`useHudFx` en `GameHUD`, que recuerda los valores de la vez anterior porque el HUD se redibuja cada 100 ms):
+la **vida** tiembla y destella en blanco al recibir daño y deja un rastro claro de lo perdido que baja despacio, y
+late en rojo con menos del 30 %; la **experiencia** tiene un brillo que la recorre, destella al ganar y se llena de
+blanco al subir de nivel; las **habilidades** en recarga iluminan con el color del héroe la parte ya recargada,
+girando como un reloj, y destellan al volver a estar listas (la definitiva sigue con su relleno de abajo arriba).
+
+
 Nivel, vida, escudo, vida del compañero (cooperativo), barra de XP, tiempo, aviso de jefe final o del siguiente
 jefe en modo infinito, dificultad, bajas, enemigos vivos, botón de pausa, barra de jefe, avisos grandes, poderes (con su icono y nivel)
 con su nivel y los 3 botones de habilidad (con la tecla asignada, recarga y carga de definitiva).

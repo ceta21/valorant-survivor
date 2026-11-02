@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ jefes: presentación */
+  'HUD más vivo: la vida tiembla y deja un rastro al recibir daño, la experiencia brilla y las habilidades muestran su recarga como un reloj.': 'Livelier HUD: health shakes and leaves a trail when you take damage, experience shines and abilities show their cooldown like a clock.',
   'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.': 'Livelier background: the rift’s energy spiral swirls behind the screens.',
   'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.': 'Revamped upgrade cards: they flip in and their frame changes with rarity, with pulsing epics and shining golden legendaries.',
   'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.': 'Bosses get an introduction: when one appears, the camera moves to it for a moment in slow motion and a banner shows its name and title.',

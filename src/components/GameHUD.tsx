@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { GameEngine } from '../game/GameEngine';
 import { EVO_LEVEL, MAX_LEVEL, POWERS } from '../data/powers';
 import { UPGRADE_BY_ID } from '../data/upgrades';
@@ -14,14 +15,31 @@ const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).p
 
 interface Props { hud: Hud; engine: GameEngine; onPause: () => void; onCast?: (slot: 'special' | 'secondary' | 'ultimate') => void; keys: KeyMap; onMap?: () => void }
 
+/** Recuerda lo de la vez anterior para animar los cambios: el HUD se redibuja 10 veces por segundo. */
+function useHudFx(hud: Hud) {
+  const r = useRef({ hp: hud.hp, lag: hud.hp, hitAt: -9, xp: hud.xp, lvl: hud.level, gainAt: -9, lvlAt: -9, cds: {} as Record<string, number>, readyAt: {} as Record<string, number> });
+  const now = performance.now() / 1000, m = r.current;
+  if (hud.hp < m.hp - 0.5) m.hitAt = now;
+  // la vida perdida se queda un momento en blanco y baja despacio (rastro del golpe)
+  m.lag = hud.hp >= m.lag ? hud.hp : now - m.hitAt < 0.4 ? m.lag : Math.max(hud.hp, m.lag - hud.maxHp * 0.06);
+  m.hp = hud.hp;
+  if (hud.level > m.lvl) m.lvlAt = now; else if (hud.xp > m.xp) m.gainAt = now;
+  m.xp = hud.xp; m.lvl = hud.level;
+  return {
+    lag: m.lag, hit: now - m.hitAt < 0.3, gain: now - m.gainAt < 0.25, lvlup: now - m.lvlAt < 0.9,
+    /** Habilidad que acaba de estar lista (destello). */
+    justReady: (k: string, cd: number) => { const was = m.cds[k] ?? 0; if (was > 0 && cd <= 0) m.readyAt[k] = now; m.cds[k] = cd; return now - (m.readyAt[k] ?? -9) < 0.5; },
+  };
+}
+
 export function GameHUD({ hud, engine, onPause, onCast, keys, onMap }: Props) {
-  const ag = engine.agent;
+  const ag = engine.agent, fx = useHudFx(hud);
   const cast = (slot: 'special' | 'secondary' | 'ultimate') => (onCast ? onCast(slot) : engine.cast(slot));
   const slot = (key: string, label: string, name: string, cd: number, max: number, ready: boolean, cast: () => void, ult = false) => {
-    const frac = ult ? hud.ult / 100 : max > 0 ? 1 - cd / max : 1;
+    const frac = ult ? hud.ult / 100 : max > 0 ? 1 - cd / max : 1, flash = fx.justReady(label, ult ? (ready ? 0 : 1) : cd);
     return (
-      <button className={`ab ${ready ? 'ready' : ''} ${ult ? 'ult' : ''}`} style={{ ['--f' as any]: `${Math.round(frac * 100)}%`, ['--ac' as any]: ag.color }} onClick={cast} aria-label={`${name} (${label})`}>
-        <span className="ab-fill" />
+      <button className={`ab ${ready ? 'ready' : ''} ${ult ? 'ult' : ''} ${flash ? 'flash' : ''}`} style={{ ['--f' as any]: `${Math.round(frac * 100)}%`, ['--sweep' as any]: `${Math.round((1 - frac) * 360)}deg`, ['--ac' as any]: ag.color }} onClick={cast} aria-label={`${name} (${label})`}>
+        {ult || ready ? <span className="ab-fill" /> : <span className="ab-sweep" />}
         <b>{t(name)}</b>
         <kbd>{key}</kbd>
         {!ult && cd > 0 && <em>{cd.toFixed(1)}</em>}
@@ -31,12 +49,12 @@ export function GameHUD({ hud, engine, onPause, onCast, keys, onMap }: Props) {
   };
   return (
     <div className="hud">
-      <div className="xpbar" aria-label={t('Experiencia')}><i style={{ width: `${(hud.xp / hud.need) * 100}%` }} /></div>
+      <div className={`xpbar ${fx.gain ? 'gain' : ''} ${fx.lvlup ? 'lvlup' : ''}`} aria-label={t('Experiencia')}><i style={{ width: `${fx.lvlup ? 100 : (hud.xp / hud.need) * 100}%` }} /></div>
       <div className="hud-top">
         <div className="hud-left">
           <div className="lvl">{t('NV')} {hud.level}</div>
           <div className="hpwrap">
-            <div className="hp"><i style={{ width: `${Math.max(0, (hud.hp / hud.maxHp) * 100)}%` }} /><span>{Math.ceil(hud.hp)} / {Math.round(hud.maxHp)}</span></div>
+            <div className={`hp ${fx.hit ? 'hit' : ''} ${hud.hp / hud.maxHp < 0.3 ? 'low' : ''}`}><b className="hp-lag" style={{ width: `${Math.max(0, (fx.lag / hud.maxHp) * 100)}%` }} /><i style={{ width: `${Math.max(0, (hud.hp / hud.maxHp) * 100)}%` }} /><span>{Math.ceil(hud.hp)} / {Math.round(hud.maxHp)}</span></div>
             {hud.mates.map((m, i) => (
               <div key={i} className={`mate ${m.dead ? 'down' : ''}`} style={{ ['--mc' as any]: m.color }}>
                 <span>{m.name} · {m.gone ? t('desconectado') : m.dead ? t('caído') : t(m.agent)}</span>
