@@ -47,6 +47,12 @@ usar una habilidad (o 12 s) y, cuando hay una caja cerca, romper cajas (7 s). "S
 guarda `tutorialDone`; quien ya había jugado antes lo tiene hecho, y en Configuración se pueden volver a activar. En
 móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único temporizador (el HUD redibuja 10 veces/s).
 
+## Fondo de las pantallas
+
+- Detrás de todas las pantallas (menos la partida), una espiral de energía de la grieta gira despacio y late
+  (`.bg .rift-swirl`, gradiente cónico con máscara redonda), por debajo de los rayos.
+- Con «reducir movimiento» del sistema no se anima nada de esto.
+
 ## Estilo pixel art
 
 - Fuentes: **Press Start 2P** (logo, números, títulos sin tildes) y **Pixelify Sans** (resto; tiene tildes). Se sirven

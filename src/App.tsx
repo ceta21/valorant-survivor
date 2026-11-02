@@ -225,7 +225,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {screen !== 'game' && <div className="bg" aria-hidden="true"><i /><i /><i /></div>}
+      {screen !== 'game' && <div className="bg" aria-hidden="true"><b className="rift-swirl" /><i /><i /><i /></div>}
       <UpdateToast inGame={screen === 'game'} />
       {achToast.length > 0 && (
         <div className="ach-toast" role="status" onClick={() => setAchToast([])} title={t('Cerrar')}>

@@ -34,7 +34,7 @@ img, svg, canvas { image-rendering: pixelated; shape-rendering: crispEdges; }
 .bg::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, .22) 0 2px, transparent 2px 4px); pointer-events: none; }
 @keyframes drift { from { transform: translateY(-8%); } to { transform: translateY(8%); } }
 @keyframes rift { 50% { filter: brightness(1.6); } }
-@media (prefers-reduced-motion: reduce) { .bg i, .ucard, .ucard *, .banner, .ab.ult.ready, .boss-intro { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .bg i, .bg .rift-swirl, .ucard, .ucard *, .banner, .ab.ult.ready, .boss-intro { animation: none !important; } }
 
 .screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: clamp(14px, 3vw, 40px); overflow: auto; }
 
@@ -610,3 +610,12 @@ body.pad :focus, body.pad .pad-focus { outline: 3px solid var(--gold); outline-o
 
 /* la evolución conserva su marco dorado aunque la tarjeta tenga rareza */
 .ucard.evo.evo { box-shadow: inset 0 0 0 var(--p) var(--gold), inset 0 0 30px rgba(240, 200, 80, .45), var(--bevel); }
+
+/* fondo: espiral de energía de la grieta que gira despacio detrás de los rayos */
+.bg .rift-swirl { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; margin: -70vmax 0 0 -70vmax; border-radius: 50%; pointer-events: none; opacity: .8;
+  background: radial-gradient(circle, rgba(196,140,255,.35) 0 4%, rgba(120,60,220,.18) 12%, transparent 46%),
+    repeating-conic-gradient(from 0deg, rgba(155,92,255,.26) 0 9deg, transparent 9deg 24deg);
+  -webkit-mask: radial-gradient(circle, #000 0 22%, transparent 55%); mask: radial-gradient(circle, #000 0 22%, transparent 55%);
+  animation: rift-swirl 90s linear infinite, rift-pulse 5s ease-in-out infinite; }
+@keyframes rift-swirl { to { transform: rotate(360deg); } }
+@keyframes rift-pulse { 50% { opacity: 1; } }
