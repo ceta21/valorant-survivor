@@ -169,6 +169,10 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - **Números de daño**: el Renderer usa el tamaño que pide el motor; los críticos salen dorados, más grandes y con «!»,
   y todos hacen un pequeño rebote al aparecer. El daño de los poderes sale del color de su elemento, aclarado para
   leerse sobre cualquier fondo (`damageEnemy(…, { color })`).
+- **Presentación de jefes** (solo en solitario; en pareja, el aviso de siempre porque el invitado no la recibe): al
+  aparecer un jefe (`announceBoss`), 1,2 s de cámara lenta, la cámara se desplaza hacia él (0,35 s), se queda y vuelve
+  al héroe (hasta 1,7 s de juego), y el HUD enseña un cartel que entra de lado con «Jefe», su nombre en su color y su
+  título (`BOSS_TITLES` en `enemies.ts`), durante 2,6 s.
 - Captura: `npx tsx scripts/combat-shot.ts` (`shots/combate.png`).
 
 ## Ambiente de cada zona (`game/weather.ts`)

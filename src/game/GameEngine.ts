@@ -2,6 +2,7 @@ import {
   AbilityDef, AbilityFx, AgentDef, BossPattern, EnemyDef, MapDef, ProjLook, Rarity, RunResult, Stats, UpgradeChoice,
 } from './types';
 import { POWERS, POWER_LIST, heroPower, MAX_LEVEL, EVO_LEVEL } from '../data/powers';
+import { BOSS_TITLES } from '../data/enemies';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, rollLoot } from '../data/gear';
 import { WeeklyEvent, currentEvent } from '../data/events';
 import {
@@ -205,6 +206,8 @@ export class GameEngine {
   gems: Gem[] = [];
   /** Piezas de los enemigos al romperse (solo dibujo): saltan, caen con gravedad, rebotan y se desvanecen. */
   debris: { x: number; y: number; z: number; vx: number; vy: number; vz: number; life: number; max: number; color: string; size: number; spin: number }[] = [];
+  /** Presentación del jefe que acaba de aparecer: la cámara va hacia él y sale su cartel (solo en solitario). */
+  bossIntro: { id: number; name: string; title: string; color: string; t: number } | null = null;
   /** Cámara lenta tras derrotar a un jefe (segundos reales que le quedan). */
   slowT = 0;
   /** Impactos de proyectiles de elemento (solo dibujo): dónde, de qué elemento, cuándo y hacia dónde iba. */
@@ -824,6 +827,12 @@ export class GameEngine {
     this.resolve(e, e.r);
     return e;
   }
+  /** Anuncia un jefe: en solitario, presentación (cámara, cartel y cámara lenta); en pareja, el aviso de siempre. */
+  private announceBoss(e: Enemy, bannerT: number) {
+    if (this.players.length > 1) { this.showBanner(`¡JEFE: ${e.def.name.toUpperCase()}!`, '#ff4655', bannerT, '¡JEFE: {n}!', { n: e.def.name }); return; }
+    this.bossIntro = { id: e.id, name: e.def.name, title: BOSS_TITLES[e.def.id] ?? '', color: e.def.color, t: this.time };
+    this.slowT = Math.max(this.slowT, 1.2);
+  }
   private alive() { let n = 0; for (const e of this.enemies) if (!e.dead) n++; return n; }
 
   private updateSpawner(dt: number) {
@@ -835,7 +844,7 @@ export class GameEngine {
       const e = this.spawnEnemy(b.id);
       if (b.hpMul) { e.maxHp *= b.hpMul; e.hp = e.maxHp; }
       if (e.def.final) this.finalSpawned = true;
-      this.showBanner(`¡JEFE: ${e.def.name.toUpperCase()}!`, '#ff4655', 3, '¡JEFE: {n}!', { n: e.def.name });
+      this.announceBoss(e, 3);
       this.sfx('boss', 0.5);
       this.shakeT = 0.5;
       this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
@@ -867,7 +876,7 @@ export class GameEngine {
           const e = this.spawnEnemy(id);
           if (id === 'zona') { e.maxHp *= 4.5; e.hp = e.maxHp; }
           this.addFx(0, e.x, e.y, 0, 0, 200, 0.6, '#ff4655');
-          this.showBanner(`¡JEFE: ${e.def.name.toUpperCase()}!`, '#ff4655', 2.4, '¡JEFE: {n}!', { n: e.def.name });
+          this.announceBoss(e, 2.4);
         }
         this.sfx('boss', 0.5);
         this.shakeT = 0.5;
@@ -2201,6 +2210,8 @@ export class GameEngine {
       secondary: this.agent.secondary ? { cd: this.cds.secondary, max: this.abCd(this.agent.secondary) } : null,
       weapons: this.weapons.map(w => ({ id: w.id, lvl: w.lvl })),
       boss: boss ? { name: boss.def.name, hp: boss.hp, max: boss.maxHp } : null,
+      /** Cartel de presentación del jefe (2,6 s de juego desde que aparece). */
+      intro: this.bossIntro && this.time - this.bossIntro.t < 2.6 ? { name: this.bossIntro.name, title: this.bossIntro.title, color: this.bossIntro.color } : null,
       banner: this.banner.t > 0 ? { text: this.banner.text, color: this.banner.color, key: this.banner.key, p: this.banner.p } : null,
       finalAt: FINAL_TIME,
       finalSpawned: this.finalSpawned,

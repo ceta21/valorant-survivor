@@ -464,6 +464,14 @@ export const EN: Record<string, string> = {
   'Elemental de energía': 'Energy Elemental',
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
+  /* ------------------------------------------------------------------ jefes: presentación */
+  'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.': 'Bosses get an introduction: when one appears, the camera moves to it for a moment in slow motion and a banner shows its name and title.',
+  'Guardián de hierro del Reino': 'Iron Guardian of the Kingdom',
+  'Señora de las telarañas': 'Mistress of Webs',
+  'Tormenta viviente del Glaciar': 'Living Storm of the Glacier',
+  'Terror alado del Infierno': 'Winged Terror of the Inferno',
+  'El que habla con la grieta': 'The One Who Speaks to the Rift',
+  'Corazón de la grieta': 'Heart of the Rift',
   /* ------------------------------------------------------------------ ranking del domingo */
   'Combates más vistosos: los enemigos se rompen en piezas, los jefes estallan con un instante de cámara lenta y los números de daño salen del color del elemento, con los críticos grandes y dorados.': 'Flashier combat: enemies break into pieces, bosses explode with a moment of slow motion and damage numbers show the element color, with big golden crits.',
   'Cada zona tiene su ambiente: luciérnagas y hojas en el Reino, nieve en el Glaciar, ceniza y ascuas en el Infierno y lluvia en la Ciudad, con su propia luz.': 'Every zone has its own atmosphere: fireflies and leaves in the Kingdom, snow in the Glacier, ash and embers in the Inferno and rain in the City, each with its own light.',

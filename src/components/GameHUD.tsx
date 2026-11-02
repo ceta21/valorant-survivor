@@ -70,6 +70,13 @@ export function GameHUD({ hud, engine, onPause, onCast, keys, onMap }: Props) {
       {hud.boss && (
         <div className="bossbar"><span>{t(hud.boss.name)}</span><div><i style={{ width: `${Math.max(0, (hud.boss.hp / hud.boss.max) * 100)}%` }} /></div></div>
       )}
+      {hud.intro && (
+        <div className="boss-intro" style={{ ['--bc' as any]: hud.intro.color }} role="status">
+          <small>⚠ {t('Jefe')}</small>
+          <b>{t(hud.intro.name)}</b>
+          {hud.intro.title && <span>{t(hud.intro.title)}</span>}
+        </div>
+      )}
       {hud.banner && <div className="banner" style={{ color: hud.banner.color }} key={hud.banner.text}>{bannerText(hud.banner)}</div>}
       <div className="weapons">
         {hud.weapons.map(w => (

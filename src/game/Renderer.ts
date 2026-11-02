@@ -261,8 +261,18 @@ export class Renderer {
     const z = this.zoom;
     const vw = this.vw / z, vh = this.vh / z;
     const p = e.player;
-    this.camX = p.x - vw / 2;
-    this.camY = p.y - vh / 2;
+    // presentación de jefe: la cámara va hacia él, se queda un momento y vuelve al héroe
+    let fx = p.x, fy = p.y;
+    const bi = e.bossIntro, age = bi ? e.time - bi.t : 9;
+    if (bi && age < 1.7) {
+      const boss = e.enemies.find(m => m.id === bi.id && !m.dead);
+      if (boss) {
+        const w = age < 0.35 ? age / 0.35 : age < 1.15 ? 1 : 1 - (age - 1.15) / 0.55, k = w * w * (3 - 2 * w) * 0.8;
+        fx = p.x + (boss.x - p.x) * k; fy = p.y + (boss.y - p.y) * k;
+      }
+    }
+    this.camX = fx - vw / 2;
+    this.camY = fy - vh / 2;
     let sx = 0, sy = 0;
     if (this.shake && e.shakeT > 0) { const m = Math.min(1, e.shakeT * 5) * 6; sx = (Math.random() - 0.5) * m; sy = (Math.random() - 0.5) * m; }
     // cámara alineada a la rejilla de píxeles: el mundo no "tiembla" al moverse

@@ -64,6 +64,11 @@ Object.assign(ENEMIES, {
   dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'flame', 'storm', 'flame'], art: 'dragon', final: true },
 } as Record<string, EnemyDef>);
 /** Jefe propio de cada zona (sale al 2:30 y, más fuerte, al 7:30). */
+/** Título de cada jefe para su presentación (cartel al aparecer). */
+export const BOSS_TITLES: Record<string, string> = {
+  coloso: 'Guardián de hierro del Reino', reina: 'Señora de las telarañas', elemental: 'Tormenta viviente del Glaciar',
+  dragon: 'Terror alado del Infierno', sabio: 'El que habla con la grieta', dragon_final: 'Corazón de la grieta',
+};
 export const ZONE_BOSS: Record<string, string> = { reino: 'coloso', ciudad: 'reina', glaciar: 'elemental', infierno: 'dragon' };
 
 /** Tipos que salen en el flujo normal (los antiguos robots ya no salen; siguen en ENEMIES por el cooperativo). */
