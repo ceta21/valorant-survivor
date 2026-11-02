@@ -912,6 +912,9 @@ export class Renderer {
   private drawEnemy(g: Ctx, en: Enemy, e: GameEngine) {
     const d = en.def, r = en.r, x = en.x, y = en.y;
     const flash = en.flash > 0;
+    // al recibir un golpe se aplasta un instante desde los pies (más ancho y más bajo); los jefes, la mitad
+    const hitK = Math.max(0, Math.min(1, en.flash / 0.09)) * (en.isBoss ? 0.5 : 1);
+    const squash = (feet: number) => { if (hitK > 0) { g.translate(x, feet); g.scale(1 + 0.24 * hitK, 1 - 0.2 * hitK); g.translate(-x, -feet); } };
     g.fillStyle = 'rgba(0,0,0,0.14)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 1.35, r * 0.55, 0, 0, 7); g.fill();
     g.fillStyle = 'rgba(0,0,0,0.32)'; g.beginPath(); g.ellipse(x, y + r * 0.7, r * 0.9, r * 0.32, 0, 0, 7); g.fill();
     // bots y jefes de la grieta dibujados por código: de frente, de espaldas o de perfil según hacia dónde van,
@@ -924,7 +927,7 @@ export class Renderer {
       const img = botSprite(botKind, d.tier ?? 0, dir, frame, en.flash > 0 ? 'hit' : stunned ? 'stun' : 'n', this.makeCanvas);
       const k = Math.max(1, Math.round(((r * (en.isBoss ? 3.6 : 2.7)) / (img.height * PX)) * 2) / 2), w = img.width * PX * k, h = img.height * PX * k;
       const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h) / PX) * PX;
-      g.save(); g.imageSmoothingEnabled = false;
+      g.save(); g.imageSmoothingEnabled = false; squash(top + h);
       if (dir === 'side' && c < 0) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, left, top, w, h);
       g.restore();
     } else
@@ -937,7 +940,7 @@ export class Renderer {
       const lift = Math.round(Math.abs(step) * 2) * PX * (d.behavior === 'shooter' && d.kind === 'volador' ? 2 : 1);
       const left = Math.round((x - w / 2) / PX) * PX, top = Math.round((y + r * 0.9 - h - lift) / PX) * PX;
       g.save();
-      g.imageSmoothingEnabled = false;
+      g.imageSmoothingEnabled = false; squash(top + h + lift);
       if (stunned) g.filter = 'grayscale(1)';
       const flip = Math.cos(en.face) < 0, img = en.flash > 0 ? enemyFlash(d.art!, pic, this.makeCanvas) : pic;
       if (flip) { g.translate(left + w, top); g.scale(-1, 1); g.drawImage(img, 0, 0, w, h); } else g.drawImage(img, left, top, w, h);

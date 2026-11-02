@@ -161,6 +161,8 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 
 ## Efectos de combate
 
+- **Golpe a un enemigo**: mientras dura su destello (`flash`, 0,09 s) el dibujo se aplasta desde los pies (hasta ×1,24
+  de ancho y ×0,8 de alto, la mitad en los jefes), y el empujón del golpe es ×1,3 (los jefes no se mueven).
 - **Enemigos que se rompen**: al morir, cada enemigo suelta piezas de su color y de metal (`engine.debris`, solo
   dibujo; 7 por bot y 34 por jefe, la mitad en calidad baja, máximo 320) que saltan, caen con gravedad, rebotan una
   vez contra el suelo y se desvanecen. Se pintan antes de los enemigos, con su sombra.

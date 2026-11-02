@@ -741,9 +741,10 @@ export class GameEngine {
     // número de daño: los críticos, dorados y más grandes (con «!»); el resto, del color del ataque aclarado
     if (!o.noText) this.text(e.x + rnd(-6, 6), e.y - e.r - 4, crit ? `${Math.round(dmg)}!` : `${Math.round(dmg)}`, crit ? '#ffd24a' : o.color ? lighten(o.color) : '#ffffff', crit ? 20 : 12);
     if (o.knock && !e.isBoss) {
+      // empujón algo más marcado (×1,3) para que se note cada golpe
       const l = Math.hypot(o.kx ?? 0, o.ky ?? 0) || 1;
-      e.kx += ((o.kx ?? 0) / l) * o.knock;
-      e.ky += ((o.ky ?? 0) / l) * o.knock;
+      e.kx += ((o.kx ?? 0) / l) * o.knock * 1.3;
+      e.ky += ((o.ky ?? 0) / l) * o.knock * 1.3;
     }
     this.sparks(e.x, e.y, e.def.color, crit ? 4 : 2, 120, 0.25);
     this.sfx(crit ? 'crit' : 'hit', 0.04);
