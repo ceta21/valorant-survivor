@@ -159,6 +159,22 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 - Móvil: joystick virtual arrastrando el dedo sobre el canvas; habilidades con los botones del HUD.
 - En cooperativo, el invitado no lanza habilidades en su motor: las envía al anfitrión (`castFn`).
 
+## Proyectiles de los poderes (`game/fancyProj.ts`)
+
+Los proyectiles de los poderes automáticos (rayo, agua, hielo, hoja, roca, estrella, daga, flecha y alma) se pintan a
+píxeles por código, con un núcleo, halo de su color (mezcla aditiva) y un movimiento propio: zigzag con ramas en el
+rayo, gota que se estira y suelta gotitas en el agua, esquirla con escarcha en el hielo, hoja que gira, roca que rueda
+con polvo, estrella que palpita con destellos, daga con líneas de velocidad, flecha con plumas y estela, y alma con
+cola ondulante. Al golpear, cada uno deja su impacto (`engine.impacts`, solo dibujo, 0,35 s): chispazo, salpicadura,
+esquirlas, hojas, polvo y cascotes, brillos, corte en X…
+
+- El **fuego** se dejó con su dibujo de antes, a gusto de Gabriel (su versión nueva está en el código, desactivada:
+  basta añadir `'flame'` a `FANCY_LOOKS` y en `GameEngine` donde se apuntan los impactos).
+- Las habilidades que reutilizan estos aspectos con otra paleta (`pal`, p. ej. los orbes de Zephyr) siguen con la
+  estela de cometa.
+- En calidad baja no hay halos y hay menos partículas. Capturas: `npx tsx scripts/power-shot.ts`
+  (`shots/poderes-antes-despues.png`).
+
 ## App instalable (PWA)
 
 `vite-plugin-pwa` (en `vite.config.ts`) genera el manifiesto (`manifest.webmanifest`: nombre, iconos, pantalla

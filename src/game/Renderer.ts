@@ -12,6 +12,7 @@ import { MAPS } from '../data/maps';
 import { t } from '../i18n';
 import { enemyCore, enemyKind, enemySprite, isBossKind } from './enemySprites';
 import { WEB_LAND } from './GameEngine';
+import { FANCY_LOOKS, drawFancyProj, drawImpact } from './fancyProj';
 import { portalArt } from './enemyArt';
 /** Alto con el que se pinta el portal y a qué altura de su dibujo cae el centro del remolino (0 arriba, 1 abajo). */
 const PORTAL_H = 180, PORTAL_CY = 0.5;
@@ -519,9 +520,13 @@ export class Renderer {
       g.globalAlpha = 1;
       drawSprite(g, img, b.x, b.y, PX * 3, e.time * 14);
     }
+    // proyectiles de elemento nuevos (fuego, rayo, agua): núcleo, halo, movimiento propio e impactos
+    // (solo los poderes automáticos: las habilidades que reutilizan estos aspectos con otra paleta llevan la estela de cometa)
+    for (const b of e.projs) if (!b.dead && FANCY_LOOKS.has(b.look) && !b.pal && vis(b.x, b.y)) drawFancyProj(g, b, e.time, PX, this.low);
+    for (const m of e.impacts) if (vis(m.x, m.y, 30)) drawImpact(g, m.x, m.y, m.look, Math.min(1, (e.time - m.t) / 0.35), m.ang, m.seed, PX, this.low);
     // proyectiles con aspecto propio: halo, estela que se estrecha y parpadea, y el sprite del elemento
     for (const b of e.projs) {
-      if (b.dead || !b.look || b.look === 'disc' || !vis(b.x, b.y)) continue;
+      if (b.dead || !b.look || b.look === 'disc' || (FANCY_LOOKS.has(b.look) && !b.pal) || !vis(b.x, b.y)) continue;
       const ang = Math.atan2(b.vy, b.vx), [sprName, basePal] = PROJ_LOOK[b.look] ?? PROJ_LOOK.dagger;
       const pal = b.pal && PAL[b.pal] ? b.pal : basePal;
       this.drawComet(g, b.x, b.y, -Math.cos(ang), -Math.sin(ang), pal, b.r, e.time + b.x * 0.01);

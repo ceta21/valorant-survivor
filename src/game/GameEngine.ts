@@ -198,6 +198,8 @@ export class GameEngine {
   shells: Shell[] = [];
   hazards: Hazard[] = [];
   gems: Gem[] = [];
+  /** Impactos de proyectiles de elemento (solo dibujo): dónde, de qué elemento, cuándo y hacia dónde iba. */
+  impacts: { x: number; y: number; look: string; t: number; ang: number; seed: number }[] = [];
   /** Objetos de equipo ganados en la partida (los sueltan los jefes). */
   loot: { id: string; rarity: 0 | 1 | 2 | 3 }[] = [];
   puddles: Puddle[] = [];
@@ -384,6 +386,7 @@ export class GameEngine {
     this.updateEnemies(dt);
     this.updateEProjs(dt);
     this.updateShells(dt);
+    if (this.impacts.length && this.time - this.impacts[0].t > 0.5) this.impacts = this.impacts.filter(m => this.time - m.t <= 0.5);
     this.updateHazards(dt);
     this.updateStrikes(dt);
     this.updatePuddles(dt);
@@ -683,6 +686,8 @@ export class GameEngine {
         const stats = this.stats;
         this.damageEnemy(e, p.dmg, p.crit, { kx: p.vx, ky: p.vy, knock: p.dmg > 30 ? 120 : 70 });
         if (p.look && Math.random() < 0.7) this.sparks(e.x, e.y, p.color, 4, 170, 0.3);   // chispas del color del ataque
+        if (p.look && p.look !== 'flame' && p.look !== 'disc' && !p.pal && this.impacts.length < 60)
+          this.impacts.push({ x: (p.x + e.x) / 2, y: (p.y + e.y) / 2, look: p.look, t: this.time, ang: Math.atan2(p.vy, p.vx), seed: (Math.random() * 1000) | 0 });
         if (p.burn > 0) { e.burnT = 3; e.burnDps = Math.max(e.burnDps, p.burn); }
         if (p.mark > 0) e.markT = p.mark;
         if (p.explode > 0) this.explodeAt(e.x, e.y, 70 * stats.area, p.dmg * p.explode, '#d6a8ff');
