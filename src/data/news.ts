@@ -29,6 +29,7 @@ export const NEWS: NewsEntry[] = [
       '29 logros con premio en créditos: por zona, por dificultad, por colección (héroes, equipo, mascotas) y por racha; los ves con su progreso en Estadísticas.',
       'Ranking del domingo: cada domingo hay una clasificación aparte con las partidas de ese día; el lunes, los 3 primeros ganan hasta ◈ 5.000 y una medalla.',
       'Colores más vivos en la partida, y en Configuración puedes ajustar la viveza del color a tu gusto.',
+      'Mapas con más detalle: setas, charcos con reflejos, grietas en el hielo, fumarolas, rejillas… y sombras de nubes que pasan por el Reino y el Glaciar.',
       'Pantalla de final renovada: tu héroe, «¡Victoria!» o «Derrota», números que suben contando y el botín y los logros apareciendo uno a uno.',
       'HUD más vivo: la vida tiembla y deja un rastro al recibir daño, la experiencia brilla y las habilidades muestran su recarga como un reloj.',
       'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.',

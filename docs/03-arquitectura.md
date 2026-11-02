@@ -188,6 +188,14 @@ cámara) y un tinte de luz suave que cambia poco a poco al cruzar de zona (`blen
 | Infierno | Ceniza que cae y ascuas que suben parpadeando | Brillo de lava |
 | Ciudad | Lluvia en diagonal y salpicaduras en el suelo | Noche lluviosa (más oscuro) |
 
+En el Reino y el Glaciar pasan además sombras de nubes, pegadas al mundo y movidas por el viento (no en calidad baja).
+
+El suelo de cada chunk (`MapArt.renderChunk`) lleva dos capas de detalles sueltos: la primera con matas, flores,
+nieve, calaveras y grietas, y la segunda, más variada (38 intentos por chunk, solo donde hay suelo alrededor): setas,
+piedrecitas con brillo, tréboles, hojas caídas y charcos con reflejo (Reino); charcos helados, grietas en el hielo y
+piedras nevadas (Glaciar); fumarolas con brasa, esquirlas de obsidiana y huesos (Infierno); charcos de lluvia,
+rejillas y papeles (Ciudad).
+
 En calidad baja hay un tercio de partículas y sin halos. Capturas: `npx tsx scripts/weather-shot.ts`
 (`shots/ambiente-zonas.png`).
 

@@ -465,6 +465,7 @@ export const EN: Record<string, string> = {
   'Dragón cibernético': 'Cyber Dragon',
   'Sabio oscuro': 'Dark Sage',
   /* ------------------------------------------------------------------ jefes: presentación */
+  'Mapas con más detalle: setas, charcos con reflejos, grietas en el hielo, fumarolas, rejillas… y sombras de nubes que pasan por el Reino y el Glaciar.': 'More detailed maps: mushrooms, reflective puddles, ice cracks, fumaroles, drains… and cloud shadows drifting over the Kingdom and the Glacier.',
   'Pantalla de final renovada: tu héroe, «¡Victoria!» o «Derrota», números que suben contando y el botín y los logros apareciendo uno a uno.': 'Revamped end screen: your hero, “Victory!” or “Defeat”, numbers that count up and boss loot and achievements popping in one by one.',
   'HUD más vivo: la vida tiembla y deja un rastro al recibir daño, la experiencia brilla y las habilidades muestran su recarga como un reloj.': 'Livelier HUD: health shakes and leaves a trail when you take damage, experience shines and abilities show their cooldown like a clock.',
   'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.': 'Livelier background: the rift’s energy spiral swirls behind the screens.',

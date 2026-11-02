@@ -30,6 +30,16 @@ export function drawWeather(g: Ctx, zone: string, t: number, camX: number, camY:
   if (tint[3] > 0.004) { g.fillStyle = `rgba(${tint[0] | 0},${tint[1] | 0},${tint[2] | 0},${tint[3].toFixed(3)})`; g.fillRect(0, 0, vw, vh); }
   const q = (n: number) => (low ? Math.ceil(n / 3) : n);
   const px = (x: number, y: number, s: number) => g.fillRect(Math.round(x / u) * u, Math.round(y / u) * u, s * u, s * u);
+  // sombras de nubes pegadas al mundo que pasan despacio con el viento (Reino y Glaciar)
+  if ((zone === 'reino' || zone === 'glaciar') && !low) {
+    const span = vw * 3, wx = camX * 0.5 * u, wy = camY * 0.5 * u;
+    g.fillStyle = zone === 'reino' ? 'rgba(10,20,10,0.10)' : 'rgba(40,60,100,0.10)';
+    for (let i = 0; i < 5; i++) {
+      const x = wrap(rnd(i + 90) * span + t * 9 * u - wx, span) - vw, y = wrap(rnd(i + 97) * span * 0.7 + t * 3 * u - wy, span * 0.7) - vh * 0.6;
+      const rx = (90 + rnd(i + 3) * 80) * u, ry = rx * 0.5;
+      g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.ellipse(x + rx * 0.6, y + ry * 0.3, rx * 0.7, ry * 0.8, 0, 0, 7); g.fill();
+    }
+  }
   const par = 0.35;   // paralaje: se desplazan un poco más que el suelo al moverse
   const ox = -camX * par * u * 0.5, oy = -camY * par * u * 0.5;
 

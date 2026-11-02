@@ -197,6 +197,35 @@ export function renderChunk(world: World, ch: ChunkData, make: MakeCanvas) {
       else if (v < 0.6) { for (let s = 0; s < 6; s++) lpx(x + s, y + ((s * 3) % 2), 1, 1, '#ff6a1c'); }   // grieta
     } else if (v < 0.3) tuft(x, y);
   }
+  // segunda capa de detalles, más variada: setas, charcos con reflejo, piedras con brillo, rejillas, huesos…
+  const puddle = (x: number, y: number, w: number, deep: string, sky: string) => {
+    ell(x, y, w, Math.max(1, Math.round(w * 0.45)), deep);
+    ell(x - 1, y, Math.max(1, w - 2), Math.max(1, Math.round(w * 0.3)), sky);
+    lpx(x - Math.round(w * 0.4), y - 1, 2, 1, '#ffffff'); lpx(x + Math.round(w * 0.2), y, 1, 1, '#e8f6ff');   // reflejos
+  };
+  for (let k = 0; k < 38; k++) {
+    const x = 4 + Math.floor(rnd() * (CPX - 10)), y = 5 + Math.floor(rnd() * (CPX - 10)), v = rnd();
+    if (!groundAt(x, y) || !groundAt(x + 4, y + 2) || !groundAt(x - 4, y - 2)) continue;
+    if (id === 'reino') {
+      if (v < 0.18) { lpx(x - 1, y, 3, 2, '#e8e0c8'); ell(x, y - 1, 3, 2, '#c9303d'); lpx(x - 1, y - 2, 1, 1, '#ffffff'); lpx(x + 1, y - 1, 1, 1, '#ffffff'); }   // seta
+      else if (v < 0.36) { lpx(x, y, 3, 2, '#8a8f9a'); lpx(x + 3, y + 1, 2, 2, '#6a6f7a'); lpx(x, y, 1, 1, '#c8ccd4'); }   // piedrecitas con brillo
+      else if (v < 0.5) { for (const [a, b] of [[0, 0], [2, 0], [1, 1], [1, -1]]) lpx(x + a, y + b, 1, 1, '#4a9a3a'); }   // trébol
+      else if (v < 0.62) { lpx(x, y, 2, 1, '#c8803a'); lpx(x + 1, y + 1, 2, 1, '#a0602a'); }   // hoja caída
+      else if (v < 0.7) puddle(x, y, 5, '#3a6a8a', '#7ab8e0');
+    } else if (id === 'glaciar') {
+      if (v < 0.2) puddle(x, y, 6, '#5a8ac0', '#bfe4ff');   // charco helado
+      else if (v < 0.38) { for (let s2 = 0; s2 < 7; s2++) lpx(x + s2, y + ((s2 * 5) % 3) - 1, 1, 1, '#8ab8e0'); }   // grieta en el hielo
+      else if (v < 0.52) { lpx(x, y, 4, 3, '#6a7080'); lpx(x, y - 1, 4, 1, '#ffffff'); lpx(x + 1, y - 2, 2, 1, '#ffffff'); }   // piedra nevada
+    } else if (id === 'infierno') {
+      if (v < 0.16) { ell(x, y, 3, 2, '#2a1414'); lpx(x - 1, y, 2, 1, '#ff6a1c'); lpx(x, y - 1, 1, 1, '#ffd24a'); }   // fumarola con brasa
+      else if (v < 0.32) { lpx(x, y, 1, 3, '#1a1022'); lpx(x + 1, y + 1, 1, 2, '#3a2a4a'); lpx(x + 2, y + 2, 1, 1, '#1a1022'); }   // esquirla de obsidiana
+      else if (v < 0.44) { lpx(x, y, 5, 1, '#e8dcc0'); lpx(x - 1, y - 1, 1, 3, '#e8dcc0'); lpx(x + 5, y - 1, 1, 3, '#e8dcc0'); }   // hueso
+    } else {   // ciudad
+      if (v < 0.22) puddle(x, y, 6, '#2a3a5a', '#5a7aa8');   // charco de lluvia
+      else if (v < 0.3) { lpx(x, y, 6, 4, '#2a2e36'); for (let s2 = 0; s2 < 3; s2++) lpx(x + 1 + s2 * 2, y + 1, 1, 2, '#5a606a'); }   // rejilla
+      else if (v < 0.44) { lpx(x, y, 3, 2, '#e8e8e0'); lpx(x + 1, y + 1, 1, 1, '#b8b8b0'); }   // papel
+    }
+  }
 
   // ---------- oclusión ambiental: el suelo se oscurece poco a poco junto a lo que tapa la luz ----------
   // capas que se solapan: cuanto más cerca del objeto, más capas y más oscuro (en escalones, como el resto del arte)
