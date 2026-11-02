@@ -387,7 +387,7 @@ export class GameEngine {
     this.time += dt;
     if (this.banner.t > 0) this.banner.t -= dt;
     // tras el «¡SOBREVIVE!», el aviso del evento de la semana
-    if (this.time >= 2.1 && this.time - dt < 2.1 && this.event.id !== 'none') this.showBanner(`${this.event.icon} EVENTO: ${this.event.name.toUpperCase()}`, this.event.color, 3, '{i} EVENTO: {n}', { i: this.event.icon, n: this.event.name });
+    if (this.time >= 2.1 && this.time - dt < 2.1 && this.event.id !== 'none') this.showBanner(this.event.challenge ? `${this.event.icon} DESAFÍO: ${this.event.name.toUpperCase()}` : `${this.event.icon} EVENTO: ${this.event.name.toUpperCase()}`, this.event.color, 3, this.event.challenge ? '{i} DESAFÍO: {n}' : '{i} EVENTO: {n}', { i: this.event.icon, n: this.event.name });
     if (this.shakeT > 0) this.shakeT -= dt;
     this.buildGrid();
     for (const pl of this.players) {
@@ -463,7 +463,7 @@ export class GameEngine {
     if (p.iframes > 0) p.iframes -= dt;
     if (p.invuln > 0) p.invuln -= dt;
     p.sinceHit += dt;
-    if (s.regen > 0 && p.hp < s.maxHp) p.hp = Math.min(s.maxHp, p.hp + s.regen * dt * s.heal);
+    if (s.regen > 0 && p.hp < s.maxHp && !this.event.noHeal) p.hp = Math.min(s.maxHp, p.hp + s.regen * dt * s.heal);
     if (s.maxShield > 0 && p.sinceHit > 5 && p.shield < s.maxShield) p.shield = Math.min(s.maxShield, p.shield + 4 * dt);
     if (p.shield > s.maxShield + 100) p.shield = s.maxShield + 100;
     this.cds.special = Math.max(0, this.cds.special - dt);
@@ -588,6 +588,7 @@ export class GameEngine {
   }
   heal(amount: number, quiet = false) {
     const p = this.player;
+    if (this.event.noHeal) return;
     const a = amount * this.stats.heal;
     if (a <= 0 || p.hp >= this.stats.maxHp) return;
     p.hp = Math.min(this.stats.maxHp, p.hp + a);
@@ -783,9 +784,9 @@ export class GameEngine {
     const e = this.enemyPool.pop() ?? ({} as Enemy);
     const boss = def.behavior === 'boss';
     const t = this.time;
-    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) * (this.event.bossHp ?? 1) : this.hpScale;
+    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) * (this.event.bossHp ?? 1) : this.hpScale * (this.event.enemyHp ?? 1);
     e.id = this.nextId++; e.def = def; e.x = x; e.y = y; e.kx = 0; e.ky = 0;
-    e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : 1 + Math.min(0.25, t / 1500)); e.dmg = def.dmg;
+    e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : (1 + Math.min(0.25, t / 1500)) * (this.event.enemySpeed ?? 1)); e.dmg = def.dmg;
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
     e.atkT = boss ? 2 : rnd(0.5, 2.5); e.windup = 0; e.fuse = 0; e.atk = null; e.phase = 0; e.isBoss = boss; e.shieldT = 0;
     e.anim = rnd(6); e.suicide = false; e.face = 0;
@@ -871,6 +872,17 @@ export class GameEngine {
       e.fuse = 14;
       this.addFx(0, e.x, e.y, 0, 0, 60, 0.5, '#ffd24a');
     }
+  }
+  /** Pone las reglas de un desafío semanal (solo en solitario): sustituye al evento y cambia daño y vida del héroe. */
+  applyChallenge(c: WeeklyEvent) {
+    this.event = c;
+    for (const pl of this.players) {
+      this.use(pl);
+      this.stats.dmg *= c.dmgMul ?? 1;
+      this.stats.maxHp *= c.maxHpMul ?? 1;
+      this.player.hp = Math.min(this.player.hp, this.stats.maxHp);
+    }
+    this.use(this.players[this.local]);
   }
   private alive() { let n = 0; for (const e of this.enemies) if (!e.dead) n++; return n; }
 
@@ -1809,7 +1821,7 @@ export class GameEngine {
         break;
       case 'planta':  // dos hojas y una pequeña cura
         for (const o of [-0.16, 0.16]) this.spawnProj(pet.x, pet.y, a + o, 520, dmg * 0.65, 4, 340, 1, false, '#5dff9a', { look: 'leaf' });
-        this.player.hp = Math.min(s.maxHp, this.player.hp + s.maxHp * 0.004 * lv);
+        if (!this.event.noHeal) this.player.hp = Math.min(s.maxHp, this.player.hp + s.maxHp * 0.004 * lv);
         break;
       case 'hielo':   // fragmentos que congelan un instante
         this.explodeAt(tg.x, tg.y, 30 + lv * 5, dmg, '#bfe8ff', { stun: 0.3 + lv * 0.1 });
@@ -2239,7 +2251,7 @@ export class GameEngine {
     const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits * (this.event.credits ?? 1)) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot],
+      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot], challenge: this.event.challenge ? this.event.id : undefined,
     };
   }
   /** Termina la partida desde fuera (p. ej. se pierde la conexión en cooperativo). */

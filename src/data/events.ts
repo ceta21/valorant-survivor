@@ -9,6 +9,10 @@ export interface WeeklyEvent {
   crateEvery?: number; crateMax?: number;
   /** Jefes: objetos de equipo que suelta cada uno y multiplicador de su vida. */
   bossLoot?: number; bossHp?: number;
+  /** Reglas de los desafíos semanales: velocidad y vida de los bots, sin curación, daño y vida del héroe. */
+  enemySpeed?: number; enemyHp?: number; noHeal?: boolean; dmgMul?: number; maxHpMul?: number;
+  /** Es un desafío (el cartel del principio dice «Desafío» en vez de «Evento»). */
+  challenge?: boolean;
 }
 
 export const EVENTS: WeeklyEvent[] = [

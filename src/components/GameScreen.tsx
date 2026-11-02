@@ -1,4 +1,5 @@
 import { VIVID_DEFAULT, vividFilter } from '../utils/storage';
+import type { Challenge } from '../data/challenges';
 import { ACHIEVEMENTS } from '../data/goals';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, GEAR_RARITY_NAMES } from '../data/gear';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -39,6 +40,8 @@ interface Props {
   gear?: Partial<Stats>;
   account: Account | null; playerName: string; setPlayerName: (n: string) => void;
   onEnd: (r: RunResult) => string[];
+  /** Desafío semanal de la partida (solo en solitario) y si ya estaba superado esta semana. */
+  challenge?: { c: Challenge; done: boolean };
   onMenu: () => void; onRestart: () => void; changeSettings: (s: Partial<Settings>) => void;
   /** Partida cooperativa: conexión, jugadores e índice del de esta pantalla (0 = anfitrión). */
   coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number };
@@ -79,7 +82,7 @@ function SubmitScore({ r, account, name, setName }: { r: RunResult; account: Acc
   );
 }
 
-export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys }: Props) {
+export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, difficulty, meta, settings, looks, gear, account, playerName, setPlayerName, onEnd, onMenu, onRestart, changeSettings, coop, keys, challenge }: Props) {
   const isGuest = coop?.local === 1;
   const [lost, setLost] = useState('');
   const wrap = useRef<HTMLDivElement>(null);
@@ -136,6 +139,7 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
       },
       sfx: n => audio.play(n),
     }, difficulty, coop ? { setups: coop.setups, local: coop.local, seed: coop.seed } : undefined, looks, gear);
+    if (challenge && !coop) engine.applyChallenge(challenge.c);
     if (link && !isGuest) engine.netOut = [];
     // estadística anónima de la partida (solo quien la simula: en solitario o el anfitrión)
     const nuevo = !settings.tutorialDone;
@@ -340,6 +344,13 @@ export function GameScreen({ low = false, vivid = VIVID_DEFAULT, agent, map, dif
               <b>{t('Botín de los jefes')}</b>
               {result.r.loot!.map((l, i) => <span key={i} className="end-item" style={{ ['--rc' as any]: GEAR_RARITY_COLORS[l.rarity], ['--i' as any]: i }}>{GEAR_BY_ID[l.id]?.icon} {t(GEAR_BY_ID[l.id]?.name ?? l.id)} · {t(GEAR_RARITY_NAMES[l.rarity])}</span>)}
             </div>
+          )}
+          {challenge && (
+            <p className={`end-challenge ${result.r.time >= challenge.c.goal ? 'ok' : ''}`} style={{ ['--cc' as any]: challenge.c.color }}>
+              {challenge.c.icon} {t('Desafío')}: <b>{t(challenge.c.name)}</b> ·{' '}
+              {result.r.time < challenge.c.goal ? t('te faltó aguantar hasta {t}', { t: fmt(challenge.c.goal) })
+                : challenge.done ? t('superado (ya lo habías cobrado esta semana)') : <>{t('¡superado!')} <b>+◈ {nf(challenge.c.reward)}</b></>}
+            </p>
           )}
           {result.ach.length > 0 && (
             <div className="end-ach">

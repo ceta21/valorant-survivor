@@ -28,6 +28,8 @@ export interface SaveData {
   records: Record<string, MapRecord>;
   claimed: string[];
   achievements: string[];
+  /** Desafío semanal: semana, mejor tiempo en él y si ya se cobró su premio. */
+  challenge?: { week: number; best: number; claimed: boolean };
   settings: Settings;
   lastAgent: string;
   lastMap: string;

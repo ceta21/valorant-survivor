@@ -217,6 +217,22 @@ una partida en domingo sale su aviso tras «¡SOBREVIVE!». En pareja manda el d
 | 🧟 Gran horda | Enemigos ×1,35 y experiencia ×1,35 |
 | 📘 Semana del saber | Experiencia ×1,5 (el nombre viene de cuando eran semanales) |
 
+## Desafío semanal
+
+Cada semana (de lunes a domingo, hora del jugador) hay un desafío con reglas especiales, por turnos
+(`src/data/challenges.ts`). Se juega cuando quieras desde el **Diario** («Jugar desafío» → elegir héroe, zona y
+dificultad), solo en solitario; sustituye al evento del domingo en esa partida (`engine.applyChallenge`) y el cartel
+del principio dice «Desafío». Si aguantas el tiempo pedido, te llevas su premio en créditos **una vez por semana**; se
+guarda también tu mejor tiempo de la semana (`save.challenge = { week, best, claimed }`).
+
+| Desafío | Reglas | Aguantar | Premio |
+|---|---|---|---|
+| ⚡ Bots acelerados | Bots +50 % de velocidad | 5:00 | 400 |
+| 🔮 Cañón de cristal | Doble de daño, 40 % de la vida | 5:00 | 450 |
+| 🩸 Sin curación | Ninguna curación (ni regeneración, ni gemas, ni habilidades) | 5:00 | 450 |
+| 🌊 Marea sin fin | Doble de enemigos, +30 % de experiencia | 6:00 | 400 |
+| 🛡 Bots blindados | Bots con doble de vida, +50 % de experiencia | 5:00 | 400 |
+
 ## Ranking del domingo
 
 `src/data/sundayRank.ts`: en **Ranking → Domingo** solo cuentan las marcas publicadas ese domingo, de 00:00 a 24:00

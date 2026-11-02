@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { Challenge } from '../data/challenges';
 import { AGENTS, isAvailable, playableAgent } from '../data/agents';
 import { heroPower } from '../data/powers';
 import { t, nf } from '../i18n';
@@ -20,9 +21,11 @@ interface Props {
   /** Poner los estilos comprados en la tienda. */
   equip: (fn: (s: ShopSave) => ShopSave) => void;
   keys: KeyMap;
+  /** Desafío semanal que se va a jugar (aviso arriba). */
+  challenge?: Challenge;
 }
 
-export function AgentSelection({ save, back, start, unlock, equip, keys }: Props) {
+export function AgentSelection({ save, back, start, unlock, equip, keys, challenge }: Props) {
   const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
   const [sel, setSel] = useState(playableAgent(save.lastAgent));
   const [mapId, setMapId] = useState(save.lastMap);
@@ -39,6 +42,7 @@ export function AgentSelection({ save, back, start, unlock, equip, keys }: Props
         <button className="btn btn-sm" onClick={() => { audio.play('click'); back(); }}><b>{t('Volver')}</b></button>
         <h2>{t('Elige tu héroe')}</h2>
         <span className="credits">◈ {nf(save.credits)}</span>
+        {challenge && <p className="challenge-pick" style={{ ['--cc' as any]: challenge.color }}>{challenge.icon} {t('Desafío')}: <b>{t(challenge.name)}</b> · {t(challenge.desc)}</p>}
       </header>
       <div className="select-body">
         <div className="agent-grid" role="listbox" aria-label={t('Héroes')}>

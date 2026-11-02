@@ -160,6 +160,8 @@ export interface RunResult {
   bossKills: number; credits: number; agentId: string; mapId: string; difficulty: string;
   /** Objetos de equipo que soltaron los jefes en la partida. */
   loot?: { id: string; rarity: 0 | 1 | 2 | 3 }[];
+  /** Desafío semanal jugado (id), si lo era. */
+  challenge?: string;
 }
 
 export interface UpgradeChoice {

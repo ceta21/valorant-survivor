@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { SaveData } from '../utils/storage';
 import { DAILY_REWARDS, LOGIN_REWARD, STREAK_REWARDS, dailyMissions, dayKey, msToMidnight, todayProgress } from '../data/daily';
 import { audio } from '../utils/audio';
+import { challengeWeek, msToNextChallenge, weeklyChallenge } from '../data/challenges';
 import { t, nf } from '../i18n';
 
 interface Props {
@@ -10,15 +11,20 @@ interface Props {
   claimMission: (id: string) => void;
   claimLogin: () => void;
   claimStreak: (day: number) => void;
+  /** Empezar el desafío semanal (lleva a elegir héroe). */
+  playChallenge: () => void;
 }
 
 const fmtLeft = (ms: number) => { const m = Math.ceil(ms / 60000); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
 /** "7 días", "1 mes", "2 meses"… "1 año". */
 const milestoneName = (d: number) => d >= 365 ? t('1 año') : d >= 30 ? (d / 30 === 1 ? t('1 mes') : t('{n} meses', { n: Math.round(d / 30) })) : t('{n} días', { n: d });
+const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+/** "2 d 5 h" o, si queda menos de un día, "5 h 10 min". */
+const fmtDays = (ms: number) => ms >= 86400000 ? `${Math.floor(ms / 86400000)} d ${Math.floor((ms % 86400000) / 3600000)} h` : fmtLeft(ms);
 const TIERS = ['Fácil', 'Media', 'Difícil'];
 
 /** Diario: misiones del día y camino de la racha de conexión. */
-export function DailyScreen({ save, back, claimMission, claimLogin, claimStreak }: Props) {
+export function DailyScreen({ save, back, claimMission, claimLogin, claimStreak, playChallenge }: Props) {
   const [, tick] = useState(0);
   useEffect(() => { const id = setInterval(() => tick(n => n + 1), 30000); return () => clearInterval(id); }, []);
   const day = dayKey(), d = todayProgress(save.daily, day);
@@ -39,6 +45,21 @@ export function DailyScreen({ save, back, claimMission, claimLogin, claimStreak 
         <span className="credits">◈ {nf(save.credits)}</span>
       </header>
       <div className="daily-body">
+        {(() => {
+          const c = weeklyChallenge(), cs = save.challenge?.week === challengeWeek() ? save.challenge : null;
+          return (
+            <section className="challenge-card" style={{ ['--cc' as any]: c.color }}>
+              <h3>{t('Desafío semanal')}</h3>
+              <p className="daily-note">{t('Nuevo desafío en {time}', { time: fmtDays(msToNextChallenge()) })}</p>
+              <div className="ch-title"><span>{c.icon}</span><b>{t(c.name)}</b></div>
+              <p>{t(c.desc)}</p>
+              <p className="ch-goal">{t('Aguanta {t} para ganar', { t: fmtTime(c.goal) })} <b>+◈ {nf(c.reward)}</b></p>
+              {cs && <p className="daily-note">{t('Tu mejor tiempo: {t}', { t: fmtTime(cs.best) })}</p>}
+              {cs?.claimed ? <p className="ch-done">✔ {t('Superado esta semana')}</p>
+                : <button className="btn" onClick={() => { audio.play('click'); playChallenge(); }}><b>{t('Jugar desafío')}</b></button>}
+            </section>
+          );
+        })()}
         <section>
           <h3>{t('Misiones diarias')}</h3>
           <p className="daily-note">{t('Nuevas misiones en {time}', { time: fmtLeft(msToMidnight()) })}</p>

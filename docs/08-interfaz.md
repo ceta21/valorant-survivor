@@ -12,7 +12,7 @@
 | Tienda | `ShopScreen` | Pestañas de estilos de héroes (con selector del héroe en el que verlos) y mascotas; solo comprar (con confirmación) |
 | Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
 | Equipo | `GearScreen` | 3 huecos con lo puesto e inventario ordenado por rareza: equipar/quitar, mejorar con créditos y desmontar |
-| Diario | `DailyScreen` | Misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
+| Diario | `DailyScreen` | Desafío semanal arriba (reglas, tiempo a aguantar, premio, mejor tiempo y «Jugar desafío», que lleva a elegir héroe con un aviso del desafío; ver [02](02-jugabilidad.md#desafío-semanal)), misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Héroes | `AgentSelection` | Elegir héroe (con su poder), zona, dificultad; desbloquear héroes (los no disponibles, con candado y "Próximamente"); estilo del héroe comprado en la Tienda |
 | Jugar en pareja | `CoopScreen` | Crear/unirse a sala, elegir héroe, listo, empezar |
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` (tarjetas de mejora que entran girando una tras otra; marco según rareza: común sencillo, poco común doble, épica que late con gemas en las esquinas, legendaria dorada con un destello que la recorre; las evoluciones, siempre doradas) | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |

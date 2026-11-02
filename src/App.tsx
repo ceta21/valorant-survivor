@@ -1,3 +1,4 @@
+import { CHALLENGE_BY_ID, Challenge, challengeWeek, weeklyChallenge } from './data/challenges';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MainMenu } from './components/MainMenu';
 import { AgentSelection } from './components/AgentSelection';
@@ -53,7 +54,7 @@ export default function App() {
   const accountRef = useRef<Account | null>(null); accountRef.current = account;
   // la tienda de un invitado cambia en cada visita (no tiene cuenta a la que atarla)
   const [guestSeed] = useState(() => `guest-${Math.random()}`);
-  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number } }>({ agentId: 'zephyr', mapId: 'ascent', difficulty: 'normal', key: 0 });
+  const [run, setRun] = useState<{ agentId: string; mapId: string; difficulty: string; key: number; challenge?: { c: Challenge; done: boolean }; coop?: { link: CoopLink; setups: PlayerSetup[]; local: number; seed: number } }>({ agentId: 'zephyr', mapId: 'ascent', difficulty: 'normal', key: 0 });
 
   const update = useCallback((fn: (s: SaveData) => SaveData) => {
     setSave(prev => { const n = fn(prev); if (n !== prev && accountRef.current) saveProgress(n); return n; });
@@ -140,10 +141,14 @@ export default function App() {
 
   // en local (npm run dev) se pueden elegir todos los héroes para probarlos; no toca el guardado
   const pickSave = import.meta.env?.DEV ? { ...save, unlocked: AGENTS.map(a => a.id) } : save;
+  // desafío semanal: se elige en el Diario y se aplica a la partida que empiece desde la elección de héroe
+  const [pickChallenge, setPickChallenge] = useState(false);
   const start = (agentId: string, mapId: string, difficulty: string) => {
     if (!isAvailable(agentId)) return;   // héroe "Próximamente"
     update(s => ({ ...s, lastAgent: agentId, lastMap: mapId, lastDifficulty: difficulty }));
-    setRun(r => ({ agentId, mapId, difficulty, key: r.key + 1 }));
+    const ch = pickChallenge ? weeklyChallenge() : undefined;
+    setRun(r => ({ agentId, mapId, difficulty, key: r.key + 1, challenge: ch && { c: ch, done: save.challenge?.week === challengeWeek() && save.challenge.claimed } }));
+    setPickChallenge(false);
     setScreen('game');
   };
 
@@ -199,6 +204,13 @@ export default function App() {
       const items = [...s.gear.items, ...(r.loot ?? []).map((l, i) => ({ uid: `${Date.now().toString(36)}${i}${Math.random().toString(36).slice(2, 6)}`, id: l.id, rarity: l.rarity, lvl: 1 }))];
       const next = { ...s, credits: s.credits + r.credits, stats, records, daily: addRun(s.daily, r), gear: { ...s.gear, items } };
       // logros (con esta partida): se suman sus créditos y se enseñan en el resultado
+      // desafío semanal: guarda el mejor tiempo y, si se aguanta lo pedido, su premio (una vez por semana)
+      if (r.challenge) {
+        const week = challengeWeek(), c = CHALLENGE_BY_ID[r.challenge], old = next.challenge?.week === week ? next.challenge : { week, best: 0, claimed: false };
+        const win = !!c && c.id === weeklyChallenge().id && !old.claimed && r.time >= c.goal;
+        next.challenge = { week, best: Math.max(old.best, Math.floor(r.time)), claimed: old.claimed || win };
+        if (win) next.credits += c.reward;
+      }
       const { save: withAch, got } = unlockAchievements(next, r);
       names.splice(0, names.length, ...got.map(a => a.name));
       return withAch;
@@ -242,7 +254,7 @@ export default function App() {
       )}
       {screen === 'menu' && <MainMenu save={save} go={go} account={account} accountsEnabled={accountsEnabled} onLogin={openAuth} onLogout={doSignOut} keys={prefs.keys} />}
       {screen === 'agents' && (
-        <AgentSelection save={pickSave} back={() => go('menu')} start={start} keys={prefs.keys}
+        <AgentSelection challenge={pickChallenge ? weeklyChallenge() : undefined} save={pickSave} back={() => { setPickChallenge(false); go('menu'); }} start={start} keys={prefs.keys}
           equip={equipShop}
           unlock={id => update(s => { const a = AGENT_BY_ID[id]; return s.credits >= a.cost && !s.unlocked.includes(id) ? { ...s, credits: s.credits - a.cost, unlocked: [...s.unlocked, id] } : s; })} />
       )}
@@ -266,13 +278,13 @@ export default function App() {
       {screen === 'shop' && <ShopScreen save={save} back={() => go('menu')} buy={buyShop} />}
       {screen === 'gear' && <GearScreen save={save} back={() => go('menu')} change={fn => update(s => { const r = fn(s.gear, s.credits); return r ? { ...s, gear: r.gear, credits: r.credits } : s; })} />}
       {screen === 'pets' && <PetsScreen save={save} back={() => go('menu')} goShop={() => go('shop')} equip={equipShop} buyPower={buyPetPower} />}
-      {screen === 'daily' && <DailyScreen save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
+      {screen === 'daily' && <DailyScreen playChallenge={() => { setPickChallenge(true); setScreen('agents'); }} save={save} back={() => go('menu')} claimMission={claimDaily} claimLogin={claimLogin} claimStreak={claimStreak} />}
       {screen === 'coop' && <CoopScreen save={pickSave} name={account?.username ?? 'Invitado'} back={() => go('menu')} onStart={startCoop} />}
       {screen === 'market' && <MarketScreen save={save} seed={account?.uid ?? guestSeed} reveal={revealCard} buy={buyOffer} back={() => go('menu')} goAgents={() => go('agents')} goPets={() => go('pets')} />}
       {screen === 'game' && agent && map && (
-        <GameScreen key={run.key} keys={prefs.keys} low={prefs.low} vivid={prefs.vivid} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
+        <GameScreen key={run.key} challenge={run.coop ? undefined : run.challenge} keys={prefs.keys} low={prefs.low} vivid={prefs.vivid} looks={looksFor(save.shop, run.agentId)} gear={gearBonus(save.gear)} agent={run.coop ? run.coop.setups[run.coop.local].agent : agent} map={map} difficulty={difficulty} coop={run.coop} meta={save.meta} settings={save.settings}
           account={account} playerName={save.playerName} setPlayerName={n => update(s => ({ ...s, playerName: n }))}
-          onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1 }))} changeSettings={changeSettings} />
+          onEnd={handleEnd} onMenu={leaveGame} onRestart={() => setRun(r => ({ ...r, key: r.key + 1, challenge: r.challenge && { ...r.challenge, done: save.challenge?.week === challengeWeek() && save.challenge.claimed } }))} changeSettings={changeSettings} />
       )}
     </div>
   );
