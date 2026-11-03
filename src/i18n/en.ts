@@ -477,6 +477,16 @@ export const EN: Record<string, string> = {
   'Terror alado del Infierno': 'Winged Terror of the Inferno',
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
+  /* ------------------------------------------------------------------ portales que se abren con jefes */
+  'Empiezas en el Reino. Derrota jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.': 'You start in the Kingdom. Defeat bosses to open the portals to the Glacier, the City and the Inferno.',
+  'Empezáis en el Reino. Derrotad jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.': 'You both start in the Kingdom. Defeat bosses to open the portals to the Glacier, the City and the Inferno.',
+  'Gana una partida en la que hayas llegado al Glaciar': 'Win a run in which you reached the Glacier',
+  'Gana una partida en la que hayas llegado al Infierno': 'Win a run in which you reached the Inferno',
+  'Gana una partida en la que hayas llegado a la Ciudad': 'Win a run in which you reached the City',
+  'Gana partidas en las que hayas llegado a las 4 zonas': 'Win runs in which you reached all 4 zones',
+  '🔒 Derrota a un jefe para abrirlo': '🔒 Defeat a boss to open it',
+  '¡SE ABRE EL PORTAL: {n}!': 'PORTAL OPENED: {n}!',
+  'Portal cerrado: derrota a un jefe para abrirlo': 'Closed portal: defeat a boss to open it',
   /* ------------------------------------------------------------------ resumen de la partida */
   'Daño por poder': 'Damage by power',
   'Daño recibido': 'Damage taken',
@@ -526,6 +536,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Nuevo viaje por la grieta: siempre empiezas en el Reino y cada jefe que derrotas abre el portal a la siguiente zona (Glaciar, Ciudad e Infierno). El jefe final llega ahora a los 15:00, con más jefes por el camino.': 'A new journey through the rift: you always start in the Kingdom and every boss you defeat opens the portal to the next zone (Glacier, City and Inferno). The final boss now arrives at 15:00, with more bosses along the way.',
   'Zonas sin bordes: el Reino, el Glaciar, el Infierno y la Ciudad ya no son islas; puedes explorar en cualquier dirección y encontrarás más castillos, aldeas y caminos.': 'Borderless zones: the Kingdom, the Glacier, the Inferno and the City are no longer islands; explore in any direction and you will find more castles, villages and paths.',
   'El menú suena: al pasar por los botones, al cambiar de pantalla, al comprar o cobrar créditos, al conseguir un logro y al mirar las cartas de mejora.': 'The menu has sound: hovering buttons, changing screens, buying or claiming credits, unlocking achievements and browsing upgrade cards.',
   'Resumen al acabar la partida: cuánto daño hizo cada poder y en qué momentos recibiste más daño.': 'End-of-run summary: how much damage each power dealt and when you took the most damage.',

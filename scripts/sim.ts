@@ -14,7 +14,7 @@ function runBot(agentId: string, mapId: string, skill: number, seed = 0) {
   });
   let t = 0, frames = 0, ang = 0;
   let maxAlive = 0, ups = 0;
-  while (!result && t < 700) {
+  while (!result && t < 1100) {
     // bot: huir del centro de masa de los enemigos cercanos, con algo de órbita
     const p = eng.player;
     let ax = 0, ay = 0, n = 0;

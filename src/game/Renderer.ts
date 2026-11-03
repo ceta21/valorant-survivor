@@ -302,6 +302,25 @@ export class Renderer {
     // Infierno, tecnológico → Ciudad), con un resplandor que late y chispas que giran en el remolino
     for (const pt of e.world.portals) {
       if (!vis(pt.x, pt.y, PORTAL_H)) continue;
+      // portal cerrado (aún no has derrotado al jefe que lo abre): gris, apagado y con un candado
+      if (!e.portalOpen(pt)) {
+        const art = portalArt(MAPS[pt.to].id);
+        if (art) {
+          const H = PORTAL_H, W = (art.width / art.height) * H;
+          g.fillStyle = 'rgba(0,0,0,0.3)'; g.beginPath(); g.ellipse(pt.x, pt.y + H * 0.36, W * 0.42, 14, 0, 0, 7); g.fill();
+          g.save(); g.filter = 'grayscale(1) brightness(0.55)';
+          g.drawImage(art as any, Math.round(pt.x - W / 2), Math.round(pt.y - H * PORTAL_CY), Math.round(W), Math.round(H));
+          g.restore();
+        } else pixelCircle(g, pt.x, pt.y, 56, '#2a2838', PX, 99);
+        // candado: arco y cuerpo
+        const lx = Math.round(pt.x / PX) * PX, ly = Math.round((pt.y - 6) / PX) * PX;
+        g.fillStyle = '#000'; g.fillRect(lx - 14, ly - 4, 28, 24); g.fillRect(lx - 10, ly - 18, 20, 16);
+        g.fillStyle = '#8a8fa0'; g.fillRect(lx - 6, ly - 14, 12, 12);
+        g.fillStyle = '#000'; g.fillRect(lx - 2, ly - 10, 4, 8);
+        g.fillStyle = '#c9c3e0'; g.fillRect(lx - 12, ly - 2, 24, 20);
+        g.fillStyle = '#4a4660'; g.fillRect(lx - 2, ly + 4, 4, 8);
+        continue;
+      }
       const col = MAPS[pt.to].colors.accent, ph = e.time;
       const pulse = 0.75 + 0.25 * Math.sin(ph * 2.4 + pt.x * 0.01);
       g.globalCompositeOperation = 'lighter';
@@ -669,10 +688,11 @@ export class Renderer {
     g.font = `${Math.max(8, Math.round(z * 12 / 8) * 8)}px ${PIXEL_FONT}`;
     for (const pt of e.world.portals) {
       if (!vis(pt.x, pt.y, PORTAL_H)) continue;
-      const label = '→ ' + t(MAPS[pt.to].name), nx = Math.round((pt.x - cx) * z), ny = Math.round((pt.y - PORTAL_H * PORTAL_CY - 10 - cy) * z);
+      const open = e.portalOpen(pt);
+      const label = (open ? '→ ' : '× ') + t(MAPS[pt.to].name), nx = Math.round((pt.x - cx) * z), ny = Math.round((pt.y - PORTAL_H * PORTAL_CY - 10 - cy) * z);
       g.fillStyle = '#000';
       for (const [ox, oy] of OUTLINE) g.fillText(label, nx + ox, ny + oy);
-      g.fillStyle = MAPS[pt.to].colors.accent;
+      g.fillStyle = open ? MAPS[pt.to].colors.accent : '#8a8fa0';
       g.fillText(label, nx, ny);
     }
     // nombres en cooperativo (solo de los compañeros)

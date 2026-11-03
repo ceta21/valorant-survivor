@@ -6,7 +6,7 @@ Código principal: `src/game/GameEngine.ts`.
 
 ## Flujo de una partida
 
-1. En **Jugar** se elige héroe, zona de inicio y dificultad.
+1. En **Jugar** se elige héroe y dificultad. Siempre se empieza en el **Reino** (no se elige zona).
    Se puede jugar con los 20 héroes (`AVAILABLE_AGENTS` en `src/data/agents.ts`);
    si algún héroe se saca de esa lista, sale con candado y el rótulo **Próximamente** y no se puede comprar ni
    elegir (tampoco en cooperativo).
@@ -16,7 +16,7 @@ Código principal: `src/game/GameEngine.ts`.
 4. Los enemigos muertos sueltan **gemas de experiencia**; al recogerlas se llena la barra de XP.
 5. Al subir de nivel la partida se detiene y se elige **1 de 3 mejoras** (se puede relanzar 2 veces por partida).
 6. Oleadas, élites y jefes llegan según el [calendario](10-datos-del-juego.md#calendario-de-la-partida).
-7. A los 9:00 aparece el jefe final; después la partida **sigue sin límite** (modo infinito).
+7. A los **15:00** aparece el jefe final; después la partida **sigue sin límite** (modo infinito).
 8. La partida termina cuando el jugador muere (en cooperativo, cuando caen los dos). Se ganan
    créditos y, con cuenta, la marca se publica sola en el ranking.
 
@@ -30,7 +30,7 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
   se regenera a 4/s tras 5 s sin recibir golpes (hasta su máximo).
 - Movimiento en 8 direcciones por un mundo de 4 zonas **sin bordes** (Reino, Glaciar, Infierno, Ciudad): cada zona
   sigue en todas direcciones (unos 50 min andando en línea recta hasta su límite) y su corazón —plaza, castillo,
-  aldeas y caminos— se repite cada 10.240 unidades. Se elige la zona de inicio y se cambia de zona pisando un **portal**: cada zona
+  aldeas y caminos— se repite cada 10.240 unidades. Se empieza en el Reino y se cambia de zona pisando un **portal**: cada zona
   tiene 3, uno hacia cada otra zona (rótulo con el destino y color de esa zona); te deja junto a su pareja y no se
   puede volver a usar hasta pasados 1,5 s. Con **M** (configurable) se abre el mapa del mundo; en solitario la
   partida se detiene mientras está abierto.
@@ -150,7 +150,8 @@ media unos 170 s en el Reino, 155 s en el Glaciar y 130–135 s en la Ciudad y e
 
 **Jefes** (`BOSS_SCHEDULE`): al 2:30, el jefe de la zona en la que estás (`ZONE_BOSS`: Reino → Coloso mecánico,
 Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético); al 5:00, el Sabio oscuro; al
-7:30, otra vez el jefe de la zona con ×4,5 de vida; y al 9:00 el jefe final, el Dragón cibernético enorme. Al invocar,
+7:30, otra vez el jefe de la zona con ×4,5 de vida; al 10:00, el Sabio oscuro con ×1,6; al 12:30, el jefe de la zona
+con ×6; y al 15:00 el jefe final, el Dragón cibernético enorme. Al invocar,
 la Reina saca crías de araña y el Sabio y el Dragón, drones voladores. En modo infinito salen al azar entre ellos.
 
 Los robots antiguos (Recluta, Corredor, Tanque, Tirador, Explosivo, Artillero, Élite y sus jefes) siguen definidos
@@ -174,7 +175,8 @@ Los robots antiguos (Recluta, Corredor, Tanque, Tirador, Explosivo, Artillero, �
 
 Con `m = minutos`, `extra = segundos desde el minuto 9`:
 
-- Vida de enemigos normales: `(1 + 0,24·m + 0,02·m²) × vida de dificultad × (1 + extra/300)`.
+- Vida de enemigos normales: `(1 + 0,22·m + 0,006·m²) × vida de dificultad × (1 + extra/300)` (más suave que antes,
+  porque la partida llega al 15:00: en el minuto 15 cuestan lo que antes en el 9-10).
 - Vida de jefes: `(1 + segundos/900) × vida de dificultad × (1 + extra/300)`.
 - Daño enemigo: `(1 + 0,07·m) × daño de dificultad × (1 + extra/400)`.
 - Velocidad de enemigos normales: hasta +25 % (a los 25 min).
@@ -183,12 +185,13 @@ Con `m = minutos`, `extra = segundos desde el minuto 9`:
 
 ### Oleadas, élites y jefes
 
-- Oleadas intensas a los 100, 190, 260, 345, 420 y 490 s: anillo de `22 + 6·i` enemigos. En modo infinito, una
+- Oleadas intensas a los 100, 190, 260, 345, 420, 490, 570, 660, 740 y 820 s: anillo de `22 + 6·i` enemigos. En modo infinito, una
   oleada cada 55 s de `40 + 4·(extra/30)` enemigos.
 - Élites desde el segundo 200, cada 42 s; cada vez `1 + (segundos − 200)/130` élites.
 - Jefes (`BOSS_SCHEDULE`): el de la zona en la que estés a las 2:30 (`ZONE_BOSS`: Reino → Coloso mecánico,
   Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético), Sabio oscuro (5:00), otra
-  vez el de la zona con ×4,5 de vida (7:30) y el Dragón cibernético final (9:00).
+  vez el de la zona con ×4,5 de vida (7:30), Sabio oscuro con ×1,6 (10:00), el de la zona con ×6 (12:30) y el Dragón
+  cibernético final (15:00).
 - Ataques de jefe (`patterns`, `bossLogic()`): comunes — anillo de disparos, espiral, golpe en área, embestida e
   invocar bots — y uno propio de cada jefe, siempre con aviso en el suelo:
   - **Escudo** (Coloso): durante 4 s (5,5 s en la 2.ª fase) recibe solo el 25 % del daño; se ve una burbuja azul.
@@ -299,3 +302,16 @@ Cada 70–100 s (el primero al 1:15; nunca con un jefe vivo; en pareja, lo decid
 - **Lluvia de cajas**: caen 5 cajas a 130–330 px, con los premios de siempre.
 - **Bot dorado**: aparece a 280 px; no ataca, huye zigzagueando y se escapa a los 14 s. Si lo atrapas suelta 6 monedas
   de 20 ◈ y 4 gemas de experiencia. Es el enemigo `dorado` (al final de `ENEMIES`, comportamiento `flee`).
+
+## Portales que se abren con jefes
+
+Se empieza siempre en el **Reino** con los portales **cerrados** (grises, con candado y «× zona»; pisarlos dice «🔒
+Derrota a un jefe para abrirlo»). Cada jefe derrotado antes del final abre la zona siguiente de `PORTAL_ORDER`:
+**Glaciar → Ciudad → Infierno** (`engine.portalsOpen`, de 0 a 3). Cuenta cuántos jefes has matado, no cuál: si se
+escapa el del 2:30, el Sabio del 5:00 abre el Glaciar. No hay respaldo por tiempo: sin matar jefes no se sale del
+Reino. Un portal funciona si las dos zonas que une están abiertas (`portalOpen`). Al abrirse, tras el cartel de
+«¡… ELIMINADO!» sale «¡SE ABRE EL PORTAL: …!» con destello en sus portales. En el minimapa y el mapa grande los
+cerrados salen en gris. En cooperativo lo decide el anfitrión (`po` en la foto de red).
+
+Las zonas que **pisas** en la partida (`engine.visited` → `RunResult.zones`) cuentan para los récords por zona, las
+misiones diarias «Juega una partida en …» y los logros de ganar habiendo llegado a cada zona.

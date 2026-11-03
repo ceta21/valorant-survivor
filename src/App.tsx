@@ -224,8 +224,12 @@ export default function App() {
       stats.kills += r.kills; stats.bossKills += r.bossKills; stats.damage += r.damage; stats.time += Math.round(r.time);
       stats.bestTime = Math.max(stats.bestTime, Math.floor(r.time)); stats.bestLevel = Math.max(stats.bestLevel, r.level);
       stats.bestKills = Math.max(stats.bestKills, r.kills); stats.credits += r.credits;
-      const old = s.records[r.mapId] ?? { bestTime: 0, bestLevel: 0, wins: 0 };
-      const records = { ...s.records, [r.mapId]: { bestTime: Math.max(old.bestTime, Math.floor(r.time)), bestLevel: Math.max(old.bestLevel, r.level), wins: old.wins + (r.win ? 1 : 0) } };
+      // récords de cada zona a la que se llegó en la partida (se empieza en el Reino y se abren las demás)
+      const records = { ...s.records };
+      for (const z of new Set([r.mapId, ...(r.zones ?? [])])) {
+        const old = records[z] ?? { bestTime: 0, bestLevel: 0, wins: 0 };
+        records[z] = { bestTime: Math.max(old.bestTime, Math.floor(r.time)), bestLevel: Math.max(old.bestLevel, r.level), wins: old.wins + (r.win ? 1 : 0) };
+      }
       // botín de los jefes al inventario de equipo
       const items = [...s.gear.items, ...(r.loot ?? []).map((l, i) => ({ uid: `${Date.now().toString(36)}${i}${Math.random().toString(36).slice(2, 6)}`, id: l.id, rarity: l.rarity, lvl: 1 }))];
       const next = { ...s, credits: s.credits + r.credits, stats, records, daily: addRun(s.daily, r), gear: { ...s.gear, items } };

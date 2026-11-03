@@ -35,6 +35,7 @@ export const NEWS: NewsEntry[] = [
       'Fondo más vivo: detrás de las pantallas gira la espiral de energía de la grieta.',
       'Tarjetas de mejora renovadas: entran girando y su marco cambia con la rareza, con las épicas latiendo y las legendarias doradas y brillantes.',
       'Los jefes se presentan: al aparecer, la cámara va hacia ellos un instante a cámara lenta y sale un cartel con su nombre y su título.',
+      'Nuevo viaje por la grieta: siempre empiezas en el Reino y cada jefe que derrotas abre el portal a la siguiente zona (Glaciar, Ciudad e Infierno). El jefe final llega ahora a los 15:00, con más jefes por el camino.',
       'Zonas sin bordes: el Reino, el Glaciar, el Infierno y la Ciudad ya no son islas; puedes explorar en cualquier dirección y encontrarás más castillos, aldeas y caminos.',
       'El menú suena: al pasar por los botones, al cambiar de pantalla, al comprar o cobrar créditos, al conseguir un logro y al mirar las cartas de mejora.',
       'Resumen al acabar la partida: cuánto daño hizo cada poder y en qué momentos recibiste más daño.',

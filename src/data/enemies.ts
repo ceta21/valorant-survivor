@@ -21,7 +21,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   final: {
     id: 'final', name: 'Cabecilla del Protocolo', hp: 13000, speed: 60, dmg: 36, r: 52, xp: 1000, color: '#ffffff', shape: 'boss',
-    behavior: 'boss', minTime: 540, weight: 0, patterns: ['ring', 'spiral', 'slam', 'charge', 'summon'],
+    behavior: 'boss', minTime: 900, weight: 0, patterns: ['ring', 'spiral', 'slam', 'charge', 'summon'],
   },
   mortar: { id: 'mortar', name: 'Artillero', hp: 26, speed: 48, dmg: 16, r: 12, xp: 2.8, color: '#ffd24a', shape: 'diamond', behavior: 'mortar', minTime: 120, weight: 2.4 },
 };
@@ -61,7 +61,7 @@ Object.assign(ENEMIES, {
   elemental: { id: 'elemental', name: 'Elemental de energía', hp: 1700, speed: 48, dmg: 24, r: 38, xp: 120, color: '#2fe6ff', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['spiral', 'ring', 'storm', 'storm'], art: 'elemental' },
   dragon: { id: 'dragon', name: 'Dragón cibernético', hp: 1600, speed: 56, dmg: 26, r: 40, xp: 120, color: '#d946ef', shape: 'boss', behavior: 'boss', minTime: 150, weight: 0, patterns: ['flame', 'charge', 'summon', 'flame'], art: 'dragon' },
   sabio: { id: 'sabio', name: 'Sabio oscuro', hp: 3600, speed: 58, dmg: 28, r: 38, xp: 220, color: '#9b5cff', shape: 'boss', behavior: 'boss', minTime: 300, weight: 0, patterns: ['ring', 'summon', 'blink', 'spiral', 'blink'], art: 'sabio' },
-  dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 540, weight: 0, patterns: ['spiral', 'charge', 'summon', 'flame', 'storm', 'flame'], art: 'dragon', final: true },
+  dragon_final: { id: 'dragon_final', name: 'Dragón cibernético', hp: 13000, speed: 60, dmg: 36, r: 54, xp: 1000, color: '#ff3dd0', shape: 'boss', behavior: 'boss', minTime: 900, weight: 0, patterns: ['spiral', 'charge', 'summon', 'flame', 'storm', 'flame'], art: 'dragon', final: true },
 } as Record<string, EnemyDef>);
 /* ------------------------------------------------------------------ eventos de oleada */
 /** Bot dorado (evento): no ataca, huye del jugador y se escapa a los 14 s; si lo atrapas suelta monedas y experiencia. */
@@ -76,13 +76,17 @@ export const ZONE_BOSS: Record<string, string> = { reino: 'coloso', ciudad: 'rei
 
 /** Tipos que salen en el flujo normal (los antiguos robots ya no salen; siguen en ENEMIES por el cooperativo). */
 export const SPAWNABLE = BOT_KINDS;
-/** Jefes: 'zona' = el jefe de la zona donde estás (hp × hpMul); al final, el Dragón cibernético. */
+/** Jefes: 'zona' = el jefe de la zona donde estás (hp × hpMul); al final (15:00), el Dragón cibernético.
+ *  Cada jefe derrotado (antes del final) abre el siguiente portal: Glaciar, Ciudad e Infierno (PORTAL_ORDER). */
 export const BOSS_SCHEDULE: { time: number; id: string; hpMul?: number }[] = [
-  { time: 150, id: 'zona' }, { time: 300, id: 'sabio' }, { time: 450, id: 'zona', hpMul: 4.5 }, { time: 540, id: 'dragon_final' },
+  { time: 150, id: 'zona' }, { time: 300, id: 'sabio' }, { time: 450, id: 'zona', hpMul: 4.5 },
+  { time: 600, id: 'sabio', hpMul: 1.6 }, { time: 750, id: 'zona', hpMul: 6 }, { time: 900, id: 'dragon_final' },
 ];
-export const WAVE_TIMES = [100, 190, 260, 345, 420, 490];
+export const WAVE_TIMES = [100, 190, 260, 345, 420, 490, 570, 660, 740, 820];
 /** Momento en que aparece el jefe final; a partir de ahí empieza el modo infinito. */
-export const FINAL_TIME = 540;
+export const FINAL_TIME = 900;
+/** Orden en que se abren las zonas: se empieza en el Reino y cada jefe derrotado abre la siguiente. */
+export const PORTAL_ORDER = ['reino', 'glaciar', 'ciudad', 'infierno'];
 /** Modo infinito: segundos entre jefes al empezar y como mínimo (antes de aplicar la dificultad). */
 export const ENDLESS_BOSS_START = 45;
 export const ENDLESS_BOSS_MIN = 14;

@@ -55,7 +55,8 @@ export function addRun(d: DailyProgress | undefined, r: RunResult, day = dayKey(
     damage: p.damage + Math.round(r.damage),
     bestTime: Math.max(p.bestTime, Math.floor(r.time)), bestLevel: Math.max(p.bestLevel, r.level), bestKills: Math.max(p.bestKills, r.kills),
     agents: { ...p.agents, [r.agentId]: (p.agents[r.agentId] ?? 0) + 1 },
-    maps: { ...p.maps, [r.mapId]: (p.maps[r.mapId] ?? 0) + 1 },
+    // cada zona a la que se llegó cuenta como partida en ella
+    maps: { ...p.maps, ...Object.fromEntries([...new Set([r.mapId, ...(r.zones ?? [])])].map(z => [z, (p.maps[z] ?? 0) + 1])) },
     hard: p.hard + (r.difficulty === 'dificil' || r.difficulty === 'pesadilla' ? 1 : 0),
   };
 }

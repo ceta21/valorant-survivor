@@ -28,7 +28,8 @@ interface Props {
 export function AgentSelection({ save, back, start, unlock, equip, keys, challenge }: Props) {
   const K = { special: keyLabel(keys.special), secondary: keyLabel(keys.secondary), ultimate: keyLabel(keys.ultimate) };
   const [sel, setSel] = useState(playableAgent(save.lastAgent));
-  const [mapId, setMapId] = useState(save.lastMap);
+  // siempre se empieza en el Reino; las demás zonas se abren derrotando jefes
+  const mapId = 'reino';
   const [diffId, setDiffId] = useState(save.lastDifficulty);
   const roster = AGENTS;
   const agent = roster.find(a => a.id === sel) ?? AGENTS[0];
@@ -100,15 +101,7 @@ export function AgentSelection({ save, back, start, unlock, equip, keys, challen
             {agent.secondary && <li><kbd>{K.secondary}</kbd><div><b>{t(agent.secondary.name)}</b><span>{t(agent.secondary.desc)}</span></div></li>}
             <li><kbd>{K.ultimate}</kbd><div><b>{t(agent.ultimate.name)}</b><span>{t(agent.ultimate.desc)}</span></div></li>
           </ul>
-          <div className="map-pick" role="radiogroup" aria-label={t('Mapa')}>
-            {MAPS.map(m => (
-              <button key={m.id} role="radio" aria-checked={m.id === mapId} className={`map-chip ${m.id === mapId ? 'on' : ''}`} onClick={() => { audio.play('click'); setMapId(m.id); }}>
-                <i style={{ background: m.colors.wallTop, boxShadow: `0 0 0 2px ${m.colors.accent}` }} />
-                <b>{t(m.name)}</b>
-              </button>
-            ))}
-          </div>
-          <p className="map-desc">{t(MAPS.find(m => m.id === mapId)?.desc ?? '')}{rec ? t(' · Mejor: {time}, nivel {level}', { time: `${Math.floor(rec.bestTime / 60)}:${String(Math.floor(rec.bestTime % 60)).padStart(2, '0')}`, level: rec.bestLevel }) : ''}</p>
+          <p className="map-desc">{t('Empiezas en el Reino. Derrota jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.')}{rec ? t(' · Mejor: {time}, nivel {level}', { time: `${Math.floor(rec.bestTime / 60)}:${String(Math.floor(rec.bestTime % 60)).padStart(2, '0')}`, level: rec.bestLevel }) : ''}</p>
           <div className="map-pick diff-pick" role="radiogroup" aria-label={t('Dificultad')}>
             {DIFFICULTIES.map(d => (
               <button key={d.id} role="radio" aria-checked={d.id === diffId} className={`map-chip ${d.id === diffId ? 'on' : ''}`} style={{ ['--dc' as any]: d.color }}

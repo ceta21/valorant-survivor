@@ -52,8 +52,9 @@ export function BigMap({ engine, close, keyName }: { engine: GameEngine; close: 
         const q = clampPt(pt.x, pt.y, 40);
         // los lejanos se pegan al borde; si caen juntos, sus rótulos se apilan para que se lean
         const ly = Y(q.y) - 16 - (q.out ? 14 * nOut++ : 0);
-        dot(q.x, q.y, 18, '#000'); dot(q.x, q.y, 14, MAPS[pt.to].colors.accent); dot(q.x, q.y, 6, '#ffffff');
-        label((q.out ? '⇢ ' : '→ ') + t(MAPS[pt.to].name), Math.max(70, X(q.x)), ly, MAPS[pt.to].colors.accent, 10);
+        const open = engine.portalOpen(pt), c = open ? MAPS[pt.to].colors.accent : '#8a8fa0';
+        dot(q.x, q.y, 18, '#000'); dot(q.x, q.y, 14, c); dot(q.x, q.y, 6, open ? '#ffffff' : '#3a3850');
+        label((q.out ? '⇢ ' : '→ ') + t(MAPS[pt.to].name) + (open ? '' : ' 🔒'), Math.max(70, X(q.x)), ly, c, 10);
       }
       for (const e of engine.enemies) if (!e.dead && e.isBoss) { const q = clampPt(e.x, e.y, 12); dot(q.x, q.y, 16, '#000'); dot(q.x, q.y, 12, '#ff4655'); }
       for (const pl of engine.players) {
@@ -77,6 +78,7 @@ export function BigMap({ engine, close, keyName }: { engine: GameEngine; close: 
           <li><i style={{ background: '#fff' }} />{t('Tú')}</li>
           <li><i style={{ background: '#ff4655' }} />{t('Jefe')}</li>
           <li><i style={{ background: '#4fd0ff' }} />{t('Portal (del color de la zona a la que lleva)')}</li>
+          <li><i style={{ background: '#8a8fa0' }} />{t('Portal cerrado: derrota a un jefe para abrirlo')}</li>
           {engine.players.length > 1 && <li><i style={{ background: engine.players.find(p => p !== engine.me)?.agent.color }} />{t('Tu pareja')}</li>}
         </ul>
         <button className="btn btn-red" onClick={close}><b>{t('Cerrar')}</b></button>

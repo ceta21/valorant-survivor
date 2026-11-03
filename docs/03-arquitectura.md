@@ -57,7 +57,7 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
   No se separan más porque el canvas dibuja en precisión simple y con coordenadas enormes la imagen temblaría.
   `zoneAt(cx, cy)` dice la zona de un chunk.
 - Los chunks son de **640×640** y se generan de forma determinista a partir de una **semilla** (en cooperativo la
-  comparte el anfitrión). La zona de inicio no cambia el mundo: solo dónde apareces (chunk central de la zona).
+  comparte el anfitrión). La zona de inicio (siempre el Reino) no cambia el mundo: solo dónde apareces.
 - Terreno **orgánico** por celdas de 32×32 (20×20 por chunk, `Cell`): suelo, camino, agua, lava, hielo, abismo,
   roca, mar, calle, arena, puente y hierba alta. `cellType` lo decide con ruido (`noise`/`fbm`): ríos y estanques/lagos/ríos de lava según la zona, mesetas de roca (que se encogen cerca de caminos y
   monumentos para no dejar trozos sueltos), praderas de hierba alta en el Reino; la Ciudad tiene avenidas, calles,

@@ -40,11 +40,11 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'a_level_40', name: 'Nivel 40', desc: 'Alcanza el nivel 40 en una partida', reward: 2000, check: s => [s.stats.bestLevel, 40] },
   // ganar (derrotar al jefe final)
   { id: 'a_win_3', name: 'Imparable', desc: 'Gana 3 partidas', reward: 1500, check: s => [s.stats.wins, 3] },
-  { id: 'a_win_reino', name: 'Señor del Reino', desc: 'Gana una partida empezando en el Reino', reward: 800, check: s => [won(s, 'reino'), 1] },
-  { id: 'a_win_glaciar', name: 'Corazón de hielo', desc: 'Gana una partida empezando en el Glaciar', reward: 800, check: s => [won(s, 'glaciar'), 1] },
-  { id: 'a_win_infierno', name: 'A prueba de fuego', desc: 'Gana una partida empezando en el Infierno', reward: 800, check: s => [won(s, 'infierno'), 1] },
-  { id: 'a_win_ciudad', name: 'Rey de la ciudad', desc: 'Gana una partida empezando en la Ciudad', reward: 800, check: s => [won(s, 'ciudad'), 1] },
-  { id: 'a_win_all', name: 'Conquistador', desc: 'Gana empezando en las 4 zonas', reward: 3000, check: s => [won(s, 'reino') + won(s, 'glaciar') + won(s, 'infierno') + won(s, 'ciudad'), 4] },
+  { id: 'a_win_reino', name: 'Señor del Reino', desc: 'Gana una partida', reward: 800, check: s => [won(s, 'reino'), 1] },
+  { id: 'a_win_glaciar', name: 'Corazón de hielo', desc: 'Gana una partida en la que hayas llegado al Glaciar', reward: 800, check: s => [won(s, 'glaciar'), 1] },
+  { id: 'a_win_infierno', name: 'A prueba de fuego', desc: 'Gana una partida en la que hayas llegado al Infierno', reward: 800, check: s => [won(s, 'infierno'), 1] },
+  { id: 'a_win_ciudad', name: 'Rey de la ciudad', desc: 'Gana una partida en la que hayas llegado a la Ciudad', reward: 800, check: s => [won(s, 'ciudad'), 1] },
+  { id: 'a_win_all', name: 'Conquistador', desc: 'Gana partidas en las que hayas llegado a las 4 zonas', reward: 3000, check: s => [won(s, 'reino') + won(s, 'glaciar') + won(s, 'infierno') + won(s, 'ciudad'), 4] },
   { id: 'a_win_hard', name: 'Sin piedad', desc: 'Gana una partida en Difícil o Pesadilla', reward: 1500, check: (_s, r) => [runWin(r, ['dificil', 'pesadilla']), 1] },
   { id: 'a_win_nightmare', name: 'Pesadilla superada', desc: 'Gana una partida en Pesadilla', reward: 4000, check: (_s, r) => [runWin(r, ['pesadilla']), 1] },
   // colección y progreso fuera de la partida

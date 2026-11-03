@@ -151,7 +151,7 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `boss1` | Centinela | boss | 1500 | 52 | 24 | 34 | 120 | 150 | 0 | slam, ring |
 | `boss2` | Cazador | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | charge, ring, summon, slam |
 | `boss3` | Titán | boss | 7000 | 54 | 32 | 44 | 360 | 450 | 0 | spiral, slam, charge, summon |
-| `final` | Cabecilla del Protocolo | boss | 13000 | 60 | 36 | 52 | 1000 | 540 | 0 | ring, spiral, slam, charge, summon |
+| `final` | Cabecilla del Protocolo | boss | 13000 | 60 | 36 | 52 | 1000 | 900 | 0 | ring, spiral, slam, charge, summon |
 | `mortar` | Artillero | mortar | 26 | 48 | 16 | 12 | 2.8 | 120 | 2.4 | — |
 | `soldado_n` | Dron soldado | shooter | 16 | 56 | 7 | 11 | 2 | 30 | 4 | — |
 | `soldado_e` | Soldado élite | shooter | 29 | 59 | 9 | 13 | 3.6 | 30 | 4 | — |
@@ -182,7 +182,7 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `elemental` | Elemental de energía | boss | 1700 | 48 | 24 | 38 | 120 | 150 | 0 | spiral, ring, storm, storm |
 | `dragon` | Dragón cibernético | boss | 1600 | 56 | 26 | 40 | 120 | 150 | 0 | flame, charge, summon, flame |
 | `sabio` | Sabio oscuro | boss | 3600 | 58 | 28 | 38 | 220 | 300 | 0 | ring, summon, blink, spiral, blink |
-| `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 540 | 0 | spiral, charge, summon, flame, storm, flame |
+| `dragon_final` | Dragón cibernético | boss | 13000 | 60 | 36 | 54 | 1000 | 900 | 0 | spiral, charge, summon, flame, storm, flame |
 | `dorado` | Bot dorado | flee | 70 | 135 | 0 | 14 | 12 | 0 | 0 | — |
 
 Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `asesino`, `volador`, `sanador`. Los élites salen por calendario (desde el segundo 200).
@@ -200,10 +200,16 @@ Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `
 | 420 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 450 | Jefe de la zona (vida ×4.5) |
 | 490 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 540 | Jefe: Dragón cibernético |
+| 570 | Oleada intensa (anillo de enemigos alrededor del jugador) |
+| 600 | Jefe: Sabio oscuro |
+| 660 | Oleada intensa (anillo de enemigos alrededor del jugador) |
+| 740 | Oleada intensa (anillo de enemigos alrededor del jugador) |
+| 750 | Jefe de la zona (vida ×6) |
+| 820 | Oleada intensa (anillo de enemigos alrededor del jugador) |
+| 900 | Jefe: Dragón cibernético |
 
-- Jefe final a los 540 s; desde ahí empieza el **modo infinito**.
-- Modo infinito: jefes al azar entre zona, sabio, zona, dragon_final; el primero a los 540 + 45 × dificultad s; el intervalo baja de 45 s hasta un mínimo de 14 s (× multiplicador de la dificultad); máximo 6 jefes vivos.
+- Jefe final a los 900 s; desde ahí empieza el **modo infinito**.
+- Modo infinito: jefes al azar entre zona, sabio, zona, dragon_final; el primero a los 900 + 45 × dificultad s; el intervalo baja de 45 s hasta un mínimo de 14 s (× multiplicador de la dificultad); máximo 6 jefes vivos.
 
 ## Dificultades
 
@@ -277,11 +283,11 @@ Coste del nivel siguiente: `round(80 × (nivel + 1)^1.6)` → 80, 243, 464, 735,
 | Logro | `a_level_25` | Nivel 25 | Alcanza el nivel 25 en una partida | — |
 | Logro | `a_level_40` | Nivel 40 | Alcanza el nivel 40 en una partida | — |
 | Logro | `a_win_3` | Imparable | Gana 3 partidas | — |
-| Logro | `a_win_reino` | Señor del Reino | Gana una partida empezando en el Reino | — |
-| Logro | `a_win_glaciar` | Corazón de hielo | Gana una partida empezando en el Glaciar | — |
-| Logro | `a_win_infierno` | A prueba de fuego | Gana una partida empezando en el Infierno | — |
-| Logro | `a_win_ciudad` | Rey de la ciudad | Gana una partida empezando en la Ciudad | — |
-| Logro | `a_win_all` | Conquistador | Gana empezando en las 4 zonas | — |
+| Logro | `a_win_reino` | Señor del Reino | Gana una partida | — |
+| Logro | `a_win_glaciar` | Corazón de hielo | Gana una partida en la que hayas llegado al Glaciar | — |
+| Logro | `a_win_infierno` | A prueba de fuego | Gana una partida en la que hayas llegado al Infierno | — |
+| Logro | `a_win_ciudad` | Rey de la ciudad | Gana una partida en la que hayas llegado a la Ciudad | — |
+| Logro | `a_win_all` | Conquistador | Gana partidas en las que hayas llegado a las 4 zonas | — |
 | Logro | `a_win_hard` | Sin piedad | Gana una partida en Difícil o Pesadilla | — |
 | Logro | `a_win_nightmare` | Pesadilla superada | Gana una partida en Pesadilla | — |
 | Logro | `a_heroes_5` | Compañía | Ten 5 héroes | — |

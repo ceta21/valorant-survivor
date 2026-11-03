@@ -35,7 +35,7 @@ export function Minimap({ engine, onOpen }: { engine: GameEngine; onOpen?: () =>
       drawWorldArea(g, engine.world, me.x - RANGE, me.y - RANGE, RANGE * 2, RANGE * 2, K, makeCanvas);
       for (const pt of engine.world.portals) {
         const q = place(pt.x - me.x, pt.y - me.y);
-        if (!q.out) { dot(q.x, q.y, 5, '#000'); dot(q.x, q.y, 3, MAPS[pt.to].colors.accent); }
+        if (!q.out) { dot(q.x, q.y, 5, '#000'); dot(q.x, q.y, 3, engine.portalOpen(pt) ? MAPS[pt.to].colors.accent : '#6a7080'); }
       }
       for (const c of engine.crates) {
         if (c.dead) continue;

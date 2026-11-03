@@ -36,7 +36,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
   const [error, setError] = useState('');
   const roster = useMemo(() => AGENTS.filter(a => save.unlocked.includes(a.id) && isAvailable(a.id)), [save]);
   const [agentId, setAgentId] = useState(roster.some(a => a.id === save.lastAgent) ? save.lastAgent : roster[0]?.id ?? 'zephyr');
-  const [mapId, setMapId] = useState(save.lastMap);
+  const mapId = 'reino';   // siempre se empieza en el Reino
   const [difficulty, setDifficulty] = useState(save.lastDifficulty);
   const [ready, setReady] = useState(false);
   const [peerState, setPeerState] = useState<LobbyState | null>(null);
@@ -162,13 +162,7 @@ export function CoopScreen({ save, name, back, onStart }: Props) {
         </section>
       </div>
       <div className="coop-settings">
-        <div className="map-pick" role="radiogroup" aria-label={t('Mapa')}>
-          {MAPS.map(m => (
-            <button key={m.id} role="radio" aria-checked={m.id === shownMap} disabled={!isHost} className={`map-chip ${m.id === shownMap ? 'on' : ''}`} onClick={() => { audio.play('click'); setMapId(m.id); }}>
-              <i style={{ background: m.colors.wallTop }} /><b>{t(m.name)}</b>
-            </button>
-          ))}
-        </div>
+        <p className="map-desc">{t('Empezáis en el Reino. Derrotad jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.')}</p>
         <div className="map-pick" role="radiogroup" aria-label={t('Dificultad')}>
           {DIFFICULTIES.map(d => (
             <button key={d.id} role="radio" aria-checked={d.id === shownDiff} disabled={!isHost} className={`map-chip ${d.id === shownDiff ? 'on' : ''}`} onClick={() => { audio.play('click'); setDifficulty(d.id); }}>

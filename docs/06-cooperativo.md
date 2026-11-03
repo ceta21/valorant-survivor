@@ -9,8 +9,8 @@ Partida para **2 jugadores** contra las mismas oleadas. Código: `src/net/coopLi
    y se comprueba que no esté en uso.
 2. El otro pulsa **Unirse** y escribe el código. Si no hay anfitrión → "No existe ninguna sala con ese código";
    si ya hay invitado → "Esa sala ya está llena".
-3. Cada uno elige héroe (de los que tiene desbloqueados). El **anfitrión** elige mapa y
-   dificultad. El invitado pulsa "Estoy listo" y el anfitrión "Empezar partida".
+3. Cada uno elige héroe (de los que tiene desbloqueados). El **anfitrión** elige la
+   dificultad (siempre se empieza en el Reino; los portales se abren derrotando jefes). El invitado pulsa "Estoy listo" y el anfitrión "Empezar partida".
 4. El anfitrión envía `start` con: mapa, dificultad, **semilla del mundo** y la configuración de cada jugador
    (héroe, mejoras permanentes, nombre).
 

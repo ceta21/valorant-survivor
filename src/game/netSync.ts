@@ -24,7 +24,7 @@ export interface PlayerSnap {
   pe?: [number, number, number, number, 0 | 1, number, number, number, 0 | 1];
 }
 export interface Snap {
-  t: number; st: string; lv: number; xp: number; k: number; bk: number; dmg: number; fs: 0 | 1; fk: 0 | 1; eb: number;
+  t: number; st: string; lv: number; xp: number; k: number; bk: number; dmg: number; /** Portales abiertos. */ po?: number; fs: 0 | 1; fk: 0 | 1; eb: number;
   ban: [string, string, number, string?, Record<string, string>?] | 0; shk: number;
   p: PlayerSnap[];
   en: number[];   // por enemigo: id, def, x, y, hp, maxHp, flags, face*100, atk(kind+1), atkT*100, atkDur*100, atkX, atkY, atkAng*100
@@ -75,7 +75,7 @@ export function makeSnapshot(e: GameEngine): Snap {
   const ev = e.netOut ?? [];
   if (e.netOut) e.netOut = [];
   return {
-    t: r2(e.time), st: e.state, lv: e.level, xp: r1(e.xp), k: e.kills, bk: e.bossKills, dmg: Math.round(e.damageDealt), fs: e.finalSpawned ? 1 : 0, fk: e.finalKilled ? 1 : 0,
+    t: r2(e.time), st: e.state, lv: e.level, xp: r1(e.xp), k: e.kills, bk: e.bossKills, dmg: Math.round(e.damageDealt), po: e.portalsOpen, fs: e.finalSpawned ? 1 : 0, fk: e.finalKilled ? 1 : 0,
     eb: r1(e.endlessBossT), ban: e.banner.t > 0 ? [e.banner.text, e.banner.color, r1(e.banner.t), e.banner.key, e.banner.p] : 0, shk: r2(e.shakeT),
     p, en, pj, ep, gm,
     sk: e.strikes.filter(s => !s.dead).map(s => [Math.round(s.x), Math.round(s.y), Math.round(s.r), r2(s.t), r2(s.dur), s.fx ?? '', Math.round(s.ox), Math.round(s.oy), s.color]),
@@ -101,6 +101,7 @@ function blankEnemy(id: number, defIdx: number, x: number, y: number): Enemy {
 export function applySnapshot(e: GameEngine, s: Snap) {
   e.sync();
   e.time = s.t; e.state = s.st as GameEngine['state']; e.level = s.lv; e.xp = s.xp; e.kills = s.k; e.bossKills = s.bk; e.damageDealt = s.dmg;
+  e.portalsOpen = s.po ?? e.portalsOpen;
   e.finalSpawned = !!s.fs; e.finalKilled = !!s.fk; e.endlessBossT = s.eb; e.shakeT = Math.max(e.shakeT, s.shk);
   if (s.ban) e.banner = { text: s.ban[0], color: s.ban[1], t: s.ban[2], key: s.ban[3], p: s.ban[4] };
   // jugadores

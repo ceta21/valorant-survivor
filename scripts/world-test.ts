@@ -87,6 +87,13 @@ for (const m of MAPS) {
   const e = new GameEngine(AGENTS[0], MAP_BY_ID.reino, meta, noop);
   ok(e.world.portals.length === 12, '12 portales: 3 en cada zona, uno hacia cada otra zona');
   ok(MAPS.every((_, z) => new Set(e.world.portals.filter(p => p.zone === z).map(p => p.to)).size === 3), 'desde cada zona se llega a las otras 3');
+  // al empezar están cerrados: pisarlos no lleva a ningún sitio; cada jefe derrotado abre la zona siguiente
+  { const p0 = e.world.portals.find(p => MAPS[p.zone].id === 'reino' && MAPS[p.to].id === 'glaciar')!;
+    e.portalCd = 0; e.player.x = p0.x + 10; e.player.y = p0.y; e.update(1 / 60);
+    ok(Math.hypot(e.player.x - p0.x, e.player.y - p0.y) < 60, 'al empezar los portales están cerrados');
+    const b = e.spawnEnemy('coloso', e.player.x + 300, e.player.y); e.killEnemy(b, false);
+    ok(e.portalsOpen === 1 && e.portalOpen(p0) && !e.world.portals.some(p => MAPS[p.to].id === 'infierno' && e.portalOpen(p)), 'derrotar a un jefe abre el Glaciar (y el Infierno sigue cerrado)'); }
+  e.portalsOpen = 3; e.slowT = 0;   // sin la cámara lenta del jefe derrotado
   for (const from of e.world.portals) {
     const to = e.world.portalPair(from);
     e.portalCd = 0; e.player.x = from.x + 10; e.player.y = from.y; e.update(1 / 60);

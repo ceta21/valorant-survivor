@@ -6,7 +6,7 @@ import { BOSS_TITLES } from '../data/enemies';
 import { GEAR_BY_ID, GEAR_RARITY_COLORS, rollLoot } from '../data/gear';
 import { WeeklyEvent, currentEvent } from '../data/events';
 import {
-  BOSS_SCHEDULE, BOT_KINDS, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, SPAWNABLE, TIERS, WAVE_TIMES, ZONE_BOSS, ZONE_TIER,
+  BOSS_SCHEDULE, BOT_KINDS, ENDLESS_BOSSES, ENDLESS_BOSS_MIN, ENDLESS_BOSS_START, ENDLESS_MAX_BOSSES, ENEMIES, FINAL_TIME, PORTAL_ORDER, SPAWNABLE, TIERS, WAVE_TIMES, ZONE_BOSS, ZONE_TIER,
 } from '../data/enemies';
 import { DIFFICULTY_BY_ID, DifficultyDef } from '../data/difficulty';
 import { UPGRADES, UPGRADE_BY_ID } from '../data/upgrades';
@@ -17,7 +17,7 @@ import { Looks, PET_BY_ID, PET_RESPAWN, PetDef } from '../data/shop';
 
 /** Terreno: el agua te frena (multiplicador de velocidad) y la lava quema (fracción de la vida máx. por golpe, ~1 golpe cada 0,55 s). */
 export const WATER_SLOW = 0.6, LAVA_BURN = 0.05;
-import { MAPS } from '../data/maps';
+import { MAPS, MAP_BY_ID } from '../data/maps';
 /** Zona por su índice en MAPS. */
 const MAP_BY_ID_ZONE = (z: number) => MAPS[z] ?? MAPS[0];
 
@@ -252,6 +252,12 @@ export class GameEngine {
   private bossIdx = 0;
   private eliteT = 200;
   private sfxT: Record<string, number> = {};
+  /** Portales abiertos: 0 = solo el Reino; cada jefe derrotado abre la zona siguiente de PORTAL_ORDER (máx. 3). */
+  portalsOpen = 0;
+  /** Zonas que ha pisado el jugador local (para récords, logros y misiones por zona). */
+  visited = new Set<string>();
+  /** Cartel pendiente de «se abre el portal» (sale tras el de jefe eliminado). */
+  private portalBannerAt = -1;
   finalSpawned = false;
   finalKilled = false;
   /** Anfitrión en cooperativo: aquí se apuntan los efectos visuales para enviarlos al invitado. */
@@ -265,6 +271,7 @@ export class GameEngine {
   constructor(agent: AgentDef, map: MapDef, meta: MetaLevels, ev: EngineEvents, diff: DifficultyDef = DIFFICULTY_BY_ID.normal,
     coop?: { setups: PlayerSetup[]; local: number; seed?: number }, looks: Looks = {}, gear: Partial<Stats> = {}) {
     this.map = map;
+    this.visited.add(map.id);
     this.ev = ev;
     this.diff = diff;
     this.endlessBossT = FINAL_TIME + ENDLESS_BOSS_START * diff.bossEvery;
@@ -364,7 +371,7 @@ export class GameEngine {
   get need() { return Math.round(5 + this.level * 5 + this.level * this.level * 0.55); }
   /** Segundos transcurridos en modo infinito (tras la aparición del jefe final). */
   get overtime() { return Math.max(0, this.time - FINAL_TIME); }
-  get hpScale() { const m = this.time / 60; return (1 + m * 0.24 + m * m * 0.02) * this.diff.hp * (1 + this.overtime / 300); }
+  get hpScale() { const m = this.time / 60; return (1 + m * 0.22 + m * m * 0.006) * this.diff.hp * (1 + this.overtime / 300); }
   get dmgScale() { return (1 + (this.time / 60) * 0.07) * this.diff.dmg * (1 + this.overtime / 400); }
   private syncDrones() {
     while (this.droneCd.length < this.stats.drones) this.droneCd.push(rnd(0.5));
@@ -396,6 +403,14 @@ export class GameEngine {
     // tras el «¡SOBREVIVE!», el aviso del evento de la semana
     if (this.time >= 2.1 && this.time - dt < 2.1 && this.event.id !== 'none') this.showBanner(this.event.challenge ? `${this.event.icon} DESAFÍO: ${this.event.name.toUpperCase()}` : `${this.event.icon} EVENTO: ${this.event.name.toUpperCase()}`, this.event.color, 3, this.event.challenge ? '{i} DESAFÍO: {n}' : '{i} EVENTO: {n}', { i: this.event.icon, n: this.event.name });
     if (this.shakeT > 0) this.shakeT -= dt;
+    // tras el cartel del jefe eliminado, el del portal que se abre (con destello en sus portales)
+    if (this.portalBannerAt > 0 && this.time >= this.portalBannerAt) {
+      this.portalBannerAt = -1;
+      const m = MAP_BY_ID[PORTAL_ORDER[this.portalsOpen]];
+      this.showBanner(`¡SE ABRE EL PORTAL: ${m.name.toUpperCase()}!`, m.colors.accent, 3, '¡SE ABRE EL PORTAL: {n}!', { n: m.name });
+      this.sfx('levelup', 0);
+      for (const pt of this.world.portals) if (this.portalOpen(pt) && MAPS[pt.to].id === m.id) { this.addFx(0, pt.x, pt.y, 0, 0, 160, 0.8, m.colors.accent); this.sparks(pt.x, pt.y, m.colors.accent, 24, 260, 0.8); }
+    }
     this.buildGrid();
     for (const pl of this.players) {
       this.use(pl);
@@ -534,6 +549,11 @@ export class GameEngine {
     else {
       for (const from of this.world.portals) {
         if (Math.hypot(p.x - from.x, p.y - from.y) >= 38) continue;
+        if (!this.portalOpen(from)) {
+          if (this.cur === this.me) this.text(from.x, from.y - 70, '🔒 Derrota a un jefe para abrirlo', '#c9c3e0', 14);
+          this.portalCd = 1.5;
+          return;
+        }
         const to = this.world.portalPair(from), col = MAP_BY_ID_ZONE(to.zone).colors.accent;
         this.addFx(0, from.x, from.y, 0, 0, 90, 0.45, col);
         p.x = to.x + p.lastDirX * 70; p.y = to.y + p.lastDirY * 70;
@@ -541,6 +561,7 @@ export class GameEngine {
         this.addFx(0, to.x, to.y, 0, 0, 90, 0.45, col);
         this.sparks(to.x, to.y, col, 16, 240, 0.6);
         this.portalCd = 1.5; this.sfx('ability', 0);
+        if (this.cur === this.me) this.visited.add(MAPS[to.zone].id);
         if (this.cur === this.me) this.showBanner(MAP_BY_ID_ZONE(to.zone).name.toUpperCase(), col, 1.4, '{n}', { n: MAP_BY_ID_ZONE(to.zone).name });
         return;
       }
@@ -907,6 +928,10 @@ export class GameEngine {
     const n = Math.ceil(this.time / 30);
     return { dmg, hurt: Array.from({ length: n }, (_, i) => Math.round(this.hurtBy[i] ?? 0)) };
   }
+  /** ¿Está abierta la zona (por su índice en MAPS)? Las que no están en PORTAL_ORDER, siempre. */
+  zoneOpen(z: number) { const i = PORTAL_ORDER.indexOf(MAPS[z]?.id); return i < 0 || i <= this.portalsOpen; }
+  /** Un portal funciona si las dos zonas que une están abiertas. */
+  portalOpen(p: { zone: number; to: number }) { return this.zoneOpen(p.zone) && this.zoneOpen(p.to); }
   private alive() { let n = 0; for (const e of this.enemies) if (!e.dead) n++; return n; }
 
   private updateSpawner(dt: number) {
@@ -1483,6 +1508,7 @@ export class GameEngine {
       this.addVfx('ring', 'boom', e.x, e.y, e.r * 5, 1.1);
       this.slowT = 0.7;
       this.showBanner(`¡${e.def.name.toUpperCase()} ELIMINADO!`, '#4ad66d', 2.6, '¡{n} ELIMINADO!', { n: e.def.name });
+      if (!e.def.final && this.portalsOpen < PORTAL_ORDER.length - 1) { this.portalsOpen++; this.portalBannerAt = this.time + 2.2; }
       // botín de equipo: mejor cuanto más dura la zona; el jefe final asegura épico o legendario
       for (let i = 0; i < (this.event.bossLoot ?? 1); i++) {
         const drop = rollLoot(ZONE_TIER[this.zoneIdAt(e.x, e.y)] ?? 0, !!e.def.final);
@@ -2274,7 +2300,7 @@ export class GameEngine {
     const credits = Math.floor((this.kills * 0.4 + this.time / 8 + this.level * 6 + this.bossKills * 40 + (win ? 350 : 0)) * this.diff.credits * (this.event.credits ?? 1)) + Math.round(this.bonusCredits);
     return {
       win, time: this.time, kills: this.kills, level: this.level, damage: Math.round(this.damageDealt),
-      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot], challenge: this.event.challenge ? this.event.id : undefined, summary: idx === this.local ? this.summary() : undefined,
+      bossKills: this.bossKills, credits, agentId: (this.players[idx] ?? this.me).agent.id, mapId: this.map.id, difficulty: this.diff.id, loot: [...this.loot], challenge: this.event.challenge ? this.event.id : undefined, zones: idx === this.local ? [...this.visited] : [this.map.id], summary: idx === this.local ? this.summary() : undefined,
     };
   }
   /** Termina la partida desde fuera (p. ej. se pierde la conexión en cooperativo). */
