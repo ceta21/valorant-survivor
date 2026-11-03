@@ -198,13 +198,13 @@ Aparecen de forma normal: `soldado`, `arana`, `flotante`, `torreta`, `escudo`, `
 | 300 | Jefe: Sabio oscuro |
 | 345 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 420 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 450 | Jefe de la zona (vida ×4.5) |
+| 450 | Jefe de la zona (vida ×3.8) |
 | 490 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 570 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 600 | Jefe: Sabio oscuro |
 | 660 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 740 | Oleada intensa (anillo de enemigos alrededor del jugador) |
-| 750 | Jefe de la zona (vida ×6) |
+| 750 | Jefe de la zona (vida ×4.8) |
 | 820 | Oleada intensa (anillo de enemigos alrededor del jugador) |
 | 900 | Jefe: Dragón cibernético |
 

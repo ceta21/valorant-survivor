@@ -150,8 +150,8 @@ media unos 170 s en el Reino, 155 s en el Glaciar y 130–135 s en la Ciudad y e
 
 **Jefes** (`BOSS_SCHEDULE`): al 2:30, el jefe de la zona en la que estás (`ZONE_BOSS`: Reino → Coloso mecánico,
 Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético); al 5:00, el Sabio oscuro; al
-7:30, otra vez el jefe de la zona con ×4,5 de vida; al 10:00, el Sabio oscuro con ×1,6; al 12:30, el jefe de la zona
-con ×6; y al 15:00 el jefe final, el Dragón cibernético enorme. Al invocar,
+7:30, otra vez el jefe de la zona con ×3,8 de vida; al 10:00, el Sabio oscuro con ×1,35; al 12:30, el jefe de la zona
+con ×4,8; y al 15:00 el jefe final, el Dragón cibernético enorme. Al invocar,
 la Reina saca crías de araña y el Sabio y el Dragón, drones voladores. En modo infinito salen al azar entre ellos.
 
 Los robots antiguos (Recluta, Corredor, Tanque, Tirador, Explosivo, Artillero, Élite y sus jefes) siguen definidos
@@ -173,15 +173,15 @@ Los robots antiguos (Recluta, Corredor, Tanque, Tirador, Explosivo, Artillero, �
 
 ### Escalado con el tiempo
 
-Con `m = minutos`, `extra = segundos desde el minuto 9`:
+Con `m = minutos`, `extra = segundos desde el minuto 15`:
 
-- Vida de enemigos normales: `(1 + 0,22·m + 0,006·m²) × vida de dificultad × (1 + extra/300)` (más suave que antes,
-  porque la partida llega al 15:00: en el minuto 15 cuestan lo que antes en el 9-10).
-- Vida de jefes: `(1 + segundos/900) × vida de dificultad × (1 + extra/300)`.
-- Daño enemigo: `(1 + 0,07·m) × daño de dificultad × (1 + extra/400)`.
+- Vida de enemigos normales: `(1 + 0,2·m + 0,005·m²) × vida de dificultad × (1 + extra/300)` (más suave que antes,
+  porque la partida llega al 15:00: en el minuto 15 cuestan algo menos que antes en el 9).
+- Vida de jefes: `(1 + segundos/1200) × vida de dificultad × (1 + extra/300)`.
+- Daño enemigo: `(1 + 0,05·m) × daño de dificultad × (1 + extra/400)`.
 - Velocidad de enemigos normales: hasta +25 % (a los 25 min).
 - Enemigos deseados en pantalla: `mín(230, (9 + 0,3·segundos) × aparición)`; reducido al 55 % mientras hay
-  un jefe antes del minuto 9.
+  un jefe antes del minuto 15.
 
 ### Oleadas, élites y jefes
 
@@ -190,7 +190,7 @@ Con `m = minutos`, `extra = segundos desde el minuto 9`:
 - Élites desde el segundo 200, cada 42 s; cada vez `1 + (segundos − 200)/130` élites.
 - Jefes (`BOSS_SCHEDULE`): el de la zona en la que estés a las 2:30 (`ZONE_BOSS`: Reino → Coloso mecánico,
   Ciudad → Reina araña, Glaciar → Elemental de energía, Infierno → Dragón cibernético), Sabio oscuro (5:00), otra
-  vez el de la zona con ×4,5 de vida (7:30), Sabio oscuro con ×1,6 (10:00), el de la zona con ×6 (12:30) y el Dragón
+  vez el de la zona con ×3,8 de vida (7:30), Sabio oscuro con ×1,35 (10:00), el de la zona con ×4,8 (12:30) y el Dragón
   cibernético final (15:00).
 - Ataques de jefe (`patterns`, `bossLogic()`): comunes — anillo de disparos, espiral, golpe en área, embestida e
   invocar bots — y uno propio de cada jefe, siempre con aviso en el suelo:

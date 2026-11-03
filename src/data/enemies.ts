@@ -79,8 +79,8 @@ export const SPAWNABLE = BOT_KINDS;
 /** Jefes: 'zona' = el jefe de la zona donde estás (hp × hpMul); al final (15:00), el Dragón cibernético.
  *  Cada jefe derrotado (antes del final) abre el siguiente portal: Glaciar, Ciudad e Infierno (PORTAL_ORDER). */
 export const BOSS_SCHEDULE: { time: number; id: string; hpMul?: number }[] = [
-  { time: 150, id: 'zona' }, { time: 300, id: 'sabio' }, { time: 450, id: 'zona', hpMul: 4.5 },
-  { time: 600, id: 'sabio', hpMul: 1.6 }, { time: 750, id: 'zona', hpMul: 6 }, { time: 900, id: 'dragon_final' },
+  { time: 150, id: 'zona' }, { time: 300, id: 'sabio' }, { time: 450, id: 'zona', hpMul: 3.8 },
+  { time: 600, id: 'sabio', hpMul: 1.35 }, { time: 750, id: 'zona', hpMul: 4.8 }, { time: 900, id: 'dragon_final' },
 ];
 export const WAVE_TIMES = [100, 190, 260, 345, 420, 490, 570, 660, 740, 820];
 /** Momento en que aparece el jefe final; a partir de ahí empieza el modo infinito. */

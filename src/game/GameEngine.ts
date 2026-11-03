@@ -371,8 +371,8 @@ export class GameEngine {
   get need() { return Math.round(5 + this.level * 5 + this.level * this.level * 0.55); }
   /** Segundos transcurridos en modo infinito (tras la aparición del jefe final). */
   get overtime() { return Math.max(0, this.time - FINAL_TIME); }
-  get hpScale() { const m = this.time / 60; return (1 + m * 0.22 + m * m * 0.006) * this.diff.hp * (1 + this.overtime / 300); }
-  get dmgScale() { return (1 + (this.time / 60) * 0.07) * this.diff.dmg * (1 + this.overtime / 400); }
+  get hpScale() { const m = this.time / 60; return (1 + m * 0.2 + m * m * 0.005) * this.diff.hp * (1 + this.overtime / 300); }
+  get dmgScale() { return (1 + (this.time / 60) * 0.05) * this.diff.dmg * (1 + this.overtime / 400); }
   private syncDrones() {
     while (this.droneCd.length < this.stats.drones) this.droneCd.push(rnd(0.5));
   }
@@ -817,7 +817,7 @@ export class GameEngine {
     const e = this.enemyPool.pop() ?? ({} as Enemy);
     const boss = def.behavior === 'boss';
     const t = this.time;
-    const hpMul = boss ? (1 + t / 900) * this.diff.hp * (1 + this.overtime / 300) * (this.event.bossHp ?? 1) : this.hpScale * (this.event.enemyHp ?? 1);
+    const hpMul = boss ? (1 + t / 1200) * this.diff.hp * (1 + this.overtime / 300) * (this.event.bossHp ?? 1) : this.hpScale * (this.event.enemyHp ?? 1);
     e.id = this.nextId++; e.def = def; e.x = x; e.y = y; e.kx = 0; e.ky = 0;
     e.maxHp = e.hp = def.hp * hpMul; e.r = def.r; e.speed = def.speed * (boss ? 1 : (1 + Math.min(0.25, t / 1500)) * (this.event.enemySpeed ?? 1)); e.dmg = def.dmg;
     e.flash = 0; e.dead = false; e.burnT = 0; e.burnDps = 0; e.slowT = 0; e.slowMul = 1; e.stunT = 0; e.markT = 0;
