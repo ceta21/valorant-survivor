@@ -45,14 +45,15 @@ Nivel, vida, escudo, vida del compañero (cooperativo), barra de XP, tiempo, avi
 jefe en modo infinito, dificultad, bajas, enemigos vivos, botón de pausa, barra de jefe, avisos grandes, poderes (con su icono y nivel)
 con su nivel y los 3 botones de habilidad (con la tecla asignada, recarga y carga de definitiva).
 
-**Minimapa** (`Minimap.tsx`, arriba a la derecha bajo la pausa): recorte de 2.200 unidades alrededor del jugador
-de la vista del mundo (`WorldMap.ts`), redibujado cada fotograma. Encima: los portales (del color de la zona a la
+**Minimapa** (`Minimap.tsx`, arriba a la derecha bajo la pausa): recorte de 2.200 unidades alrededor del jugador,
+pintado por chunks con miniaturas guardadas (`drawWorldArea` en `WorldMap.ts`; el mundo no tiene bordes), cada fotograma. Encima: los portales (del color de la zona a la
 que llevan), tú (punto blanco en el centro), tu pareja (punto de su color, gris si está caída) y los jefes (rojo);
 lo que queda fuera se pega al borde en su dirección (los jefes, parpadeando). Debajo, el nombre de la zona en la que
 estás y la tecla del mapa. Pulsarlo abre el mapa grande. La barra del jefe deja libre su hueco (`--mm` en el CSS).
 
-**Mapa grande** (`BigMap.tsx`, tecla `map` = M por defecto, o pulsando el minimapa): el mundo entero con el nombre
-de cada zona, los portales con su destino, tú (parpadeando), tu pareja y los jefes. Se cierra con la misma tecla, Esc
+**Mapa grande** (`BigMap.tsx`, tecla `map` = M por defecto, o pulsando el minimapa): el trozo de mundo de 17×17 chunks
+alrededor de ti, con el nombre de tu zona, sus 3 portales con su destino (los lejanos, pegados al borde en su
+dirección con «⇢» y los rótulos apilados), tú (parpadeando), tu pareja y los jefes. Se cierra con la misma tecla, Esc
 o pulsando fuera. En solitario detiene la partida mientras está abierto; en cooperativo no.
 
 **Primera partida guiada** (`Coach.tsx`, solo en solitario y mientras `settings.tutorialDone` sea falso): 5 consejos
@@ -162,3 +163,4 @@ En la pantalla de final (`RunSummary` en `GameScreen.tsx`), debajo de los númer
 - **Daño recibido**: una columna por cada 30 s (`engine.hurtBy`), con la peor resaltada y «Donde más sufriste: m:ss–m:ss».
 
 Solo se cuenta al jugador local; va en `RunResult.summary`.
+

@@ -1,11 +1,13 @@
-// Prueba del mundo: 4 zonas en 2×2 separadas por abismos, portales entre zonas, determinismo y que todo
-// el suelo de cada zona esté conectado (no quedan rincones encerrados entre obstáculos).
+// Prueba del mundo: 4 zonas sin bordes (muy separadas) con su corazón que se repite, portales entre zonas,
+// determinismo y que todo el suelo de cada zona esté conectado (no quedan rincones encerrados entre obstáculos).
 // Uso: npm run test:world
 import { GameEngine } from '../src/game/GameEngine';
-import { World, CS, ZN, ZS, WORLD_CHUNKS, zoneAt, Cell } from '../src/game/World';
+import { World, CS, ZN, ZW, TILE, ZSPACE, zoneAt, zoneOrigin, Cell } from '../src/game/World';
 import { AGENTS } from '../src/data/agents';
 import { MAPS, MAP_BY_ID } from '../src/data/maps';
 let fails = 0; const ok = (c: boolean, msg: string) => { console.log((c ? 'OK   ' : 'FALLO'), msg); if (!c) fails++; };
+/** Chunk de la esquina del corazón original de una zona. */
+const oc = (z: number) => zoneOrigin(z).map(v => v / CS) as [number, number];
 const noop = { onLevelUp() {}, onEnd() {}, sfx() {} }, meta = { dmg: 0, hp: 0, speed: 0, xp: 0 };
 
 // 1. determinismo: misma semilla => mismo mundo; semillas distintas => distinto
@@ -16,21 +18,33 @@ ok(sig(a) !== sig(c), 'seed distinta => mundo distinto');
 ok(sig(a) === sig(new World(MAP_BY_ID.ciudad, 7)), 'la zona de inicio no cambia el mundo (en pareja los dos ven lo mismo)');
 
 // 2. zonas y abismo
-ok(MAPS.every((m, i) => zoneAt(m.zone[0] * ZS, m.zone[1] * ZS) === i), 'cada zona está en su sitio de la cuadrícula 2×2');
-ok(zoneAt(ZN, 0) === -1 && zoneAt(0, ZN) === -1 && zoneAt(-1, 3) === -1 && zoneAt(WORLD_CHUNKS, 3) === -1, 'entre zonas y alrededor del mundo hay abismo');
-ok(a.hit(ZN * CS + CS / 2, CS * 3, 4), 'el abismo no se puede pisar');
+ok(MAPS.every((m, i) => { const [x, y] = oc(i); return zoneAt(x, y) === i; }), 'cada zona está en su sitio de la cuadrícula 2×2');
+{
+  // sin bordes: la zona sigue (con suelo pisable) muy lejos de su corazón, en las 4 direcciones
+  const far = 900;   // chunks: 576.000 unidades
+  const [x, y] = oc(0), dirs = [[far, 0], [-far, 0], [0, far], [0, -far]];
+  ok(dirs.every(([dx, dy]) => zoneAt(x + dx, y + dy) === 0 && a.chunk(x + dx, y + dy).kind === 'land'), 'las zonas no tienen bordes (siguen a 576.000 unidades del centro)');
+  ok(ZW < TILE && ZSPACE / 2 >= 600_000 && ZSPACE * 1.5 < 2_097_152, 'más de 600.000 unidades hasta el límite de cada zona, y coordenadas dentro del rango que el canvas dibuja sin temblar');
+  ok(zoneAt(x - ZSPACE / CS, y) === -1 && a.hit((x - ZSPACE / CS) * CS + CS / 2, y * CS, 4), 'solo más allá de las 4 zonas hay abismo, y no se puede pisar');
+}
 
 // 3. terreno: cada zona tiene sus elementos (hierba y agua en el Reino, hielo en el Glaciar, lava en el Infierno…)
 {
   const w = new World(MAP_BY_ID.reino, 99);
   const count = (z: number) => { const [zx, zy] = MAPS[z].zone, n: Record<number, number> = {};
-    for (let j = 0; j < ZN; j++) for (let i = 0; i < ZN; i++) for (const t of w.chunk(zx * ZS + i, zy * ZS + j).cells) n[t] = (n[t] ?? 0) + 1;
+    const [x0, y0] = oc(z); void zx; void zy;
+    for (let j = 0; j < ZN; j++) for (let i = 0; i < ZN; i++) for (const t of w.chunk(x0 + i, y0 + j).cells) n[t] = (n[t] ?? 0) + 1;
     return n; };
   const need: [string, number[]][] = [['reino', [Cell.Grass, Cell.Water, Cell.Path]], ['glaciar', [Cell.Ice, Cell.Rock]], ['infierno', [Cell.Lava, Cell.Rock, Cell.Bridge]], ['ciudad', [Cell.Road, Cell.Sea, Cell.Grass]]];
   for (const [id, cells] of need) { const n = count(MAPS.findIndex(m => m.id === id)); ok(cells.every(c => (n[c] ?? 0) > 50), `${id}: tiene su terreno propio (${cells.map(c => n[c] ?? 0).join(', ')} celdas)`); }
-  const keeps = new Set<string>();
-  for (let j = 0; j < WORLD_CHUNKS; j++) for (let i = 0; i < WORLD_CHUNKS; i++) for (const o of w.chunk(i, j).obstacles) if (o.s?.endsWith('keep')) keeps.add(o.s);
+  const keeps = new Set<string>(), copies = new Set<string>(), T = TILE / CS;
+  MAPS.forEach((_, z) => { const [x0, y0] = oc(z);
+    for (let j = 0; j < ZN; j++) for (let i = 0; i < ZN; i++) {
+      for (const o of w.chunk(x0 + i, y0 + j).obstacles) if (o.s?.endsWith('keep')) keeps.add(o.s);
+      for (const o of w.chunk(x0 + i + T, y0 + j - T).obstacles) if (o.s?.endsWith('keep')) copies.add(o.s);
+    } });
   ok(keeps.size === 3, `hay castillos en Reino, Glaciar e Infierno (${[...keeps].join(', ')})`);
+  ok(copies.size === 3, 'el corazón de cada zona (con su castillo) se repite más allá');
 }
 {
   const e = new GameEngine(AGENTS[0], MAP_BY_ID.reino, meta, noop);
@@ -41,9 +55,9 @@ ok(a.hit(ZN * CS + CS / 2, CS * 3, 4), 'el abismo no se puede pisar');
   const grs = find(Cell.Grass)!; e.player.x = grs[0] - 20; e.player.y = grs[1]; e.update(1 / 60);
   const vGrass = (e.player.x - (grs[0] - 20)) * 60;
   ok(vWater < vGrass * 0.7 && vWater > 0, `el agua frena (${Math.round(vWater)} frente a ${Math.round(vGrass)} en hierba)`);
-  const [zx, zy] = MAP_BY_ID.infierno.zone, e2 = new GameEngine(AGENTS[0], MAP_BY_ID.infierno, meta, noop);
+  const e2 = new GameEngine(AGENTS[0], MAP_BY_ID.infierno, meta, noop), [ix, iy] = zoneOrigin(MAPS.indexOf(MAP_BY_ID.infierno));
   let lava: number[] | null = null;
-  for (let y = zy * ZS * CS; y < (zy * ZS + ZN) * CS && !lava; y += 16) for (let x = zx * ZS * CS; x < (zx * ZS + ZN) * CS; x += 16) if (e2.world.terrainAt(x, y) === Cell.Lava) { lava = [x, y]; break; }
+  for (let y = iy; y < iy + ZW && !lava; y += 16) for (let x = ix; x < ix + ZW; x += 16) if (e2.world.terrainAt(x, y) === Cell.Lava) { lava = [x, y]; break; }
   e2.inputMove = { x: 0, y: 0 }; e2.player.invuln = 0; e2.player.iframes = 0; e2.player.x = lava![0]; e2.player.y = lava![1];
   const hp0 = e2.player.hp; for (let i = 0; i < 60; i++) { e2.player.x = lava![0]; e2.player.y = lava![1]; e2.update(1 / 60); }
   ok(e2.player.hp < hp0, `la lava quema (${Math.round(hp0)} → ${Math.round(e2.player.hp)} de vida en 1 s)`);
@@ -53,7 +67,7 @@ ok(a.hit(ZN * CS + CS / 2, CS * 3, 4), 'el abismo no se puede pisar');
 {
   const w = new World(MAP_BY_ID.reino, 4242), STEP = 40;
   for (let z = 0; z < MAPS.length; z++) {
-    const [zx, zy] = MAPS[z].zone, x0 = zx * ZS * CS, y0 = zy * ZS * CS, N = (ZN * CS) / STEP;
+    const [x0, y0] = zoneOrigin(z), N = (ZN * CS) / STEP;
     const free = (i: number, j: number) => !w.hit(x0 + i * STEP + STEP / 2, y0 + j * STEP + STEP / 2, 12);
     const seen = new Uint8Array(N * N); let total = 0, start = -1;
     for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (free(i, j)) { total++; if (start < 0) start = j * N + i; }
@@ -85,7 +99,7 @@ for (const m of MAPS) {
 // 6. poda de chunks no cambia el mundo
 {
   const w = new World(MAP_BY_ID.glaciar, 5); const before = JSON.stringify(w.chunk(2, 2).obstacles);
-  for (let i = 0; i < 400; i++) w.chunk(i % WORLD_CHUNKS, (i / WORLD_CHUNKS) | 0); w.prune(16 * CS, 16 * CS, 2);
+  for (let i = 0; i < 400; i++) w.chunk(i % 20, (i / 20) | 0); w.prune(16 * CS, 16 * CS, 2);
   ok(JSON.stringify(w.chunk(2, 2).obstacles) === before, 'tras podar y regenerar, el chunk es idéntico');
 }
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo correcto'); process.exit(fails ? 1 : 0);

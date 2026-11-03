@@ -526,6 +526,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Zonas sin bordes: el Reino, el Glaciar, el Infierno y la Ciudad ya no son islas; puedes explorar en cualquier dirección y encontrarás más castillos, aldeas y caminos.': 'Borderless zones: the Kingdom, the Glacier, the Inferno and the City are no longer islands; explore in any direction and you will find more castles, villages and paths.',
   'El menú suena: al pasar por los botones, al cambiar de pantalla, al comprar o cobrar créditos, al conseguir un logro y al mirar las cartas de mejora.': 'The menu has sound: hovering buttons, changing screens, buying or claiming credits, unlocking achievements and browsing upgrade cards.',
   'Resumen al acabar la partida: cuánto daño hizo cada poder y en qué momentos recibiste más daño.': 'End-of-run summary: how much damage each power dealt and when you took the most damage.',
   'Más ajustes de comodidad en Configuración: puedes quitar los destellos fuertes y elegir el tamaño de los números de daño (u ocultarlos).': 'More comfort settings: you can turn off strong flashes and choose the size of damage numbers (or hide them).',

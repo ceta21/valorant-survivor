@@ -2,20 +2,23 @@ import { MapDef, Rect, Vec } from './types';
 import { MAPS } from '../data/maps';
 
 /**
- * Mundo grande y cerrado: 4 islas (Reino, Glaciar, Infierno, Ciudad) en cuadrícula de 2×2 sobre un abismo, unidas
- * por portales. El terreno es orgánico: cada chunk de CS×CS se divide en celdas de CELL unidades cuyo tipo (suelo,
+ * Mundo de 4 zonas sin bordes (Reino, Glaciar, Infierno, Ciudad) unidas por portales. Cada zona es, en la práctica,
+ * infinita: están separadas más de un millón de unidades y su terreno se genera sin fin; el «corazón» de la zona (plaza,
+ * castillo, aldeas, caminos) se repite cada TILE unidades, y los portales solo están en el corazón original. El terreno es orgánico: cada chunk de CS×CS se divide en celdas de CELL unidades cuyo tipo (suelo,
  * camino, agua, lava, hielo, roca, abismo…) sale de ruido determinista, de los caminos que unen los sitios importantes
  * y de los monumentos de cada zona. Misma semilla = mismo mundo; solo se guardan en memoria los chunks cercanos.
  */
 export const CS = 640;
 export const STREET = 120;   // (compatibilidad) ancho de calle de la Ciudad
 export const BS = CS - STREET * 2;
-/** Chunks por lado de cada zona, chunks de abismo entre zonas y paso entre el origen de una zona y la siguiente. */
-export const ZN = 8, GAP = 1, ZS = ZN + GAP;
-/** Chunks del mundo por lado (dos zonas y el abismo de en medio). */
-export const WORLD_CHUNKS = ZS + ZN;
-/** Lado de una zona en unidades. */
+/** Chunks por lado del corazón de cada zona y su lado en unidades. */
+export const ZN = 8;
 export const ZW = ZN * CS;
+/** Separación entre zonas (2.000 chunks, 1,28 millones de unidades: unos 50 min andando en línea recta hasta el
+ *  límite de la zona). Más grande no: el canvas dibuja con precisión simple y las coordenadas enormes temblarían. */
+export const ZSPACE = 2000 * CS;
+/** Cada cuánto se repite el corazón de la zona (y el terreno salvaje entre medias). */
+export const TILE = 2 * ZW;
 /** Celdas de terreno. */
 export const CELL = 32, CN = CS / CELL;
 
@@ -70,12 +73,15 @@ export function fbm(x: number, y: number, s: number) {
 
 /** Zona de un chunk (índice en MAPS) o -1 si es abismo entero. */
 export function zoneAt(cx: number, cy: number): number {
-  if (cx < 0 || cy < 0) return -1;
-  const zx = Math.floor(cx / ZS), zy = Math.floor(cy / ZS);
-  if (zx > 1 || zy > 1 || cx % ZS >= ZN || cy % ZS >= ZN) return -1;
+  // cada zona ocupa el cuadrado de ZSPACE de lado centrado en su corazón; más allá de las 4, abismo
+  const zx = Math.floor(((cx + 0.5) * CS - ZW / 2 + ZSPACE / 2) / ZSPACE), zy = Math.floor(((cy + 0.5) * CS - ZW / 2 + ZSPACE / 2) / ZSPACE);
+  if (zx < 0 || zy < 0 || zx > 1 || zy > 1) return -1;
   return MAPS.findIndex(m => m.zone[0] === zx && m.zone[1] === zy);
 }
-const zoneOrigin = (z: number): [number, number] => [MAPS[z].zone[0] * ZS * CS, MAPS[z].zone[1] * ZS * CS];
+/** Esquina del corazón original de la zona. */
+export const zoneOrigin = (z: number): [number, number] => [MAPS[z].zone[0] * ZSPACE, MAPS[z].zone[1] * ZSPACE];
+/** Desplazamiento de la copia del corazón más cercana a un punto local de la zona (0 en el original). */
+const tileOff = (l: number) => Math.floor((l + (TILE - ZW) / 2) / TILE) * TILE;
 /** Centro de la zona en coordenadas locales (donde se aparece). */
 export const SPAWN_LOCAL = 2880;
 
@@ -155,7 +161,7 @@ export class World {
   readonly portals: Portal[] = [];
   private cache = new Map<number, ChunkData>();
   /** Monumentos, zonas reservadas y caminos de cada zona (coordenadas de mundo). */
-  private layouts: { pieces: Piece[]; reserve: { x: number; y: number; r: number }[]; segs: number[][] }[] = [];
+  private layouts: { pieces: Piece[]; reserve: { x: number; y: number; r: number }[]; segs: number[][]; nPortalSegs: number; nPortalRes: number }[] = [];
 
   constructor(map: MapDef, seed = Math.floor(Math.random() * 2147483647)) {
     this.map = map;
@@ -177,10 +183,14 @@ export class World {
       const pieces = L.pieces.map(p => ({ ...p, x: p.x + ox, y: p.y + oy }));
       const reserve = L.reserve.map(r => ({ ...r, x: r.x + ox, y: r.y + oy }));
       const routes = L.paths.map(p => p.map(([x, y]) => [x + ox, y + oy] as [number, number]));
+      // lo de los portales va al final: las copias del corazón no lo llevan
+      const nRes = reserve.length, nRoutes = routes.length;
       for (const p of this.portals.filter(q => q.zone === z)) { reserve.push({ x: p.x, y: p.y, r: 230 }); routes.push([[ox + SPAWN_LOCAL, oy + SPAWN_LOCAL], [p.x, p.y]]); }
+      let nSegsBase = -1;
       // cada ruta se vuelve un camino con curvas (puntos intermedios desplazados con ruido)
       const segs: number[][] = [];
       routes.forEach((rt, ri) => {
+        if (ri === nRoutes) nSegsBase = segs.length;
         const [[x0, y0], [x1, y1]] = rt, n = Math.max(2, Math.round(Math.hypot(x1 - x0, y1 - y0) / 220));
         const nx = -(y1 - y0), ny = x1 - x0, nl = Math.hypot(nx, ny) || 1;
         let px = x0, py = y0;
@@ -190,7 +200,8 @@ export class World {
           segs.push([px, py, qx, qy]); px = qx; py = qy;
         }
       });
-      this.layouts.push({ pieces, reserve, segs });
+      if (nSegsBase < 0) nSegsBase = segs.length;
+      this.layouts.push({ pieces, reserve, segs, nPortalSegs: segs.length - nSegsBase, nPortalRes: reserve.length - nRes });
     });
   }
   /** Zona de un punto del mundo (-1 = abismo). */
@@ -264,18 +275,19 @@ export class World {
   /** Tipo de celda en coordenadas de mundo (sin monumentos ni objetos). */
   private cellType(z: number, x: number, y: number): number {
     const id = MAPS[z].id, [ox, oy] = zoneOrigin(z), lx = x - ox, ly = y - oy, s = this.seed + z * 1009;
-    // borde de la isla irregular
-    const edge = Math.min(lx, ly, ZW - lx, ZW - ly), m = 130 + 360 * fbm(x / 700, y / 700, s + 5);
-    if (edge < m) return Cell.Void;
     const L = this.layouts[z];
+    // copia del corazón de la zona que toca (la original lleva además los caminos de los portales)
+    const tx = tileOff(lx), ty = tileOff(ly), orig = tx === 0 && ty === 0, qx = x - tx, qy = y - ty;
+    const nSegs = orig ? L.segs.length : L.segs.length - L.nPortalSegs, nRes = orig ? L.reserve.length : L.reserve.length - L.nPortalRes;
     // caminos que unen la plaza, los portales y los monumentos
     let dPath = 1e9;
-    for (const [ax, ay, bx, by] of L.segs) {
-      const vx = bx - ax, vy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * vx + (y - ay) * vy) / (vx * vx + vy * vy || 1)));
-      const d = Math.hypot(x - ax - vx * t, y - ay - vy * t); if (d < dPath) dPath = d;
+    for (let i = 0; i < nSegs; i++) {
+      const [ax, ay, bx, by] = L.segs[i];
+      const vx = bx - ax, vy = by - ay, t = Math.max(0, Math.min(1, ((qx - ax) * vx + (qy - ay) * vy) / (vx * vx + vy * vy || 1)));
+      const d = Math.hypot(qx - ax - vx * t, qy - ay - vy * t); if (d < dPath) dPath = d;
     }
     let reserved = false, dRes = 1e9;
-    for (const r of L.reserve) { const d = Math.hypot(x - r.x, y - r.y) - r.r; if (d < 0) reserved = true; if (d < dRes) dRes = d; }
+    for (let i = 0; i < nRes; i++) { const r = L.reserve[i], d = Math.hypot(qx - r.x, qy - r.y) - r.r; if (d < 0) reserved = true; if (d < dRes) dRes = d; }
     const pathW = id === 'ciudad' ? 0 : 46 + 14 * noise(x / 160, y / 160, s + 9);
     // las rocas se van encogiendo cerca de caminos y monumentos (así no quedan trozos sueltos recortados)
     const rk = 0.3 * Math.max(0, 1 - Math.min(dPath - pathW, dRes) / 240);
@@ -286,7 +298,9 @@ export class World {
       const ax = ((lx + 300 * (noise(ly / 2000, 0, s) - 0.5)) % 1280 + 1280) % 1280, ay = ((ly + 300 * (noise(lx / 2000, 7, s) - 0.5)) % 1280 + 1280) % 1280;
       const bxx = ((lx - 640) % 1280 + 1280) % 1280, byy = ((ly - 640) % 1280 + 1280) % 1280;
       const avenue = ax < 140 || ay < 140, street = (bxx < 80 && noise(ly / 600, 1, s) > 0.35) || (byy < 80 && noise(lx / 600, 2, s) > 0.35);
-      if (ly > ZW - 900 + 120 * noise(lx / 500, 3, s)) t = ly > ZW - 760 + 100 * noise(lx / 400, 4, s) ? Cell.Sea : Cell.Sand;   // playa y mar
+      // playa y mar al sur de cada corazón (se puede rodear)
+      const bx = lx - tx, by = ly - ty;
+      if (bx > 0 && bx < ZW && by > ZW - 900 + 120 * noise(lx / 500, 3, s) && by < ZW + 700) t = by > ZW - 760 + 100 * noise(lx / 400, 4, s) && by < ZW + 520 ? Cell.Sea : Cell.Sand;
       else if (avenue || street) t = Cell.Road;
       else if (big < 0.32) t = Cell.Grass;   // parques
       if (t === Cell.Grass && mid < 0.3) t = Cell.Water;
@@ -298,7 +312,7 @@ export class World {
       else if (mid < 0.46 && big > 0.32) t = Cell.Grass;   // praderas de hierba alta
     } else if (id === 'glaciar') {
       if (big < 0.27) t = mid < 0.3 ? Cell.Water : Cell.Ice;
-      else if (mid > 0.72 + rk || (edge < m + 260 && ly < 700 && rk < 0.05)) t = Cell.Rock;   // montañas (más al norte)
+      else if (mid > 0.72 + rk) t = Cell.Rock;   // montañas
     } else if (id === 'infierno') {
       if (river < 0.03 || big < 0.2) t = Cell.Lava;
       else if (mid > 0.73 + rk) t = Cell.Rock;
@@ -316,9 +330,13 @@ export class World {
     const obs: Rect[] = [], deco: Deco[] = [];
     if (zone < 0) { cells.fill(Cell.Void); return { cx, cy, seed, kind: 'void', zone, cells, obstacles: [{ x: ox, y: oy, w: CS, h: CS, k: 'v' }], deco }; }
     const id = MAPS[zone].id, L = this.layouts[zone];
+    // copia del corazón que toca este chunk (por su centro)
+    const [zox, zoy] = zoneOrigin(zone), tx = tileOff(ox + CS / 2 - zox), ty = tileOff(oy + CS / 2 - zoy);
+    const reserve = tx === 0 && ty === 0 ? L.reserve : L.reserve.slice(0, L.reserve.length - L.nPortalRes).map(q => ({ ...q, x: q.x + tx, y: q.y + ty }));
     for (let j = 0; j < CN; j++) for (let i = 0; i < CN; i++) cells[j * CN + i] = this.cellType(zone, ox + (i + 0.5) * CELL, oy + (j + 0.5) * CELL);
     // monumentos que tocan el chunk (enteros: así se dibujan sin cortes entre chunks)
-    for (const p of L.pieces) {
+    for (const p0 of L.pieces) {
+      const p = tx || ty ? { ...p0, x: p0.x + tx, y: p0.y + ty } : p0;
       const w = 'deco' in p ? p.rx * 2 + 60 : p.w, h = 'deco' in p ? p.ry * 2 + 60 : p.h, x0 = 'deco' in p ? p.x - p.rx - 30 : p.x, y0 = 'deco' in p ? p.y - p.ry - 30 : p.y;
       // con margen: los tejados, torres y copas sobresalen por arriba y se dibujan también en el chunk de encima
       const M = 110;
@@ -347,7 +365,7 @@ export class World {
         const c = cells[j * CN + i];
         if (c !== Cell.Ground && c !== Cell.Grass && c !== Cell.Sand) return false;
       }
-      for (const q of L.reserve) if (Math.hypot(x + s / 2 - q.x, y + s / 2 - q.y) < q.r) return false;
+      for (const q of reserve) if (Math.hypot(x + s / 2 - q.x, y + s / 2 - q.y) < q.r) return false;
       return !obs.some(o => x < o.x + o.w + 26 && x + s > o.x - 26 && y < o.y + o.h + 26 && y + s > o.y - 26);
     };
     const forest = fbm((ox + CS / 2) / 900, (oy + CS / 2) / 900, this.seed + zone * 31 + 7);
@@ -367,7 +385,7 @@ export class World {
           const c = cells[Math.floor((yy - oy) / CELL) * CN + Math.floor((xx - ox) / CELL)];
           if (c !== Cell.Ground) ok = false;
         }
-        if (ok && !L.reserve.some(q => Math.hypot(x + w / 2 - q.x, y + h / 2 - q.y) < q.r + Math.max(w, h) / 2) && !obs.some(o => x < o.x + o.w + 30 && x + w > o.x - 30 && y < o.y + o.h + 30 && y + h > o.y - 30))
+        if (ok && !reserve.some(q => Math.hypot(x + w / 2 - q.x, y + h / 2 - q.y) < q.r + Math.max(w, h) / 2) && !obs.some(o => x < o.x + o.w + 30 && x + w > o.x - 30 && y < o.y + o.h + 30 && y + h > o.y - 30))
           obs.push({ x, y, w, h, k: 'b', s: r() < 0.25 ? 'shop' : 'office' });
       }
     }

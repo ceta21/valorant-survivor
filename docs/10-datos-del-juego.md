@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-11-02 · versión de Novedades: v2.0
+> Última generación: 2026-11-03 · versión de Novedades: v2.0
 
 ## Héroes base
 

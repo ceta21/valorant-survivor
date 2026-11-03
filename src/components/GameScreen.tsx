@@ -394,7 +394,7 @@ function RunSummary({ s }: { s: NonNullable<RunResult['summary']> }) {
   const mm = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
   return (
     <div className="end-sum">
-      <section>
+      {s.dmg.length > 0 && <section>
         <b>{t('Daño por poder')}</b>
         <ul className="sum-dmg">
           {s.dmg.map((d, i) => (
@@ -403,7 +403,7 @@ function RunSummary({ s }: { s: NonNullable<RunResult['summary']> }) {
             </li>
           ))}
         </ul>
-      </section>
+      </section>}
       {s.hurt.length > 1 && (
         <section>
           <b>{t('Daño recibido')}</b>
@@ -416,3 +416,4 @@ function RunSummary({ s }: { s: NonNullable<RunResult['summary']> }) {
     </div>
   );
 }
+

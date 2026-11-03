@@ -49,16 +49,19 @@ En solitario hay un único `Pl` y el comportamiento es idéntico al original.
 
 ## Mundo (`World.ts`, `MapArt.ts`, `WorldMap.ts`)
 
-- Mundo grande y **cerrado**: 4 zonas (`MAPS` en `src/data/maps.ts`, cada una con su posición `zone` en una
-  cuadrícula de 2×2) de `ZN` = 8×8 chunks, separadas por `GAP` = 1 chunk de abismo. Todo lo que queda fuera es
-  abismo: un obstáculo (`k: 'v'`) que ocupa el chunk entero. `zoneAt(cx, cy)` dice la zona de un chunk.
+- Mundo **sin bordes**: 4 zonas (`MAPS` en `src/data/maps.ts`, cada una con su posición `zone` en una cuadrícula de
+  2×2). Cada zona tiene un **corazón** de `ZN` = 8×8 chunks (`ZW` = 5.120 unidades; esquina en `zoneOrigin(z)`) con la
+  plaza, los monumentos, los caminos y sus 3 portales, y ocupa el cuadrado de `ZSPACE` = 2.000 chunks (1,28 millones
+  de unidades) centrado en él: su terreno se genera sin fin y el corazón se repite cada `TILE` = 10.240 unidades
+  (`tileOff`; las copias no llevan los portales ni sus caminos). Solo más allá de las 4 zonas hay abismo (`k: 'v'`).
+  No se separan más porque el canvas dibuja en precisión simple y con coordenadas enormes la imagen temblaría.
+  `zoneAt(cx, cy)` dice la zona de un chunk.
 - Los chunks son de **640×640** y se generan de forma determinista a partir de una **semilla** (en cooperativo la
   comparte el anfitrión). La zona de inicio no cambia el mundo: solo dónde apareces (chunk central de la zona).
 - Terreno **orgánico** por celdas de 32×32 (20×20 por chunk, `Cell`): suelo, camino, agua, lava, hielo, abismo,
-  roca, mar, calle, arena, puente y hierba alta. `cellType` lo decide con ruido (`noise`/`fbm`): borde irregular
-  de la isla, ríos y estanques/lagos/ríos de lava según la zona, mesetas de roca (que se encogen cerca de caminos y
+  roca, mar, calle, arena, puente y hierba alta. `cellType` lo decide con ruido (`noise`/`fbm`): ríos y estanques/lagos/ríos de lava según la zona, mesetas de roca (que se encogen cerca de caminos y
   monumentos para no dejar trozos sueltos), praderas de hierba alta en el Reino; la Ciudad tiene avenidas, calles,
-  parques, playa y mar. `terrainAt(x, y)` da el tipo de celda de un punto (lo usa el motor para agua y lava).
+  parques, y playa y mar al sur de cada corazón (acotados: se pueden rodear). `terrainAt(x, y)` da el tipo de celda de un punto (lo usa el motor para agua y lava).
 - Las celdas que bloquean (abismo `v`, roca `r`, mar `h`) se juntan en tiras de rectángulos para las colisiones.
 - Cada zona tiene su plano (`layoutFor`): castillo con murallas, torres y torreón (Reino, Glaciar de hielo,
   Infierno demoníaco), aldea con molino y granja, cabañas, volcán, rascacielos y estadio…; zonas reservadas sin

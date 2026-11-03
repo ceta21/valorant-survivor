@@ -28,8 +28,9 @@ El motor avanza en pasos fijos de 1/60 s (máx. 6 pasos por fotograma, con `dt` 
   multiplicador crítico ×1,6, regeneración 0,5 vida/s, más el rasgo del héroe y las mejoras permanentes.
 - Al recibir daño: 0,55 s de invulnerabilidad (parpadeo). El escudo absorbe el daño antes que la vida y
   se regenera a 4/s tras 5 s sin recibir golpes (hasta su máximo).
-- Movimiento en 8 direcciones por un mundo grande y cerrado de 4 zonas (Reino, Glaciar, Infierno, Ciudad) separadas
-  por abismos que no se pueden pisar. Se elige la zona de inicio y se cambia de zona pisando un **portal**: cada zona
+- Movimiento en 8 direcciones por un mundo de 4 zonas **sin bordes** (Reino, Glaciar, Infierno, Ciudad): cada zona
+  sigue en todas direcciones (unos 50 min andando en línea recta hasta su límite) y su corazón —plaza, castillo,
+  aldeas y caminos— se repite cada 10.240 unidades. Se elige la zona de inicio y se cambia de zona pisando un **portal**: cada zona
   tiene 3, uno hacia cada otra zona (rótulo con el destino y color de esa zona); te deja junto a su pareja y no se
   puede volver a usar hasta pasados 1,5 s. Con **M** (configurable) se abre el mapa del mundo; en solitario la
   partida se detiene mientras está abierto.

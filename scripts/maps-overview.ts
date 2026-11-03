@@ -3,7 +3,7 @@
 import { createCanvas } from '@napi-rs/canvas';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { renderChunk, CPX } from '../src/game/MapArt';
-import { World, CS, WORLD_CHUNKS } from '../src/game/World';
+import { World, CS, ZN, zoneOrigin } from '../src/game/World';
 import { MAPS } from '../src/data/maps';
 mkdirSync('shots', { recursive: true });
 const make = (w: number, h: number) => createCanvas(w, h) as any;
@@ -11,7 +11,8 @@ const COLS = 5, ROWS = 4, w = new World(MAPS[0], 12345);
 const LANDMARK: Record<string, string> = { reino: 'reino-keep', glaciar: 'hielo-keep', infierno: 'demonio-keep', ciudad: 'dome' };
 for (const m of MAPS) {
   let at = [0, 0];
-  for (let j = 0; j < WORLD_CHUNKS; j++) for (let i = 0; i < WORLD_CHUNKS; i++) for (const o of w.chunk(i, j).obstacles) if (o.s === LANDMARK[m.id]) at = [Math.floor((o.x + o.w / 2) / CS), Math.floor((o.y + o.h / 2) / CS)];
+  const [zx, zy] = zoneOrigin(MAPS.indexOf(m)).map(v => v / CS);
+  for (let j = 0; j < ZN; j++) for (let i = 0; i < ZN; i++) for (const o of w.chunk(zx + i, zy + j).obstacles) if (o.s === LANDMARK[m.id]) at = [Math.floor((o.x + o.w / 2) / CS), Math.floor((o.y + o.h / 2) / CS)];
   const c = createCanvas(CPX * COLS, CPX * ROWS), g = c.getContext('2d') as any;
   g.imageSmoothingEnabled = false;
   const t0 = Date.now(), x0 = at[0] - 2, y0 = at[1] - 2;

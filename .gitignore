@@ -4,3 +4,6 @@ shots
 *.log
 .env.local
 .env.*.local
+
+# ZIP para subir a itch.io (no se versiona)
+/release/

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { GameEngine } from '../game/GameEngine';
-import { worldOverview, MAP_SCALE } from '../game/WorldMap';
+import { drawWorldArea } from '../game/WorldMap';
 import { MAPS } from '../data/maps';
 import { t } from '../i18n';
 
@@ -18,7 +18,6 @@ export function Minimap({ engine, onOpen }: { engine: GameEngine; onOpen?: () =>
   useEffect(() => {
     const g = ref.current?.getContext('2d');
     if (!g) return;
-    const map = worldOverview(engine.world, makeCanvas), src = (RANGE * 2) / MAP_SCALE;
     g.imageSmoothingEnabled = false;
     let raf = 0, lastZone = -2;
     const dot = (x: number, y: number, s: number, c: string) => { g.fillStyle = c; g.fillRect(Math.round(x - s / 2), Math.round(y - s / 2), s, s); };
@@ -33,7 +32,7 @@ export function Minimap({ engine, onOpen }: { engine: GameEngine; onOpen?: () =>
       raf = requestAnimationFrame(draw);
       const me = engine.me.body, blink = Math.floor(engine.time * 4) % 2 === 0;
       g.fillStyle = '#0a0c18'; g.fillRect(0, 0, N, N);
-      g.drawImage(map, (me.x - RANGE) / MAP_SCALE, (me.y - RANGE) / MAP_SCALE, src, src, 0, 0, N, N);
+      drawWorldArea(g, engine.world, me.x - RANGE, me.y - RANGE, RANGE * 2, RANGE * 2, K, makeCanvas);
       for (const pt of engine.world.portals) {
         const q = place(pt.x - me.x, pt.y - me.y);
         if (!q.out) { dot(q.x, q.y, 5, '#000'); dot(q.x, q.y, 3, MAPS[pt.to].colors.accent); }
