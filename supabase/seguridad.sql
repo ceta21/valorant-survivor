@@ -5,14 +5,17 @@
 -- Qué hace: antes de cada cambio del progreso (profiles.save), el servidor calcula su «valor» (créditos + lo que
 -- costó todo lo comprado: héroes, mejoras, estilos, mascotas, poderes de mascota y equipo) y comprueba que no suba
 -- más de lo que se puede ganar jugando. Cada cuenta tiene una hucha que se llena sola (6 créditos por segundo,
--- hasta 30000); lo ganado se descuenta de ella. Tampoco acepta récords de tiempo o bajas imposibles para el tiempo
--- pasado desde el guardado anterior. Si un guardado no es válido, no se aplica (el juego lo detecta y recarga el
+-- hasta 30000); lo ganado se descuenta de ella. Al acabar una partida (cambian las estadísticas) se permite además
+-- ganar 40 créditos por segundo pasado desde la partida anterior (hasta 6 h), para las partidas muy largas.
+-- Tampoco acepta récords de tiempo ni más de 80 bajas por segundo desde la partida anterior. Si un guardado no es válido, no se aplica (el juego lo detecta y recarga el
 -- progreso bueno) y queda apuntado en public.save_rejections. Las cuentas de administrador no se comprueban.
 
 -- 1) Columnas de la hucha (no se pueden tocar desde la web: solo save y updated_at) y registro de rechazos.
 alter table public.profiles add column if not exists is_admin boolean not null default false;
 alter table public.profiles add column if not exists credit_budget numeric not null default 30000;
 alter table public.profiles add column if not exists budget_at timestamptz not null default now();
+-- cuándo cambiaron por última vez las estadísticas (al acabar cada partida): mide la duración posible de la siguiente
+alter table public.profiles add column if not exists stats_at timestamptz not null default now();
 
 create table if not exists public.save_rejections (
   id bigint generated always as identity primary key,
@@ -127,6 +130,8 @@ returns trigger language plpgsql security definer set search_path = public as $$
 declare
   elapsed numeric := greatest(0, extract(epoch from now() - old.budget_at));
   budget numeric := least(30000, old.credit_budget + elapsed * 6);
+  run numeric := greatest(0, extract(epoch from now() - old.stats_at));   -- tiempo desde la partida anterior
+  played boolean := (new.save -> 'stats') is distinct from (old.save -> 'stats');
   gain numeric;
   reason text;
   oc numeric; nc numeric;
@@ -139,13 +144,15 @@ begin
     reason := 'créditos no válidos';
   else
     gain := public.save_value(new.save) - public.save_value(old.save);
+    -- al acabar una partida, lo que se puede ganar en el tiempo que ha podido durar (partidas de horas)
+    if played then budget := greatest(budget, least(run, 21600) * 40); end if;
     if gain > budget + 1 then
       reason := 'más créditos o compras de los que se pueden ganar';
     elsif old.save ? 'stats' and coalesce((new.save -> 'stats' ->> 'bestTime')::numeric, 0)
-          > greatest(coalesce((old.save -> 'stats' ->> 'bestTime')::numeric, 0), elapsed + 120) then
+          > greatest(coalesce((old.save -> 'stats' ->> 'bestTime')::numeric, 0), run + 120) then
       reason := 'récord de tiempo imposible';
     elsif old.save ? 'stats' and coalesce((new.save -> 'stats' ->> 'kills')::numeric, 0)
-          - coalesce((old.save -> 'stats' ->> 'kills')::numeric, 0) > (elapsed + 120) * 40 then
+          - coalesce((old.save -> 'stats' ->> 'kills')::numeric, 0) > (run + 120) * 80 then
       reason := 'bajas imposibles';
     end if;
   end if;
@@ -154,8 +161,9 @@ begin
     values (old.id, old.username, reason, oc, nc, gain, budget);
     return null;   -- no se aplica: el juego ve 0 filas guardadas y recarga el progreso bueno
   end if;
-  new.credit_budget := budget - greatest(gain, 0);
+  new.credit_budget := least(30000, greatest(0, budget - greatest(gain, 0)));
   new.budget_at := now();
+  if played then new.stats_at := now(); end if;
   return new;
 end $$;
 

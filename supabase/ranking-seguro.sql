@@ -3,11 +3,12 @@
 -- No toca las marcas que ya existen (las comprobaciones son NOT VALID: solo se aplican a las nuevas).
 
 -- 1) Marcas coherentes: mínimo 5 s de partida, y no más bajas, nivel ni jefes de los que caben en ese tiempo.
---    Límites muy holgados (el mejor jugador mata unos 4-5 robots por segundo y sube ~1 nivel cada 10-15 s).
+--    Límites muy holgados: en el modo infinito, con cientos de enemigos, una partida de una hora puede pasar de 20 bajas
+--    por segundo de media, así que el límite es 80 (antes 20 rechazaba esas marcas).
 alter table public.scores drop constraint if exists scores_plausible;
 alter table public.scores add constraint scores_plausible check (
   time >= 5
-  and kills <= 20 * time + 100
+  and kills <= 80 * time + 100
   and level <= 10 + time / 5
   and boss_kills <= 1 + time / 20
 ) not valid;

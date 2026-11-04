@@ -18,7 +18,7 @@ ranking local.
 | `supabase/market.sql` | Permitía en el ranking los héroes exclusivos (`eclipse`, `vortice`, `quimera`, ya retirados; sus marcas siguen siendo válidas) | Sí |
 | `supabase/agents.sql` | (Antiguo) permitía los 14 agentes de la versión 1.13 | Sí |
 | `supabase/heroes.sql` | Permite en el ranking los 20 héroes originales y las zonas (`reino`, `glaciar`, `infierno`, `ciudad`); mantiene los ids antiguos | Pendiente |
-| `supabase/ranking-seguro.sql` | Ranking a prueba de trampas: rechaza marcas imposibles (mínimo 5 s; bajas ≤ 20·tiempo + 100; nivel ≤ 10 + tiempo/5; jefes ≤ 1 + tiempo/20) y envíos demasiado seguidos (la marca anterior del mismo jugador debe ser de hace más de máx(20 s, 0,8 × tiempo de la partida)). El juego muestra un aviso claro si el servidor la rechaza | Sí |
+| `supabase/ranking-seguro.sql` | Ranking a prueba de trampas: rechaza marcas imposibles (mínimo 5 s; bajas ≤ 80·tiempo + 100 —antes 20, que rechazaba las partidas de una hora del modo infinito—; nivel ≤ 10 + tiempo/5; jefes ≤ 1 + tiempo/20) y envíos demasiado seguidos (la marca anterior del mismo jugador debe ser de hace más de máx(20 s, 0,8 × tiempo de la partida)). El juego muestra un aviso claro si el servidor la rechaza | Sí |
 | `supabase/seguridad.sql` | **Generado** (`npm run sql:seguridad`, no editar a mano). El servidor rechaza guardados con progreso imposible (ver [Seguridad del progreso](#seguridad-del-progreso)). Volver a generarlo y ejecutarlo cada vez que cambien precios de héroes, tienda, mascotas o mejoras | Sí |
 | `supabase/admin.sql` | Columna `is_admin` y convierte una cuenta en administrador con todo desbloqueado (cambiar `TU_USUARIO`) | Sí |
 
@@ -67,10 +67,13 @@ desbloqueos desde la consola. `seguridad.sql` añade el trigger `profiles_check_
   antiguos, coste acumulado de las mejoras permanentes y de los poderes de mascota, y el equipo: `120·(rareza+1)` más
   las mejoras pagadas). Comprar con créditos no cambia el valor; ganar créditos o recibir cosas lo sube.
 - **Hucha** por cuenta (`credit_budget`, `budget_at`): se rellena a 6 créditos/s hasta 30.000; lo que sube el valor se
-  descuenta. Si sube más de lo que hay en la hucha, se rechaza. Cubre de sobra lo que se gana jugando (incluidos logros,
+  descuenta. Si sube más de lo que hay en la hucha, se rechaza. Al acabar una partida (cambian las estadísticas) se
+  permite además ganar 40 créditos por segundo pasado desde la partida anterior (`stats_at`, hasta 6 h): una hora en
+  Pesadilla con la Fiebre del oro da unos 100.000. Cubre de sobra lo que se gana jugando (incluidos logros,
   rachas y el premio de 25.000 del año), pero no deja crear créditos de la nada ni desbloquear sin pagar.
-- **Récords**: el mejor tiempo no puede superar el tiempo pasado desde el guardado anterior + 2 min, ni las bajas
-  sumar más de 40 por segundo.
+- **Récords**: el mejor tiempo no puede superar el tiempo pasado desde la partida anterior (`stats_at`) + 2 min, ni las
+  bajas sumar más de 80 por segundo. Se mide desde la partida anterior y no desde el último guardado, porque durante
+  una partida puede haber guardados (por ejemplo, al cambiar un ajuste en la pausa).
 - Créditos negativos o absurdos (> 50 millones), rechazados. Las cuentas con `is_admin` no se comprueban.
 - **Rechazo**: el trigger devuelve `null` (el guardado no se aplica) y lo apunta en `public.save_rejections` (fecha,
   cuenta, motivo, créditos antes/después, subida y hucha; sin acceso desde la web: se mira en el *Table Editor*). El

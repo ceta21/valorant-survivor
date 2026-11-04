@@ -20,7 +20,7 @@ await db.query(`insert into public.profiles (id, username) values ($1, 'gabriel'
 const base = { credits: 500, unlocked: ['zephyr', 'lyra', 'kael'], meta: { dmg: 0, hp: 0, speed: 0, xp: 0 }, stats: { games: 1, kills: 100, bestTime: 300 },
   shop: { owned: [], agent: {}, pet: '', power: {} }, gear: { items: [{ uid: 'inicio', id: 'amuleto_fuerza', rarity: 0, lvl: 1 }], equipped: ['inicio'] } };
 const save = async s => (await db.query(`update public.profiles set save = $1 where id = $2 returning id`, [JSON.stringify(s), id])).rows.length === 1;
-const ago = async sec => db.query(`update public.profiles set budget_at = now() - make_interval(secs => $1) where id = $2`, [sec, id]);
+const ago = async sec => db.query(`update public.profiles set budget_at = now() - make_interval(secs => $1), stats_at = now() - make_interval(secs => $1) where id = $2`, [sec, id]);
 const cur = async () => (await db.query(`select save, credit_budget from public.profiles where id = $1`, [id])).rows[0];
 const rej = async () => (await db.query(`select count(*)::int n from public.save_rejections`)).rows[0].n;
 
@@ -49,6 +49,13 @@ ok(await save({ ...base, credits: c + 20000, unlocked: [...base.unlocked, 'vex']
 const g = (await cur()).save;
 ok(!(await save({ ...g, gear: { ...g.gear, items: [...g.gear.items, ...Array.from({ length: 60 }, (_, i) => ({ uid: 'x' + i, id: 'amuleto_fuerza', rarity: 3, lvl: 5 }))] } })), 'añadir 60 objetos legendarios de golpe se rechaza');
 ok(await save({ ...g, gear: { ...g.gear, items: [...g.gear.items, { uid: 'b1', id: 'amuleto_fuerza', rarity: 2, lvl: 1 }] } }), 'un objeto ganado a un jefe se acepta');
+// partida de una hora en Pesadilla: muchos créditos y bajas, con un guardado a mitad (un ajuste en la pausa)
+{ const s0 = (await cur()).save;
+  await db.query(`update public.profiles set stats_at = now() - make_interval(secs => 3700), credit_budget = 0, budget_at = now() - make_interval(secs => 600) where id = $1`, [id]);
+  ok(await save({ ...s0, settings: { shake: false } }), 'un guardado a mitad de partida (cambiar un ajuste) se acepta');
+  const st = s0.stats;
+  ok(await save({ ...s0, settings: { shake: false }, credits: s0.credits + 100000, stats: { ...st, games: st.games + 1, kills: st.kills + 120000, bestTime: 3600 } }), 'acabar una partida de 1 h con 100.000 créditos y 120.000 bajas se acepta');
+  ok(!(await save({ ...(await cur()).save, credits: (await cur()).save.credits + 100000, stats: { ...st, games: st.games + 2, kills: st.kills + 240000, bestTime: 3600 } })), 'repetirlo justo después (sin tiempo jugado) se rechaza'); }
 // borrar progreso
 ok(await save({ credits: 0, unlocked: ['zephyr', 'lyra', 'kael'], meta: {}, stats: { games: 0, kills: 0, bestTime: 0 }, shop: { owned: [], power: {} }, gear: { items: [] } }), 'borrar el progreso se acepta');
 // administrador
