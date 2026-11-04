@@ -26,8 +26,8 @@ export function StatsScreen({ save, back, claim, setFrame }: { save: SaveData; b
         <section>
           <h3>{t('Resumen')}</h3>
           <dl className="stat-grid">{cells.map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}</dl>
-          <h3>{t('Récords por mapa')}</h3>
-          <table className="records"><thead><tr><th>{t('Mapa')}</th><th>{t('Mejor tiempo')}</th><th>{t('Nivel')}</th><th>{t('Victorias')}</th></tr></thead>
+          <h3>{t('Récords por zona')}</h3>
+          <table className="records"><thead><tr><th>{t('Zona')}</th><th>{t('Mejor tiempo')}</th><th>{t('Nivel')}</th><th>{t('Victorias')}</th></tr></thead>
             <tbody>{MAPS.map(m => { const r = save.records[m.id]; return <tr key={m.id}><td>{t(m.name)}</td><td>{r ? fmt(r.bestTime) : '—'}</td><td>{r ? r.bestLevel : '—'}</td><td>{r ? r.wins : 0}</td></tr>; })}</tbody></table>
         </section>
         <section>

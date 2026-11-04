@@ -26,6 +26,15 @@ export function PetsScreen({ save, back, goShop, equip, buyPower }: Props) {
       {mine.length === 0 ? (
         <div className="pets-empty">
           <p className="lead">{t('Aún no tienes mascotas. Cómpralas en la Tienda y aquí podrás elegir cuál te acompaña y desbloquear su poder.')}</p>
+          <div className="pets-teaser" aria-hidden="true">
+            {PETS.map(p => (
+              <div key={p.id} style={{ ['--sc' as any]: ELEMENT[p.element].color }}>
+                <PetArt id={p.id} />
+                <b>{t(p.name)}</b>
+                <small>◈ {nf(p.price)}</small>
+              </div>
+            ))}
+          </div>
           <button className="btn btn-red" onClick={click(goShop)}><b>{t('Ir a la Tienda')}</b></button>
         </div>
       ) : (

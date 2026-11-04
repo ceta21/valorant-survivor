@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AGENTS, AGENT_BY_ID } from '../data/agents';
 import { DIFFICULTIES, DIFFICULTY_BY_ID } from '../data/difficulty';
-import { MAP_BY_ID } from '../data/maps';
 import { Filters, ScoreEntry, fetchScores, isGlobal } from '../utils/leaderboard';
 import { audio } from '../utils/audio';
 import { MEDALS, SUNDAY_PRIZES, shownSunday } from '../data/sundayRank';
@@ -63,7 +62,7 @@ export function RankingScreen({ back }: { back: () => void }) {
       <div className="rank-table-wrap">
         {error ? <p className="rank-msg">{error}</p> : !rows ? <p className="rank-msg">{t('Cargando…')}</p> : rows.length === 0 ? <p className="rank-msg">{t('Todavía no hay partidas con estos filtros.')}</p> : (
           <table className="records rank-table">
-            <thead><tr><th>#</th><th>{t('Jugador')}</th><th>{t('Tiempo')}</th><th>{t('Héroe')}</th><th>{t('Dificultad')}</th><th className="opt">{t('Mapa')}</th><th className="opt">{t('Bajas')}</th><th className="opt">{t('Nivel')}</th><th className="opt">{t('Jefes')}</th></tr></thead>
+            <thead><tr><th>#</th><th>{t('Jugador')}</th><th>{t('Tiempo')}</th><th>{t('Héroe')}</th><th>{t('Dificultad')}</th><th className="opt">{t('Bajas')}</th><th className="opt">{t('Nivel')}</th><th className="opt">{t('Jefes')}</th></tr></thead>
             <tbody>
               {rows.map((r, i) => {
                 const d = DIFFICULTY_BY_ID[r.difficulty];
@@ -74,7 +73,6 @@ export function RankingScreen({ back }: { back: () => void }) {
                     <td className="time">{fmt(r.time)}</td>
                     <td style={{ color: AGENT_BY_ID[r.agent]?.color }}>{AGENT_BY_ID[r.agent] ? t(AGENT_BY_ID[r.agent].name) : t('Héroe retirado')}</td>
                     <td style={{ color: d?.color }}>{d ? t(d.name) : r.difficulty}</td>
-                    <td className="opt">{MAP_BY_ID[r.map] ? t(MAP_BY_ID[r.map].name) : '—'}</td>
                     <td className="opt">{nf(r.kills)}</td>
                     <td className="opt">{r.level}</td>
                     <td className="opt">{r.boss_kills}</td>

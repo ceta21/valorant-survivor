@@ -273,7 +273,7 @@ export default function App() {
 
   return (
     <div className="app">
-      {screen !== 'game' && <div className="bg" aria-hidden="true"><b className="rift-swirl" /><i /><i /><i /></div>}
+      {screen !== 'game' && <div className={`bg ${screen === 'menu' ? '' : 'dim'}`} aria-hidden="true"><b className="rift-swirl" /><i /><i /><i /></div>}
       {/* transición: una franja de la grieta cruza la pantalla en cada cambio (al entrar en partida, un círculo que se abre) */}
       {screen !== 'loading' && <div key={'wipe-' + screen} className={`scr-wipe ${screen === 'game' ? 'iris' : ''}`} aria-hidden="true" />}
       <UpdateToast inGame={screen === 'game'} />

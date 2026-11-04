@@ -10,7 +10,7 @@
 | Acceso | `AuthScreen` | Logo grande (`Logo big`), iniciar sesión, registrarse (avisa de apuntar la contraseña: sin correo no se recupera), jugar como invitado |
 | Menú principal | `MainMenu` + `MenuHub` | Cuenta, botones con emoticono (Jugar y Jugar en pareja a todo el ancho; el resto en dos columnas; Configuración comparte fila con **Descargar** (`InstallButton`), que instala el juego como app con un clic donde el navegador lo permite (`utils/install.ts`, evento `beforeinstallprompt`) y, si no (iPhone, Firefox, Safari en Mac), enseña los pasos; ya instalado, Descargar no sale; Apoyo a todo el ancho), panel central (evento del domingo, novedad, mercado, top 3 —solo con héroes que existen—, misiones diarias y racha), retrato y estadísticas. Pensado para caber **sin scroll**: por debajo de 1180 px de ancho se oculta el panel central; en móvil, el retrato; y en móviles muy bajos (≤ 700 px de alto), las estadísticas |
 | Tienda | `ShopScreen` | Pestañas de estilos de héroes (con selector del héroe en el que verlos) y mascotas; solo comprar (con confirmación) |
-| Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay, enlace a la Tienda |
+| Mascotas | `PetsScreen` | Elegir la mascota que acompaña (o ninguna) y desbloquear/mejorar su poder; si no hay ninguna, escaparate de todas (apagadas, con su precio) y botón a la Tienda |
 | Equipo | `GearScreen` | 3 huecos con lo puesto e inventario ordenado por rareza: equipar/quitar, mejorar con créditos y desmontar |
 | Diario | `DailyScreen` | Desafío semanal arriba (reglas, tiempo a aguantar, premio, mejor tiempo y «Jugar desafío», que lleva a elegir héroe con un aviso del desafío; ver [02](02-jugabilidad.md#desafío-semanal)), misiones del día (cobrar), racha de conexión con su camino y premios por hitos (ver [05](05-cuentas-y-progreso.md#diario-misiones-diarias-y-racha-de-conexión)) |
 | Héroes | `AgentSelection` | Elegir héroe (con su poder), zona, dificultad; desbloquear héroes (los no disponibles, con candado y "Próximamente"); estilo del héroe comprado en la Tienda |
@@ -18,9 +18,9 @@
 | Partida | `GameScreen` + `GameHUD` + `UpgradeSelection` (tarjetas de mejora que entran girando una tras otra; marco según rareza: común sencillo, poco común doble, épica que late con gemas en las esquinas, legendaria dorada con un destello que la recorre; las evoluciones, siempre doradas) | Canvas, HUD, mejoras, pausa/menú, resultado (con el botín de los jefes) y publicar marca |
 | Mejoras | `MetaScreen` | Mejoras permanentes |
 | Mercado de la Grieta | `MarketScreen` | Cartas del día |
-| Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad |
+| Ranking global | `RankingScreen` | Pestañas **Siempre** y **Domingo** (con los premios y medallas del top 3); tabla filtrable por héroe y dificultad (sin columna de mapa: siempre se empieza en el Reino) |
 | Novedades | `NewsScreen` | Historial de versiones (etiqueta "Nuevo" en el menú hasta verlas) |
-| Estadísticas | `StatsScreen` | Resumen, récords por mapa, misiones (cobrar), **marcos de retrato** y logros (conseguidos/total, premio y progreso de cada uno) |
+| Estadísticas | `StatsScreen` | Resumen, récords por zona (de las zonas a las que llegaste), misiones (cobrar), **marcos de retrato** y logros (conseguidos/total, premio y progreso de cada uno) |
 | Configuración | `SettingsScreen` | Sonido y pantalla (con los ajustes de comodidad: sacudida, **destellos fuertes** y **tamaño de los números de daño**), **Idioma**, **Controles**, borrar progreso |
 | Apoyo | `SupportScreen` | Creador del juego (Gabriel Vigo Rodríguez) y enlace a su LinkedIn |
 | Privacidad y aviso legal | `PrivacyScreen` | Qué datos se guardan y dónde, para qué, cómo borrarlos (Configuración o pedirlo por correo a fnceta@gmail.com o LinkedIn) y aviso legal. Se abre con un enlace desde el acceso, Apoyo y Configuración, y vuelve a la pantalla de origen. **Revisarla si cambia qué datos se guardan** |
@@ -66,6 +66,8 @@ móvil el texto habla de arrastrar el dedo y tocar los botones. Usa un único te
 
 - Detrás de todas las pantallas (menos la partida), una espiral de energía de la grieta gira despacio y late
   (`.bg .rift-swirl`, gradiente cónico con máscara redonda), por debajo de los rayos.
+- Los rayos del fondo (`.bg i`) se ven fuertes solo en el menú principal; en las demás pantallas se atenúan
+  (`.bg.dim`, opacidad 0,14), porque pasaban por detrás de títulos y textos sin panel y no se leían.
 - Con «reducir movimiento» del sistema no se anima nada de esto.
 
 ## Transiciones entre pantallas

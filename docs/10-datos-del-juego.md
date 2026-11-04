@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-11-04 · versión de Novedades: v2.0
+> Última generación: 2026-11-04 · versión de Novedades: v2.1
 
 ## Héroes base
 
@@ -335,4 +335,5 @@ Siempre activas además: flechas (mover), Esc (pausa), 1/2/3 (elegir mejora).
 
 | Versión | Fecha | Título | Tipo |
 |---|---|---|---|
+| v2.1 | 2026-11-04 | Gran actualización: el viaje por la grieta | Mejora |
 | v2.0 | 2026-10-31 | ¡Lanzamiento de ENDLESS RIFT! | Nuevo |

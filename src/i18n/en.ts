@@ -477,6 +477,10 @@ export const EN: Record<string, string> = {
   'Terror alado del Infierno': 'Winged Terror of the Inferno',
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
+  'Gran actualización: el viaje por la grieta': 'Big update: the journey through the rift',
+  'Racha: 1 día': 'Streak: 1 day',
+  'Récords por zona': 'Records by zone',
+  'Zona': 'Zone',
   /* ------------------------------------------------------------------ seguridad del progreso */
   'Progreso no válido': 'Invalid progress',
   'El servidor no ha aceptado el último guardado y se ha recargado tu progreso.': 'The server did not accept your last save and your progress has been reloaded.',

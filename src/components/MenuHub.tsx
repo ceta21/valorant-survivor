@@ -71,7 +71,7 @@ export function MenuHub({ save, go }: { save: SaveData; go: (s: Target) => void 
         )}
       </button>
       <button className="hub-card hub-missions" style={{ ['--hc' as any]: '#5dff9a' }} onClick={open('daily')}>
-        <span className="hub-kicker"><Emo e="📅" />{t('Misiones diarias')} · {t('Racha: {n} días', { n: streak })}</span>
+        <span className="hub-kicker"><Emo e="📅" />{t('Misiones diarias')} · {streak === 1 ? t('Racha: 1 día') : t('Racha: {n} días', { n: streak })}</span>
         {missions.length === 0 ? <span className="hub-muted">{t('¡Misiones de hoy completadas!')}</span> : missions.slice(0, 2).map(({ m, reward, c }) => (
           <div key={m.id} className="hub-mission">
             <span><b>{m.text}</b> {c >= m.goal ? <em>{t('¡Reclama ◈ {n}!', { n: reward })}</em> : <em>◈ {reward}</em>}</span>
