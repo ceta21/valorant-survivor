@@ -90,7 +90,7 @@ h3 { text-transform: uppercase; font-weight: 700; letter-spacing: .1em; font-siz
 
 /* selección */
 .select-body { display: flex; gap: 24px; flex: 1; min-height: 0; }
-.agent-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; align-content: start; overflow: auto; padding: 4px; }
+.agent-grid { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; align-content: start; grid-auto-rows: max-content; overflow: auto; padding: 4px; }
 .agent-card { position: relative; padding: 0; border: 0; background: var(--ink2); aspect-ratio: 5 / 6; overflow: hidden; clip-path: var(--notch); }
 .agent-card::after { content: ""; position: absolute; inset: 0; box-shadow: inset 0 0 0 var(--p) var(--line); pointer-events: none; }
 .agent-card:hover { transform: translateY(-4px); } .agent-card:hover::after { box-shadow: inset 0 0 0 var(--p) var(--ac); }
