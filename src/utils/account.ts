@@ -78,14 +78,19 @@ export async function signOut() {
 /* ------------------------------------------------------------------ guardado en la nube */
 let pending: SaveData | null = null;
 let timer: ReturnType<typeof setTimeout> | null = null;
+let rejected: (() => void) | null = null;
+/** Qué hacer si el servidor rechaza un guardado (progreso imposible; ver supabase/seguridad.sql). */
+export function onSaveRejected(fn: (() => void) | null) { rejected = fn; }
 
 async function push() {
   if (!supabase || !pending) return;
   const save = pending; pending = null;
   const { data } = await supabase.auth.getSession();
   if (!data.session) return;
-  const { error } = await supabase.from('profiles').update({ save, updated_at: new Date().toISOString() }).eq('id', data.session.user.id);
-  if (error && !pending) pending = save;   // se reintentará en el próximo guardado
+  const res = await supabase.from('profiles').update({ save, updated_at: new Date().toISOString() }).eq('id', data.session.user.id).select('id');
+  if (res.error) { if (!pending) pending = save; return; }   // se reintentará en el próximo guardado
+  // 0 filas: el servidor no lo ha aceptado (créditos, compras o récords imposibles); se descarta y se recarga lo bueno
+  if (!res.data?.length) { pending = null; rejected?.(); }
 }
 
 /** Guarda el progreso (agrupando cambios seguidos en un solo envío). */

@@ -19,6 +19,8 @@ Scripts en `scripts/` (se ejecutan con `npx tsx`, sin navegador; las capturas va
 | Comando | Qué comprueba |
 |---|---|
 | `npm run test:sim` | Simula partidas de todos los héroes en solitario |
+| `npm run sql:seguridad` | Genera `supabase/seguridad.sql` con los precios actuales del juego (ejecutarlo en Supabase después) |
+| `npm run test:security` | Prueba `supabase/seguridad.sql` en un PostgreSQL en memoria: rechaza guardados tramposos y acepta los normales |
 | `npm run test:coop` | Motor con 2 jugadores: caídas, vuelta en la oleada, mejoras, abandono, mismo mundo con la misma semilla |
 | `npm run test:turrets` | Torretas de Tink: cuántas salen y si los robots las destruyen |
 | `npm run test:daily` | Diario: racha de conexión, misiones del día y su progreso |

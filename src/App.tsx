@@ -19,7 +19,7 @@ import { metaCost } from './data/meta';
 import { RunResult } from './game/types';
 import { SaveData, Settings, Prefs, vividFilter, clearLegacySave, defaultSave, loadLegacySave, loadPrefs, savePrefs } from './utils/storage';
 import { nf, setLang, t } from './i18n';
-import { Account, accountsEnabled, flushProgress, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
+import { Account, accountsEnabled, flushProgress, onSaveRejected, restoreSession, saveProgress, signIn, signOut, signUp } from './utils/account';
 import { AuthScreen } from './components/AuthScreen';
 import { MarketScreen } from './components/MarketScreen';
 import { NewsScreen } from './components/NewsScreen';
@@ -69,7 +69,12 @@ export default function App() {
     });
     const flush = () => { if (document.visibilityState === 'hidden') flushProgress(); };
     document.addEventListener('visibilitychange', flush);
-    return () => document.removeEventListener('visibilitychange', flush);
+    // el servidor rechazó un guardado imposible (supabase/seguridad.sql): aviso y se vuelve al progreso bueno
+    onSaveRejected(() => {
+      setSecMsg(true);
+      restoreSession().then(r => { if (r) setSave(r.save); });
+    });
+    return () => { document.removeEventListener('visibilitychange', flush); onSaveRejected(null); };
   }, []);
 
   const enter = (r: { account: Account; save: SaveData }) => { setAccount(r.account); setSave(r.save); setAuthFromMenu(false); setScreen('menu'); };
@@ -82,6 +87,7 @@ export default function App() {
   useEffect(() => { document.documentElement.style.setProperty('--hero-vivid', vividFilter(prefs.vivid)); }, [prefs.vivid]);
   useEffect(() => { audio.configure(save.settings); setAnalytics(save.settings.analytics); }, [save.settings]);
   /** Avisos arriba: logros conseguidos y premios del ranking del domingo. */
+  const [secMsg, setSecMsg] = useState(false);
   const [achToast, setAchToast] = useState<Pick<Achievement, 'id' | 'name' | 'reward'>[]>([]);
   // sonidos del menú: soplo al cambiar de pantalla, monedas al gastar o cobrar créditos y fanfarria con un logro
   const prevScreen = useRef(screen), prevCredits = useRef<number | null>(null);
@@ -271,6 +277,12 @@ export default function App() {
       {/* transición: una franja de la grieta cruza la pantalla en cada cambio (al entrar en partida, un círculo que se abre) */}
       {screen !== 'loading' && <div key={'wipe-' + screen} className={`scr-wipe ${screen === 'game' ? 'iris' : ''}`} aria-hidden="true" />}
       <UpdateToast inGame={screen === 'game'} />
+      {secMsg && (
+        <div className="sec-toast" role="alert" onClick={() => setSecMsg(false)} title={t('Cerrar')}>
+          <b>⚠ {t('Progreso no válido')}</b>
+          <span>{t('El servidor no ha aceptado el último guardado y se ha recargado tu progreso.')}</span>
+        </div>
+      )}
       {achToast.length > 0 && (
         <div className="ach-toast" role="status" onClick={() => setAchToast([])} title={t('Cerrar')}>
           {achToast.slice(0, achToast.length > 4 ? 3 : 4).map(a => <div key={a.id}><b>{a.id === 'sunday' ? a.name : <>🏆 {t('Logro')}: {t(a.name)}</>}</b><span>+◈ {nf(a.reward)}</span></div>)}

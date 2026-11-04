@@ -477,6 +477,9 @@ export const EN: Record<string, string> = {
   'Terror alado del Infierno': 'Winged Terror of the Inferno',
   'El que habla con la grieta': 'The One Who Speaks to the Rift',
   'Corazón de la grieta': 'Heart of the Rift',
+  /* ------------------------------------------------------------------ seguridad del progreso */
+  'Progreso no válido': 'Invalid progress',
+  'El servidor no ha aceptado el último guardado y se ha recargado tu progreso.': 'The server did not accept your last save and your progress has been reloaded.',
   /* ------------------------------------------------------------------ portales que se abren con jefes */
   'Empiezas en el Reino. Derrota jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.': 'You start in the Kingdom. Defeat bosses to open the portals to the Glacier, the City and the Inferno.',
   'Empezáis en el Reino. Derrotad jefes para abrir los portales al Glaciar, la Ciudad y el Infierno.': 'You both start in the Kingdom. Defeat bosses to open the portals to the Glacier, the City and the Inferno.',
