@@ -67,7 +67,7 @@ Tipos de habilidad (`kind`):
 | `strike` | Golpes de área con retardo sobre enemigos cercanos (granadas, cohetes, bombardeos). |
 | `turret` | Torretas que disparan solas durante un tiempo (Tink). Tienen vida y los robots pueden destruirlas. |
 | `seekers` | Proyectiles teledirigidos que marcan (Lyra: flechas; Morgan: espíritus). |
-| `blink` | Teletransporte en la dirección de movimiento + explosión al reaparecer (Vex, Grim, Draco, Sora). |
+| `blink` | Teletransporte en la dirección de movimiento + explosión al reaparecer (Vex, Grim, Draco, Sora). Normalmente se para al tocar un obstáculo; con `phase` (Paso sombrío de Vex y Desvanecer de Sora) atraviesa paredes, árboles y rocas y aparece en el punto libre más lejano del recorrido (nunca dentro de un obstáculo, ni en el mar o el abismo). |
 | `frenzy` | Cadencia aumentada y robo de vida por baja durante unos segundos (Brutus, Raven, Sora). |
 | `storm` | Lluvia de dagas al enemigo más cercano cada 0,07 s (Vex). |
 | `heal` | Curación y escudo (Seraph, Sylvan, Aqua…). |

@@ -44,6 +44,8 @@ export interface AbilityDef {
   shield?: number;
   invuln?: number;
   stun?: number;
+  /** Teletransporte que atraviesa paredes, árboles y rocas (aparece en el punto libre más lejano del recorrido). */
+  phase?: boolean;
   burn?: number;
   slow?: number;
   mark?: number;

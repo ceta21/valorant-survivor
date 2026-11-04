@@ -1963,7 +1963,13 @@ export class GameEngine {
         this.sparks(p.x, p.y, ab.color, 14, 220, 0.5);
         let nx = p.x, ny = p.y;
         const steps = 12;
-        for (let i = 1; i <= steps; i++) {
+        if (ab.phase) {
+          // atraviesa lo que haya en medio: desde el final del recorrido hacia atrás, el primer sitio libre
+          for (let i = steps; i >= 1; i--) {
+            const tx = p.x + (p.lastDirX * dist * i) / steps, ty = p.y + (p.lastDirY * dist * i) / steps;
+            if (!this.inObstacle(tx, ty, p.r)) { nx = tx; ny = ty; break; }
+          }
+        } else for (let i = 1; i <= steps; i++) {
           const tx = p.x + (p.lastDirX * dist * i) / steps, ty = p.y + (p.lastDirY * dist * i) / steps;
           if (this.inObstacle(tx, ty, p.r)) break;
           nx = tx; ny = ty;

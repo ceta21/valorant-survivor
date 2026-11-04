@@ -3,7 +3,7 @@
 > **No editar a mano.** Este fichero lo genera `scripts/docs-data.ts` a partir del código
 > (`npm run docs:data`). Si cambias algún dato del juego, vuelve a generarlo.
 >
-> Última generación: 2026-11-03 · versión de Novedades: v2.0
+> Última generación: 2026-11-04 · versión de Novedades: v2.0
 
 ## Héroes base
 
@@ -67,7 +67,7 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `piercingshot` | Disparo perforante | beam | 8 s | poison | power=6, radius=620, width=14 | Flecha cargada que atraviesa toda la línea de enemigos. |
 | `shieldcharge` | Carga con escudo | dash | 6 s | wind | power=4, radius=220, invuln=0.3 | Embestida invulnerable que daña a lo que atraviesa. |
 | `bulwark` | Baluarte | heal | 18 s | holy | power=0, heal=0.1, shield=40, invuln=1 | Gran escudo, algo de vida y 1 s de invulnerabilidad. |
-| `shadowstep` | Paso sombrío | blink | 7 s | shadow | power=3, radius=240, count=120 | Te teletransportas y dañas al reaparecer. |
+| `shadowstep` | Paso sombrío | blink | 7 s | shadow | phase=true, power=3, radius=240, count=120 | Te teletransportas atravesando paredes y árboles, y dañas al reaparecer. |
 | `shadowscythe` | Guadañas sombrías | boomerang | 7 s | shadow | power=3, count=2, radius=300 | 2 guadañas giratorias que van y vuelven atravesándolo todo. |
 | `thornpath` | Sendero de espinas | trail | 12 s | poison | power=1.2, duration=5, slow=0.5 | 5 s dejando un rastro de espinas venenosas que daña y ralentiza un 50%. |
 | `renewal` | Renovación | heal | 16 s | heal | power=0, heal=0.3, shield=15 | Recuperas 30% de vida y ganas escudo. |
@@ -98,7 +98,7 @@ Los héroes con coste 0 (Jett, Phoenix, Sage) están desbloqueados desde el prin
 | `dragonbreath` | Aliento de fuego | cone | 6 s | fire | power=5, radius=230, spread=80, burn=8 | Llamarada en abanico delante de ti que incendia. |
 | `fireorbs` | Escudo de fuego | orbit | 13 s | fire | power=3, count=4, radius=90, duration=6 | 6 s con 4 bolas de fuego girando a tu alrededor que queman. |
 | `illusionspiral` | Espiral ilusoria | spiral | 10 s | soul | power=1, count=4, duration=2 | 2 s lanzando bolas rosas en 4 espirales. |
-| `phase` | Desvanecer | blink | 8 s | shadow | power=3, radius=240, count=110 | Te teletransportas y dañas al aparecer. |
+| `phase` | Desvanecer | blink | 8 s | shadow | phase=true, power=3, radius=240, count=110 | Te teletransportas atravesando paredes y árboles, y dañas al aparecer. |
 | `miniturret` | Torreta | turret | 10 s | turret | power=1.6, count=1, duration=12 | Torreta que dispara a los enemigos durante 12 s (los robots pueden destruirla). |
 | `bombdrone` | Dron bombardero | strike | 8 s | grenade | power=5, count=2, radius=100, delay=0.6 | 2 bombas que estallan sobre los enemigos. |
 | `arcanestorm` | Tormenta arcana | beam | carga de definitiva | scan | power=6, count=8, radius=520, width=30 | 8 haces arcanos en todas direcciones. |

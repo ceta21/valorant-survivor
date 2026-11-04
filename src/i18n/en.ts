@@ -536,6 +536,7 @@ export const EN: Record<string, string> = {
   'Bots blindados': 'Armored bots',
   'Los bots tienen el doble de vida, y dan +50 % de experiencia.': 'Bots have double health, and give +50% experience.',
   /* ------------------------------------------------------------------ ranking del domingo */
+  'Paso sombrío (Vex) y Desvanecer (Sora) ahora atraviesan paredes, árboles y rocas.': 'Shadow step (Vex) and Vanish (Sora) now pass through walls, trees and rocks.',
   'Nuevo viaje por la grieta: siempre empiezas en el Reino y cada jefe que derrotas abre el portal a la siguiente zona (Glaciar, Ciudad e Infierno). El jefe final llega ahora a los 15:00, con más jefes por el camino.': 'A new journey through the rift: you always start in the Kingdom and every boss you defeat opens the portal to the next zone (Glacier, City and Inferno). The final boss now arrives at 15:00, with more bosses along the way.',
   'Zonas sin bordes: el Reino, el Glaciar, el Infierno y la Ciudad ya no son islas; puedes explorar en cualquier dirección y encontrarás más castillos, aldeas y caminos.': 'Borderless zones: the Kingdom, the Glacier, the Inferno and the City are no longer islands; explore in any direction and you will find more castles, villages and paths.',
   'El menú suena: al pasar por los botones, al cambiar de pantalla, al comprar o cobrar créditos, al conseguir un logro y al mirar las cartas de mejora.': 'The menu has sound: hovering buttons, changing screens, buying or claiming credits, unlocking achievements and browsing upgrade cards.',
@@ -751,7 +752,7 @@ export const EN: Record<string, string> = {
   'Elemento': 'Element',
   'Comprado · póntelo': 'Bought · equip it',
   /* ------------------------------------------------------------------ habilidades nuevas */
-  'Te teletransportas y dañas al reaparecer.': 'You teleport and deal damage when you reappear.',
+  'Te teletransportas atravesando paredes y árboles, y dañas al reaparecer.': 'You teleport through walls and trees, and deal damage when you reappear.',
   'Recuperas 35% de vida y ganas escudo.': 'You recover 35% health and gain a shield.',
   'Cura el 100%, gran escudo, invulnerable 2 s y aturde en área.': 'Heals 100%, big shield, 2 s of invulnerability and an area stun.',
   'Impulso rápido e invulnerable que daña a lo que atraviesa.': 'A quick invulnerable dash that damages whatever it passes through.',
@@ -832,7 +833,7 @@ export const EN: Record<string, string> = {
   '+1 vida/s y +20% curación': '+1 health/s and +20% healing',
   'Explorador': 'Trailblazer',
   'Recuperas 30% de vida y ganas escudo.': 'Recover 30% health and gain a shield.',
-  'Te teletransportas y dañas al aparecer.': 'Teleport and deal damage where you appear.',
+  'Te teletransportas atravesando paredes y árboles, y dañas al aparecer.': 'Teleport through walls and trees, and deal damage where you appear.',
   'Engaño': 'Fakeout',
   'Señuelo que estalla y aturde 1 s a los enemigos cercanos.': 'Decoy that bursts and stuns nearby enemies for 1 s.',
   'Marea': 'Tide',
